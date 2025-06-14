@@ -1,0 +1,25 @@
+{
+  "Homepage": {
+    "title": "Hello world!",
+    "button": "Go to the about page"
+  },
+  "General": {
+    "signout_button": "ログアウト",
+    "first_name": "名前",
+    "last_name": "名字",
+    "email": "メールアドレス",
+    "password": "パスワード"
+  },
+  "dashboard": {
+    "admin": {
+      "nav": {
+        "home": "ホーム",
+        "users": "ユーザ",
+        "students": "生徒",
+        "classrooms": "クラスルーム",
+        "courses": "コース",
+        "orders": "注文履歴"
+      }
+    }
+  }
+}

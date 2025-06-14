@@ -1,0 +1,25 @@
+{
+  "Homepage": {
+    "title": "Hello world!",
+    "button": "Go to the about page"
+  },
+  "General": {
+    "signout_button": "Log Out",
+    "first_name": "First Name",
+    "last_name": "Last Name",
+    "email": "Email",
+    "password": "Password"
+  },
+  "dashboard": {
+    "admin": {
+      "nav": {
+        "home": "Home",
+        "users": "Users",
+        "students": "Students",
+        "classrooms": "classrooms",
+        "courses": "Courses",
+        "orders": "Orders"
+      }
+    }
+  }
+}
