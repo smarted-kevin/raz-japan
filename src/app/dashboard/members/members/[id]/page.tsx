@@ -1,10 +1,7 @@
 
-interface MemberPageProps {
-  params: { id: string } & Record<string, string>; // accept any extra keys
-  searchParams?: Record<string, string | string[] | undefined>;
-}
+type Params = { id: string };
 
-export default async function MemberPage({ params }: MemberPageProps) {
+export default function MemberPage({ params }: { params: Params }) {
   const { id } = params;
   console.log (id);
   return (
