@@ -1,7 +1,14 @@
 
-type Params = { id: string };
+interface MemberPageProps {
+  // make params a Record so it extends Next’s Record<string,string>
+  params: Record<string, string> & { id: string };
+  // include the optional searchParams slot
+  searchParams?: Record<string, string | string[] | undefined>;
+}
 
-export default function MemberPage({ params }: { params: Params }) {
+export default async function MemberPage(
+  { params, searchParams }: MemberPageProps
+) {   // <-- this is the _argument_ type {
   const { id } = params;
   console.log (id);
   return (
