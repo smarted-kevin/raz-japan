@@ -23,7 +23,7 @@ export const getAllClassroomsWithCourseAndOrgName = query( async (ctx) => {
         classroom_name: classroom.classroom_name,
         status: classroom.status,
         course_name: course?.course_name ?? undefined,
-        organization_name: org?.organization_name ?? undefined
+        organization_name: org?.organization_name
       }
     })
   );
