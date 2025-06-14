@@ -12,7 +12,9 @@ import { createUserSession, removeUserSession } from "./core/session";
 export async function signIn(formData: signInSchema) {
   const user = await fetchQuery(api.queries.user.getUserByEmail, { email: formData.email });
 
-  if (user?.password == null || user?.pwSalt == null) {
+  if (!user) return "User not found.";
+
+  if (user.password == null || user?.pwSalt == null) {
     return "Unable to sign in.";
   };
   
@@ -21,17 +23,17 @@ export async function signIn(formData: signInSchema) {
     unhashedPassword: formData.password,
   });
 
-  const getHighestRole = (rolesArray: ("user" | "admin" | "god")[]) => {
-    if (rolesArray.includes("god")) { 
+  const getHighestRole = (role: string) => {
+    if (role === "god") { 
       return "god"; 
-    } else if (rolesArray.includes("admin")) {
+    } else if (role === "admin") {
       return "admin";
     } else {
       return "user";
     }
   }
 
-  const role = getHighestRole(user?.roles);
+  const role = getHighestRole(user.roles);
 
   if (!passwordsMatch) return "Unable to sign in.";
 
