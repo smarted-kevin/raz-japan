@@ -17,13 +17,13 @@ export const getAllClassroomsWithCourseAndOrgName = query( async (ctx) => {
   return Promise.all(
     classrooms.map(async (classroom) => {
       const course = await ctx.db.get(classroom.course_id);
-      const org = await ctx.db.get(classroom.organization_id);
+      const org = await ctx.db.get(classroom.organization_id) ?? undefined;
       return {
         classroom_id: classroom._id,
         classroom_name: classroom.classroom_name,
         status: classroom.status,
         course_name: course?.course_name ?? undefined,
-        organization_name: org?.organization_name
+        organization_name: org?.organization_name ?? undefined
       }
     })
   );
