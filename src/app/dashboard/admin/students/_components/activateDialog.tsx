@@ -14,10 +14,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
-import { Calendar as CalendarIcon } from "lucide-react"
-import { useRouter } from "next/navigation";
-import { useActionState } from "react";
-import { cn } from "~/lib/utils";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { api } from "~/convex/_generated/api";
 import { useMutation } from "convex/react";
@@ -30,9 +27,7 @@ export function ActivateDialog({ id }:{ id:string }) {
   const today = new Date();
   
   const [start_date, setDate] = React.useState<Date>();
-  const router = useRouter();
   
- 
   return (
     <Dialog>
       <DialogTrigger>

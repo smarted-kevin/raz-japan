@@ -32,6 +32,9 @@ export type Classroom = {
   status: "active" | "inactive",
   course_name: string | undefined,
   organization_name: string | undefined,
+  active_students: number | undefined,
+  inactive_students: number | undefined,
+  removed_students: number | undefined,
 }
 
 export type Course = {
