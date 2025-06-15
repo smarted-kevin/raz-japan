@@ -38,6 +38,7 @@ export type Classroom = {
 }
 
 export type Course = {
+  _id: Id<"course">,
   course_name: string,
   price: number,
   status: "active" | "inactive",

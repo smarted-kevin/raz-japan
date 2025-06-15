@@ -23,9 +23,9 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { type Classroom } from "../../_actions/schemas";
+import { type Course } from "../../_actions/schemas";
 
-export default function ClassroomTable({ classrooms }: { classrooms: Classroom[] }) {
+export default function CourseTable({ courses }: { courses: Course[] }) {
   
   const [status, setStatus] = useState("active")
 
@@ -44,24 +44,16 @@ export default function ClassroomTable({ classrooms }: { classrooms: Classroom[]
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>
-            <TableHead>Classroom Name</TableHead>
-            <TableHead>Course</TableHead>
-            <TableHead>Organization</TableHead>
-            <TableHead>Active Students</TableHead>
-            <TableHead>Inactive Students</TableHead>
-            <TableHead>Removed Students</TableHead>
+            <TableHead>Course Name</TableHead>
+            <TableHead>Price</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {classrooms.map((classroom) => (
-            (status === classroom.status) &&
-            <TableRow key={classroom.classroom_id}>
-              <TableCell>{classroom.classroom_name}</TableCell>
-              <TableCell>{classroom.course_name}</TableCell>
-              <TableCell>{classroom.organization_name}</TableCell>
-              <TableCell>{classroom.active_students}</TableCell>
-              <TableCell>{classroom.inactive_students}</TableCell>
-              <TableCell>{classroom.removed_students}</TableCell>
+          {courses.map((course) => (
+            (status === course.status) &&
+            <TableRow key={course._id}>
+              <TableCell>{course.course_name}</TableCell>
+              <TableCell>{course.price}</TableCell>
             </TableRow>
           ))}
         </TableBody>

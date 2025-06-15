@@ -2,7 +2,7 @@ import ClassroomTable from "./_components/classroomTable";
 import { api } from "~/convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 
-export default async function StudentsPage() {
+export default async function ClassroomPage() {
 
   const classrooms = await fetchQuery(
     api.queries.classroom.getAllClassroomsWithCourseAndOrgName, 
