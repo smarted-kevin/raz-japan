@@ -78,10 +78,11 @@ export type Cart = {
 }
 
 export type Full_Order = {
+  _id: Id<"full_order">,
   user_id: Id<"user">,
   total_amount: number,
-  promotion_id: Id<"promotion_code"> | undefined,
-  updated_on: number
+  promotion_id?: Id<"promotion_code"> | undefined,
+  updated_date: number
 }
 
 export type Student_Order = {

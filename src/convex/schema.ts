@@ -75,7 +75,7 @@ export default defineSchema({
   classroom: defineTable({
     classroom_name: v.string(),
     course_id: v.id("course"),
-    organization_id: v.optional(v.id("organization")),
+    organization_id: v.id("organization"),
     status: v.union(v.literal("active"), v.literal("inactive")),
     created_date: v.number(),
     updated_date: v.number(),
