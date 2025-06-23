@@ -7,11 +7,12 @@ import type { Id } from "~/convex/_generated/dataModel";
 import { api } from "~/convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 
-interface PageProps {
-  params: { id: string };
-}
 
-export default async function OrderPage({ params }: PageProps) {
+export default async function OrderPage({ 
+  params 
+}: {
+  params: { id: string }
+}) {
   
   const user = await fetchQuery(
     api.queries.user.getUserWithStudents, { id: params.id as Id<"user"> });
