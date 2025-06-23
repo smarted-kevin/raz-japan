@@ -6,12 +6,12 @@ import { api } from "~/convex/_generated/api";
 import { type Id } from "~/convex/_generated/dataModel";
 import { redirect } from "next/navigation";
 
-export default async function MemberPage({
-  params: { id },
-}: {
-  params: { id:Id<"user"> }
-}) {
-  const user = await fetchQuery(api.queries.user.getUserWithStudents, { id: id });
+interface PageProps {
+  params: { id: string };
+}
+
+export default async function MemberPage({ params }: PageProps) {
+  const user = await fetchQuery(api.queries.user.getUserWithStudents, { id: params.id as Id<"user"> });
 
   if (!user) redirect('/sign-in');
 
