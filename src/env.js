@@ -9,6 +9,7 @@ export const env = createEnv({
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
     CONVEX_DEPLOYMENT: z.string(),
+    STRIPE_SANDBOX_SECRET_KEY: z.string(),
   },
 
   /**
@@ -19,6 +20,7 @@ export const env = createEnv({
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
     NEXT_PUBLIC_CONVEX_URL: z.string(),
+    NEXT_PUBLIC_STRIPE_SANDBOX_PUBLIC_KEY: z.string(),
   },
 
   /**
@@ -28,7 +30,9 @@ export const env = createEnv({
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     CONVEX_DEPLOYMENT: process.env.CONVEX_DEPLOYMENT,
+    STRIPE_SANDBOX_SECRET_KEY: process.env.STRIPE_SANDBOX_SECRET_KEY,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
+    NEXT_PUBLIC_STRIPE_SANDBOX_PUBLIC_KEY: process.env.NEXT_PUBLIC_STRIPE_SANDBOX_PUBLIC_KEY,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

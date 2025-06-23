@@ -21,6 +21,7 @@ import type * as mutations_session from "../mutations/session.js";
 import type * as mutations_student from "../mutations/student.js";
 import type * as mutations_student_order from "../mutations/student_order.js";
 import type * as mutations_user from "../mutations/user.js";
+import type * as queries_cart from "../queries/cart.js";
 import type * as queries_classroom from "../queries/classroom.js";
 import type * as queries_course from "../queries/course.js";
 import type * as queries_full_order from "../queries/full_order.js";
@@ -47,6 +48,7 @@ declare const fullApi: ApiFromModules<{
   "mutations/student": typeof mutations_student;
   "mutations/student_order": typeof mutations_student_order;
   "mutations/user": typeof mutations_user;
+  "queries/cart": typeof queries_cart;
   "queries/classroom": typeof queries_classroom;
   "queries/course": typeof queries_course;
   "queries/full_order": typeof queries_full_order;

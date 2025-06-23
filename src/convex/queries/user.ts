@@ -12,7 +12,7 @@ export const getUserById = query({
 export const getUsersByRole = query({
   args: { role: v.union(v.literal("user"), v.literal("admin")) },
   handler: async (ctx, args) => {
-    const users = ctx.db
+    const users = await ctx.db
       .query("user")
       .withIndex("users_by_role", (q) => q.eq("role", args.role))
       .collect();
@@ -70,7 +70,7 @@ export const getUserWithStudents = query({
       last_name: user.last_name,
       email: user.email,
       status: user.status,
-      students: studentsWithClassroom,
+      students: studentsWithClassroom || [],
     }
   }
 })

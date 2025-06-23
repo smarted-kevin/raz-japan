@@ -1,6 +1,12 @@
 ## TODO
 
-**FINISH createStudent mutation in convex/mutations/student.ts file**
+**DO NEXT**
+1. Create order page to show user cart and allow for edits to cart
+2. create checkout page to allow user to purchase
+3. Set up stripe to allow user to purchase new students
+4. Add renewal functionality for existing students (within 60 days of expiry )
+
+
 
 [ ] - auth setup
 [x] - set up convex schema
@@ -13,9 +19,6 @@
 
 ************************************************
 
-**LOCALIZATION**
-[ ] - Language toggle button
-
 **AUTH SETUP**
 [ ] - authentication checks in dashboard pages and user pages
 [ ] - Log In button
@@ -23,13 +26,8 @@
 
 
 **Members Pages**
-[ ] - set up dynamic routes
-[ ] - create UI components
-[ ] - add payment buttons
 [ ] - "ADD STUDENT" button
 [ ] - add new student functionality
+[ ] - stripe integration:
+    [ ] - 
 
-**Admin Pages**
-[ ] - Student / User / Classroom / Organization pages
-[ ] - fetch students/users/classrooms/courses/organizations queries
-[ ] - create students/users/classrooms/courses/organizations mutations
