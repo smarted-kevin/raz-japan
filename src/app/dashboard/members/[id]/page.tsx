@@ -7,11 +7,12 @@ import { type Id } from "~/convex/_generated/dataModel";
 import { redirect } from "next/navigation";
 
 
-export default async function MemberPage({ 
-  params 
-}: { 
-  params: { id: string }
-}) {
+export default async function MemberPage(
+  props: { 
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params;
   const user = await fetchQuery(api.queries.user.getUserWithStudents, { id: params.id as Id<"user"> });
 
   if (!user) redirect('/sign-in');
