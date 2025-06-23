@@ -7,13 +7,16 @@ import type { Id } from "~/convex/_generated/dataModel";
 import { api } from "~/convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 
-export default async function OrderPage({ params }: { 
-  params: 
-    { id:Id<"user"> }
-}) {
+interface PageProps {
+  params: { id: string };
+}
+
+export default async function OrderPage({ params }: PageProps) {
   
-  const user = await fetchQuery(api.queries.user.getUserWithStudents, { id: params.id });
-  const cart = await fetchQuery(api.queries.cart.getCartByUserId, { id: params.id });
+  const user = await fetchQuery(
+    api.queries.user.getUserWithStudents, { id: params.id as Id<"user"> });
+  const cart = await fetchQuery(
+    api.queries.cart.getCartByUserId, { id: params.id as Id<"user"> });
   
   if (!user) {
     return <div>User not found.</div>;
