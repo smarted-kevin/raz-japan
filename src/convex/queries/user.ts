@@ -57,6 +57,7 @@ export const getUserWithStudents = query({
           username: student.username,
           password: student.password,
           user_id: student.user_id,
+          user_email: user.email,
           expiry_date: student.expiry_date,
           status: student.status,
           classroom_name: classroom?.classroom_name,
