@@ -24,6 +24,8 @@ export type StudentData = {
   status: "active" | "inactive" | "removed"
 }
 
+export type UserStudents = Exclude<StudentData, "user_email">;
+
 export type NewStudentData = {
   username: string,
   password: string,
