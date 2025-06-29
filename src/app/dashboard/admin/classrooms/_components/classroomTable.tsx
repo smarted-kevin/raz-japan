@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import * as React from "react";
 import {
   Table,
   TableBody,
@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -17,30 +16,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTrigger,
-} from "~/components/ui/dialog";
-import { type Classroom } from "../../_actions/schemas";
+import AddClassroomDialog from "./addClassroomDialog";
+import { type Classroom, type Course, type Organization } from "../../_actions/schemas";
 
-export default function ClassroomTable({ classrooms }: { classrooms: Classroom[] }) {
+export default function ClassroomTable({ 
+  classrooms, courses, orgs 
+}: { 
+  classrooms: Classroom[],
+  courses: Course[],
+  orgs: Organization[]
+}) {
   
-  const [status, setStatus] = useState("active")
+  const [openState, setOpenState] = React.useState(false);
+  const [status, setStatus] = React.useState("active");
 
   return (
     <>
-      <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="w-1/2">
-          <SelectValue>{status}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="active">active</SelectItem>
-          <SelectItem value="inactive">inactive</SelectItem>
-          <SelectItem value="removed">removed</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="flex gap-x-10 w-3/4 justify-between">
+        <Select 
+          value={status} 
+          onValueChange={setStatus}
+        >
+          <SelectTrigger className="min-w-24 w-1/3">
+            <SelectValue>{status}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">active</SelectItem>
+            <SelectItem value="inactive">inactive</SelectItem>
+            <SelectItem value="removed">removed</SelectItem>
+          </SelectContent>
+        </Select>
+        <AddClassroomDialog 
+          courses={courses} 
+          orgs={orgs}
+          openState={openState}
+          setOpenState={setOpenState}
+        />
+      </div>
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>

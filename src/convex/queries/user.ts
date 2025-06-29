@@ -51,7 +51,7 @@ export const getUserWithStudents = query({
 
     const studentsWithClassroom = await Promise.all(
       students.map(async (student) => {
-        const classroom = await ctx.db.get(student.classroom_id);
+        const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
         return {
           id: student._id, 
           username: student.username,
@@ -88,7 +88,7 @@ export const getUsersWithStudents = query(async (ctx) => {
 
         const studentsWithClassrooms = await Promise.all(
           students.map(async (student) => {
-            const classroom = await ctx.db.get(student.classroom_id);
+            const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
             return {
               id: student._id, 
               username: student.username,

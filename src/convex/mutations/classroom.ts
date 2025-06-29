@@ -32,6 +32,12 @@ export const createClassroom = mutation({
           updated_date: Date.now()
         }
       )
-      return new_class;
+    const classroom = await ctx.db.get(new_class);
+
+    return {
+      classroom_id: classroom?._id,
+      course_id: classroom?.course_id,
+      organization_id: classroom?.organization_id,
+    }
   }
 });

@@ -30,8 +30,8 @@ export const createStudents = mutation({
     students: v.array(v.object({
       username: v.string(),
       password: v.string(),
-      course_id: v.id("course"),
-      classroom_id: v.id("classroom"),
+      course_id: v.optional(v.id("course")),
+      classroom_id: v.optional(v.id("classroom")),
       status: v.union(v.literal("active"), v.literal("inactive"), v.literal("removed"))
     }))
   },

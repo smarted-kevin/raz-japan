@@ -30,8 +30,8 @@ export function ActivateDialog({ id }:{ id:string }) {
   
   return (
     <Dialog>
-      <DialogTrigger>
-        <Button size="sm" variant="ghost" className="text-xs p-1" type="button">Activate</Button>
+      <DialogTrigger title="Activate Student" className="text-xs text-blue-600 p-1">
+        Activate
       </DialogTrigger>
       <DialogContent>
         <DialogTitle className="pb-4">Enter user&apos;s email address and Select Start date</DialogTitle>

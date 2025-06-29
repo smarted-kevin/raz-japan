@@ -30,7 +30,10 @@ import { type Classroom, type StudentData } from "../../_actions/schemas";
 import { format } from "date-fns";
 
 
-export default function StudentRow( {student, classrooms, status}:{student:StudentData, classrooms:Classroom[], status:string} ) {
+export default function StudentRow({ 
+  student, classrooms }: {
+  student:StudentData, classrooms:Classroom[] 
+}) {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
 
@@ -50,8 +53,8 @@ export default function StudentRow( {student, classrooms, status}:{student:Stude
         <TableCell>
           <div className="flex gap-x-2 items-center">
             <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger className="text-xl">
-                <SquarePen size="16px"/>
+              <DialogTrigger className="text-xl" title="Edit Student">
+                <SquarePen className="text-blue-600" size="16px" />
               </DialogTrigger>
               <DialogContent>
                 <DialogTitle>Edit Student</DialogTitle>
@@ -113,7 +116,7 @@ export default function StudentRow( {student, classrooms, status}:{student:Stude
         <TableCell>{student.password}</TableCell>
         <TableCell>{student_classroom[0]?.course_name}</TableCell>
         <TableCell>{student.expiry_date ?? ""}</TableCell>
-        <TableCell>{student.user_id ?? ""}</TableCell>
+        <TableCell>{student.user_email ?? ""}</TableCell>
         <TableCell>{student_classroom[0]?.organization_name}</TableCell>
       </TableRow>
     </>

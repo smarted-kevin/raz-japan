@@ -17,9 +17,18 @@ export type StudentData = {
   id: Id<"student">,
   username: string,
   password: string,
+  user_email: string | undefined,
   user_id: Id<"user"> | undefined,
   classroom_name: string | undefined,
   expiry_date: number | undefined,
+  status: "active" | "inactive" | "removed"
+}
+
+export type NewStudentData = {
+  username: string,
+  password: string,
+  classroom_id: Id<"classroom"> | undefined,
+  course_id: Id<"course"> | undefined,
   status: "active" | "inactive" | "removed"
 }
 
@@ -36,6 +45,14 @@ export type Classroom = {
   inactive_students: number | undefined,
   removed_students: number | undefined,
 }
+
+export type NewClassroomForm = {
+  classroom_name: string,
+  course_name: string,
+  organization_name: string,
+  student_count: number 
+}
+
 
 export type Course = {
   _id: Id<"course">,

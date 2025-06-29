@@ -54,7 +54,7 @@ export default function StudentTable(
         <TableBody>
           {students.map((student) => (
             (status === student.status) &&
-            <StudentRow key={student.id} student={student} classrooms={classrooms} status={status}/>
+            <StudentRow key={student.id} student={student} classrooms={classrooms} />
           ))}
         </TableBody>
       </Table>

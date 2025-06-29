@@ -29,12 +29,15 @@ export const getAllStudentsWithClassroomAndUser = query({
       .collect();
 
     return await Promise.all(students.map(async (student) => {
-      const classroom = await ctx.db.get(student.classroom_id);
+      const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
+      const user = student.user_id ? await ctx.db.get(student.user_id) : undefined;
+
       return {
         id: student._id, 
         username: student.username,
         password: student.password,
         user_id: student.user_id,
+        user_email: user?.email ?? undefined,
         expiry_date: student.expiry_date,
         status: student.status,
         classroom_name: classroom?.classroom_name,

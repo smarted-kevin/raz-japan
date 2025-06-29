@@ -21,6 +21,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
+  DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
 import { type UserWithStudentData } from "../../_actions/schemas";
@@ -62,6 +63,7 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
                   <Dialog>
                     <DialogTrigger asChild><Button variant="outline" className="text-xs p-2">View Students</Button></DialogTrigger>
                     <DialogContent>
+                      <DialogTitle>Students</DialogTitle>
                       <DialogHeader>{`${user.students.length} ${user.students.length == 1 ? 'Current Student' : 'Current Students'}`}</DialogHeader>
                       <Table>
                         <TableHeader>
