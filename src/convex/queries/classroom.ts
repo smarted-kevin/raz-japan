@@ -20,7 +20,7 @@ export const getAllClassroomsWithCourseAndOrgName = query({
       classrooms.map(async (classroom) => {
         const students = args.student_counts ? await ctx.db
           .query("student")
-          .withIndex("by_classroom_name", (q) => q.eq("classroom_id", classroom._id))
+          .withIndex("by_classroom_id", (q) => q.eq("classroom_id", classroom._id))
           .collect()
         : undefined;
 
@@ -66,4 +66,30 @@ export const getClassroomsByStatus = query({
 
     return classrooms;
   }
+});
+
+export const classroomExportWithstudents = query({
+  args: { classroom_id: v.id("classroom") },
+  handler: async (ctx, args) => {
+    const classroom = await ctx.db.get(args.classroom_id);
+
+    if (!classroom) return null;
+    
+    const students = await ctx.db
+      .query("student")
+      .withIndex("by_classroom_id", (q) => q.eq("classroom_id", classroom._id))
+      .collect();
+
+    const studentUNandPW = students.map((s) => ({
+      username: s.username,
+      password: s.password
+    })); 
+
+    return {
+      classroom_name: classroom.classroom_name,
+      status: classroom.status,
+      students: studentUNandPW ?? []
+    }
+  }
 })
+

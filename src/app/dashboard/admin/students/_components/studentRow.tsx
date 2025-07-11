@@ -72,7 +72,7 @@ export default function StudentRow({
                         </SelectTrigger>
                         <SelectContent>
                           {classrooms.map((classroom) => (
-                            <SelectItem key="classroom_name" value={classroom.classroom_id}>{classroom.classroom_name}</SelectItem>
+                            <SelectItem key={classroom.classroom_name} value={classroom.classroom_id}>{classroom.classroom_name}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>

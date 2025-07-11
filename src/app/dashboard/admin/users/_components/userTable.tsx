@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import * as React from "react";
 import {
   Table,
   TableBody,
@@ -24,24 +24,32 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { type UserWithStudentData } from "../../_actions/schemas";
+import AddUserDialog from "./addUserDialog";
+import type { UserWithStudentData } from "../../_actions/schemas";
 
 export default function UserTable({ users }: { users: UserWithStudentData[] }) {
   
-  const [status, setStatus] = useState("active")
+  const [openState, setOpenState] = React.useState(false);
+  const [status, setStatus] = React.useState("active")
 
   return (
     <>
-      <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="w-1/2">
-          <SelectValue>{status}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="active">active</SelectItem>
-          <SelectItem value="inactive">inactive</SelectItem>
-          <SelectItem value="removed">removed</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="flex gap-x-10 w-3/4 justify-between">
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-1/2">
+            <SelectValue>{status}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">active</SelectItem>
+            <SelectItem value="inactive">inactive</SelectItem>
+            <SelectItem value="removed">removed</SelectItem>
+          </SelectContent>
+        </Select>
+        <AddUserDialog 
+          openState={openState}
+          setOpenState={setOpenState}
+        />
+      </div>
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>

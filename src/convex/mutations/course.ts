@@ -12,7 +12,7 @@ export const createCourse = mutation({
       .withIndex("by_course_name", (q) => q.eq("course_name", args.course_name))
       .first();
     
-    if (course) return "Course with that name already exists, choose a different name."
+    if (course) return {error: "Course with that name already exists, choose a different name."};
 
     const new_course = await ctx.db.insert(
       "course",
@@ -23,7 +23,9 @@ export const createCourse = mutation({
       }
     )
 
-    return new_course;
+    return {
+      course_id: new_course
+    };
   }
 });
 

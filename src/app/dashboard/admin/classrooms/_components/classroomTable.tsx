@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import AddClassroomDialog from "./addClassroomDialog";
+import DownloadButton from "./downloadButton";
 import { type Classroom, type Course, type Organization } from "../../_actions/schemas";
 
 export default function ClassroomTable({ 
@@ -56,6 +57,7 @@ export default function ClassroomTable({
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>
+            <TableHead className="w-12">Export</TableHead>
             <TableHead>Classroom Name</TableHead>
             <TableHead>Course</TableHead>
             <TableHead>Organization</TableHead>
@@ -68,6 +70,12 @@ export default function ClassroomTable({
           {classrooms.map((classroom) => (
             (status === classroom.status) &&
             <TableRow key={classroom.classroom_id}>
+              <TableCell>
+                <DownloadButton 
+                  classroomId={classroom.classroom_id}
+                  classroomName={classroom.classroom_name}
+                />
+              </TableCell>
               <TableCell>{classroom.classroom_name}</TableCell>
               <TableCell>{classroom.course_name}</TableCell>
               <TableCell>{classroom.organization_name}</TableCell>

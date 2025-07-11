@@ -8,8 +8,8 @@ export const config = {
   // except static assets.
   matcher: [
     // Skip Next.js internals and all static files, unless found in search params
-    '/((?!dashboard|_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+    '/((?!api|dashboard|_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
     // Always run for API routes
-    '/(api|trpc)(.*)',
+    //'/(api|trpc)(.*)',
   ],
 };

@@ -63,7 +63,7 @@ export default defineSchema({
     cart_id: v.optional(v.id("cart")),
   }).index("by_username_classroom", ["username", "classroom_id"])
     .index("by_user_id", ["user_id"])
-    .index("by_classroom_name", ["classroom_id"]),
+    .index("by_classroom_id", ["classroom_id"]),
   event: defineTable({
     type: v.string(),
     user_id: v.id("user"),
@@ -77,6 +77,8 @@ export default defineSchema({
     course_id: v.id("course"),
     organization_id: v.id("organization"),
     status: v.union(v.literal("active"), v.literal("inactive")),
+    username_words: v.optional(v.array(v.string())),
+    password_words: v.optional(v.array(v.string())),
     created_date: v.number(),
     updated_date: v.number(),
     removed_date: v.optional(v.number()),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import * as React from "react";
 import {
   Table,
   TableBody,
@@ -23,24 +23,33 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "~/components/ui/dialog";
+import AddCourseDialog from "./addCourseDialog";
 import { type Course } from "../../_actions/schemas";
+import { formatYen } from "~/lib/formatters";
 
 export default function CourseTable({ courses }: { courses: Course[] }) {
   
-  const [status, setStatus] = useState("active")
+  const [openState, setOpenState] = React.useState(false);
+  const [status, setStatus] = React.useState("active")
 
   return (
     <>
-      <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="w-1/2">
-          <SelectValue>{status}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="active">active</SelectItem>
-          <SelectItem value="inactive">inactive</SelectItem>
-          <SelectItem value="removed">removed</SelectItem>
-        </SelectContent>
-      </Select>
+      <div className="flex gap-x-10 w-3/4 justify-between">
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-1/2">
+            <SelectValue>{status}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">active</SelectItem>
+            <SelectItem value="inactive">inactive</SelectItem>
+            <SelectItem value="removed">removed</SelectItem>
+          </SelectContent>
+        </Select>
+        <AddCourseDialog
+          openState={openState}
+          setOpenState={setOpenState}
+        />
+      </div>
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>
@@ -53,7 +62,7 @@ export default function CourseTable({ courses }: { courses: Course[] }) {
             (status === course.status) &&
             <TableRow key={course._id}>
               <TableCell>{course.course_name}</TableCell>
-              <TableCell>{course.price}</TableCell>
+              <TableCell>{formatYen(course.price)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

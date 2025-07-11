@@ -9,12 +9,12 @@ export const getStudentById = query({
   }
 });
 
-export const getStudentByClassroomId = query({
+export const getStudentsByClassroomId = query({
   args: { classroom_id: v.id("classroom") },
   handler: async (ctx, args) => {
     const students = await ctx.db
       .query("student")
-      .withIndex("by_classroom_name", (q) => q.eq("classroom_id", args.classroom_id))
+      .withIndex("by_classroom_id", (q) => q.eq("classroom_id", args.classroom_id))
       .collect();
       
     return students;
@@ -54,7 +54,7 @@ export const getStudentCountInClassroomByStatus = query({
     const studentCounts = await Promise.all(classrooms.map(async (classroom) => {
       const students = await ctx.db
         .query("student")
-        .withIndex("by_classroom_name", (q) => q.eq("classroom_id", classroom._id))
+        .withIndex("by_classroom_id", (q) => q.eq("classroom_id", classroom._id))
         .collect();
 
       return {

@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { type Id } from "~/convex/_generated/dataModel";
 
 
@@ -12,6 +13,20 @@ export type UserData = {
 export type BasicUserData = Pick<UserData, 
     "first_name" | "last_name" | "email" | "status"
   >;
+
+export type NewUserForm = {
+  first_name: string,
+  last_name: string,
+  email: string,
+  role: "user" | "admin"
+}
+
+export const userSchema = z.object({
+  first_name: z.string(),
+  last_name: z.string(), 
+  email: z.string(),
+  role: z.enum(["user", "admin"])
+})
 
 export type StudentData = {
   id: Id<"student">,
@@ -63,6 +78,8 @@ export type Course = {
   status: "active" | "inactive",
 }
 
+export type NewCourseForm = Omit<Course, "course_id">;
+
 export type Organization = {
   organization_name: string,
   status: "active" | "inactive",
@@ -111,3 +128,25 @@ export type Student_Order = {
   order_type: "new" | "renewal" | "reactivation",
   activation_id: Id<"activation_code"> | undefined,
 }
+
+// CSV export schema
+export type StudentExportData = {
+  username: string;
+  password: string;
+}
+
+export type ClassroomExportData = {
+  classroom_name: string;
+  status: string;
+  students: StudentExportData[];
+}
+
+export const CSVHeaders = [
+  'student login name',
+  'first name (optional)',
+  'last name (optional)',
+  'district student id (optional)',
+  'grade (optional)',
+  'level (optional)',
+  'password'
+]

@@ -22,7 +22,7 @@ export async function addClassroom(formData: NewClassroomForm) {
     );
 
     //Return error if new classroom not created
-    if (!newClassroom) return "Target Angry!"
+    if (!newClassroom) return "Target Angry!"   ///FIX THIS
     
     // Check if newClassroom is an error string
     if (typeof newClassroom === "string") return newClassroom;
