@@ -26,8 +26,8 @@
 
 
 **Members Pages**
-[ ] - "ADD STUDENT" button
+[x] - "ADD STUDENT" button
+[ ] - Layout and styles
 [ ] - add new student functionality
 [ ] - stripe integration:
-    [ ] - 
 

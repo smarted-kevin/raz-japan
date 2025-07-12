@@ -8,7 +8,7 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-export default async function AdminLayout({ children }: { children: React.ReactNode } ) {
+export default async function MemberLayout({ children }: { children: React.ReactNode } ) {
   const locale = await getLocale();
 
   return ( 
