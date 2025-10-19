@@ -16,7 +16,7 @@ import { Label } from "~/components/ui/label";
 import { Button } from "~/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../../../convex/_generated/api";
 import { useMutation } from "convex/react";
  
 
