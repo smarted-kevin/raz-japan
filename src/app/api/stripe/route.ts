@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
             updated_on: Date.now()
           }
         );
-        if (!ordered_student) return "Something went wrong with ordered student."
+        if (!ordered_student) return new NextResponse("Bad Request", { status: 400 });
           
         // Update expiry dates and status for renewal students
         if (student_status == "active") {
