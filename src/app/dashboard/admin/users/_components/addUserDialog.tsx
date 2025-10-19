@@ -24,7 +24,7 @@ import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
 import { Label } from "~/components/ui/label";
 import { useMutation } from "convex/react";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../../../convex/_generated/api";
 
 const userSchema = z.object({
   first_name: z.string(),

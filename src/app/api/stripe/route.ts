@@ -5,7 +5,7 @@ import { env } from "~/env";
 import Stripe from "stripe";
 //import { ConvexHttpClient } from "convex/browser";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 
 //const convex = new ConvexHttpClient(env.NEXT_PUBLIC_CONVEX_URL);
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     const order = await fetchMutation(
       api.mutations.full_order.createFullOrder,
       { 
-        user_id: cart.user_id as Id<"users">,
+        user_id: cart.user_id as Id<"userTable">,
         total_amount: 0,
         updated_date: Date.now()
       }
