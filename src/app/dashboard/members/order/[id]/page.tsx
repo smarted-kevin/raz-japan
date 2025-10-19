@@ -1,7 +1,7 @@
 import { type Cart } from "~/app/dashboard/admin/_actions/schemas";
 import { MemberOrder } from "../_components/memberOrder";
 import type { Id } from "convex/_generated/dataModel";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../../../convex/_generated/api";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 
 

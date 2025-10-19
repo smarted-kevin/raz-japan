@@ -8,7 +8,7 @@ import {
 } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import Link from "next/link";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../../../convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import { notFound } from "next/navigation";
 import Stripe from "stripe";
@@ -40,7 +40,7 @@ export default async function SuccessPage(
 
   const user = await fetchQuery(
     api.queries.users.getUserById,
-    { id: cart?.user_id as Id<"users">}
+    { id: cart?.user_id as Id<"userTable">}
   );
 
   const renewal_students = await fetchQuery(

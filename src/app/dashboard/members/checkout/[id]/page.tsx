@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { CheckoutForm } from "./_components/checkoutForm";
 import { env } from "~/env";
 import { fetchQuery } from "convex/nextjs";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import type { Cart, Renewal_Student } from "~/app/dashboard/admin/_actions/schemas";
 import { getToken } from "~/lib/auth-server";

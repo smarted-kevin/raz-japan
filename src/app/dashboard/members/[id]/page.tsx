@@ -2,7 +2,7 @@ import { fetchQuery } from "convex/nextjs";
 import { CirclePlus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 import { type Id } from "convex/_generated/dataModel";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "~/components/ui/auth/signOut";
