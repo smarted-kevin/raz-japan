@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { fetchQuery } from "convex/nextjs";
-import { api } from "convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { getToken } from "~/lib/auth-server";
 
 export default async function DashboardPage() {

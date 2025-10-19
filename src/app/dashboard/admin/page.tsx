@@ -1,4 +1,4 @@
-import { api } from "convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import { Authenticated, Unauthenticated, AuthLoading } from "convex/react";
 import { redirect } from "next/navigation";

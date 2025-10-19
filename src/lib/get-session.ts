@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { auth } from "convex/betterAuth/auth";
+import { auth } from "@/convex/betterAuth/auth";
 import { cache } from "react";
 
 export const getServerSession = cache(async () => {
