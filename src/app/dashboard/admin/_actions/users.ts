@@ -26,20 +26,20 @@ export async function addUser(formData:z.infer<typeof userSchema>) {
   // const hashedPassword = await hashPassword(password, salt);
 
 
-  const newUser = await fetchMutation(
-    api.mutations.users.adminCreateUser, 
-    {
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      email: formData.email,
-      password: formData.password,
-      role: formData.role,
-      status: "active",
-      updated_at: Date.now()
-    }
-  );
+  // const newUser = await fetchMutation(
+  //   api.mutations.users.adminCreateUser, 
+  //   {
+  //     first_name: formData.first_name,
+  //     last_name: formData.last_name,
+  //     email: formData.email,
+  //     password: formData.password,
+  //     role: formData.role,
+  //     status: "active",
+  //     updated_at: Date.now()
+  //   }
+  // );
 
-  return {
-    user_id: newUser
-  };
+  // return {
+  //   user_id: newUser
+  // };
 }
