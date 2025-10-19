@@ -1,5 +1,5 @@
 import OrderTable from "./_components/orderTable";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import { type Full_Order } from "../_actions/schemas";
 import { getToken } from "~/lib/auth-server";

@@ -1,7 +1,7 @@
 "use server";
 
 import { fetchMutation, fetchQuery } from "convex/nextjs";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 import { createRandomString, generateSalt, hashPassword } from "~/auth/core/passwordHasher";
 import { z } from "zod";
 

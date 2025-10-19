@@ -1,5 +1,5 @@
 import StudentTable from "./_components/studentTable";
-import { api } from "convex/_generated/api";
+import { api } from "../../../../../convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
