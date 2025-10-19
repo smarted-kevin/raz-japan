@@ -97,7 +97,7 @@ export async function POST(req: NextRequest) {
             updated_on: Date.now()
           }
         );
-        if (!ordered_student) return new NextResponse("Bad Request", { status: 400 });
+        if (!ordered_student) return new NextResponse("Something went wrong", { status: 400 });
           
         // Update expiry dates and status for renewal students
         if (student_status == "active") {
@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
             }
           );
 
-          if (!new_student_order) return "Something went wrong with new student order.";
+          if (!new_student_order) return new NextResponse("Something went wrong", { status: 400 });
           // Activate student 
           const activated_student = await fetchMutation(
             api.mutations.student.activateStudent,
