@@ -1,10 +1,17 @@
 {
   "Homepage": {
     "title": "Hello world!",
-    "button": "Go to the about page"
+    "button": "Go to the about page",
+    "home": "トップ",
+    "login_button": "ログイン",
+    "logout_button": "ログアウト",
+    "about": "Raz-Japanについて",
+    "getting_started": "初め方",
+    "contact": "お問合せ"
   },
   "General": {
-    "signout_button": "ログアウト",
+    "login_button": "ログイン",
+    "logout_button": "ログアウト",
     "first_name": "名前",
     "last_name": "名字",
     "email": "メールアドレス",

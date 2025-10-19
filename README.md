@@ -1,33 +1,32 @@
-## TODO
+**Things I want to work on next**
+[x] - HP...at least real filler content with links to backend pages.
+      [x] - Navbar on login page   
+[ ] - PUSH TO PROD!
+[ ] - Testing orders and stripe setup
 
-**DO NEXT**
-1. Create order page to show user cart and allow for edits to cart
-2. create checkout page to allow user to purchase
-3. Set up stripe to allow user to purchase new students
-4. Add renewal functionality for existing students (within 60 days of expiry )
-
-
-
-[ ] - auth setup
-[x] - set up convex schema
-[x] - create tables
-[x] - localization setup
-[ ] - members pages
-[ ] - admin backend
-[ ] - copy files to new project folder
-[ ] - set up stripe in new project folder
-
-************************************************
-
-**AUTH SETUP**
-[ ] - authentication checks in dashboard pages and user pages
-[ ] - Log In button
-[ ] - Log Out button
+[ ] - Member page layout - mockup and code
+      [ ] - Navbar (profile, students, order history)
+      [ ] - Logout button in navbar
+      [ ] - 
+[ ] - Dashboard top page:
+      [ ] - Summary section (total students, total classrooms, notifications, etc.)
+      [ ] - Left sidebar??
+[ ] - Classroom dashboard page showing the following:
+      [ ] - Summary of students (active, inactive) at top
+      [ ] - List of active students and inactive students
+      [ ] - add students functionality
 
 
-**Members Pages**
-[x] - "ADD STUDENT" button
-[ ] - Layout and styles
-[ ] - add new student functionality
-[ ] - stripe integration:
+**CURRENT ISSUES**
+
+[ ] - Renewal student expiry date not changing on renewal (when expiry date is null)
+[ ] - User should not be allowed to click past checkout page if new students == 0 and no renewal students selected
+[ ] - Members page should show the following for students:
+      -Classroom name
+      -Password
+      -Expiry date
+[ ] - No nav bar on members page
+
+
+
 

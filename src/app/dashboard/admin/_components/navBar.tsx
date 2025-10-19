@@ -1,8 +1,10 @@
 import DashboardLocaleSwitcher from "../../dashboardLocaleSwitcher";
 import NavLinks from "./navLinks";
-import { SignOutButton } from "~/components/ui/auth/signOutButton";
+import { SignOutButton } from "~/components/ui/auth/signOut";
 
-export default function TopNav() {
+
+export default async function TopNav() {
+
   return (
     <div className="bg-blue-400 h-12">
       <div className="flex justify-center gap-x-8 items-center text-white h-full">

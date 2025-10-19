@@ -1,13 +1,13 @@
 import { z } from "zod";
-import { type Id } from "~/convex/_generated/dataModel";
+import { type Id } from "convex/_generated/dataModel";
 
 
 export type UserData = {
-  id: Id<"user">
-  first_name: string,
-  last_name: string,
-  email: string,
-  status: "active" | "inactive"
+  id: Id<"userTable">
+  first_name: string | undefined,
+  last_name: string | undefined,
+  email: string | undefined,
+  status: "active" | "inactive" | undefined
 }
 
 export type BasicUserData = Pick<UserData, 
@@ -33,7 +33,7 @@ export type StudentData = {
   username: string,
   password: string,
   user_email: string | undefined,
-  user_id: Id<"user"> | undefined,
+  user_id: Id<"userTable"> | undefined,
   classroom_name: string | undefined,
   expiry_date: number | undefined,
   status: "active" | "inactive" | "removed"
@@ -108,14 +108,29 @@ export type Promotion_Code = {
 }
 
 export type Cart = {
-  user_id: Id<"user">,
-  updated_on: number,
+  cart_id: Id<"cart">,
+  user_id: Id<"userTable"> | undefined,
+  updated_on: number | undefined,
   new_students: number | undefined,
+  renewal_students: Id<"student">[] | [] | undefined
+}
+
+export type Renewal_Student = {
+  student: {
+    id: Id<"student">,
+    username: string,
+    status: "active" | "inactive" | "removed"
+  }, classroom: {
+    classroom_name: string
+  }, course: {
+    course_name: string,
+    price: number
+  }
 }
 
 export type Full_Order = {
   _id: Id<"full_order">,
-  user_id: Id<"user">,
+  user_id: Id<"userTable">,
   total_amount: number,
   promotion_id?: Id<"promotion_code"> | undefined,
   updated_date: number

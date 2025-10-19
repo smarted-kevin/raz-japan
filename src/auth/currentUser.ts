@@ -1,10 +1,10 @@
 import { cookies } from "next/headers";
 import { cache } from "react";
 import { getUserFromSession } from "./core/session";
-import { type Id } from "~/convex/_generated/dataModel";
+import { type Id } from "convex/_generated/dataModel";
 import { fetchQuery } from "convex/nextjs";
 import { redirect } from "next/navigation";
-import { api } from "~/convex/_generated/api";
+import { api } from "convex/_generated/api";
 
 
 type FullUser = Exclude<
@@ -57,6 +57,6 @@ async function _getCurrentUser({
 
 export const getCurrentUser = cache(_getCurrentUser);
 
-function getUserFromDB(id: Id<"user">) {
-  return fetchQuery(api.queries.user.getUserById, { id }); 
+function getUserFromDB(id: Id<"users">) {
+  return fetchQuery(api.queries.users.getUserById, { id }); 
 }

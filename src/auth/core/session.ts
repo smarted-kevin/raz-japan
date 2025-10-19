@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { fetchMutation, fetchQuery } from "convex/nextjs";
-import { api } from "~/convex/_generated/api";
-import { type Id } from "~/convex/_generated/dataModel";
+import { api } from "convex/_generated/api";
+import { type Id } from "convex/_generated/dataModel";
 import { cookies } from "next/headers";
 import { type FunctionReference } from "convex/server";
 
@@ -32,10 +32,10 @@ export { apiTyped };
 // Seven days in seconds
 const SESSION_EXPIRATION_SECONDS = 60 * 60 * 24 * 7;
 const COOKIE_SESSION_KEY = "session-id";
-type Role = "user" | "admin" | "god";
+type Role = "user" | "admin" | "god" | undefined;
 
 type UserSession = {
-  userId: Id<"user">;
+  userId: Id<"users">;
   role: Role;
 } | null;
 

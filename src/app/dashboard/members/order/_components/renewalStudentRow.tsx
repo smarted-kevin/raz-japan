@@ -6,7 +6,8 @@ import {
   TableCell,
   TableRow,
 } from "~/components/ui/table";
-import type { Id } from "~/convex/_generated/dataModel";
+import type { Id } from "convex/_generated/dataModel";
+import { dateDisplayFormat } from "~/lib/formatters";
 
 type CheckboxProps = {
   student: StudentData;
@@ -40,7 +41,7 @@ export function RenewalStudentRow(
       <TableCell>{student.status}</TableCell>
       <TableCell>{student.classroom_name}</TableCell>
       <TableCell>{student.username}</TableCell>
-      <TableCell>{student.expiry_date ?? "N/A"}</TableCell>
+      <TableCell>{dateDisplayFormat(student.expiry_date) ?? "N/A"}</TableCell>
     </TableRow>
     </>
   )

@@ -9,7 +9,7 @@ export function SignOutButton() {
 
   return (
     <Button variant="destructive" onClick={async () => await signOut()}>
-      { t("signout_button") }
+      { t("logout_button") }
     </Button>
   )
 }

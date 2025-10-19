@@ -1,8 +1,12 @@
 import "~/styles/globals.css";
-
+import { ConvexClientProvider } from "~/app/ConvexClientProvider";
 import { type Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
-
+import { getLocale } from "next-intl/server";
+import { getServerSession } from "~/lib/get-session";
+import type { User } from "convex/auth";
+import { redirect } from "next/navigation";
+import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
 
 export const metadata: Metadata = {
   title: "Raz Japan",
@@ -14,9 +18,30 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
 
+  const session = await getServerSession();
+  const user = session?.user as User;
+
+  if (user && user.role == "user") { 
+    redirect(`/dashboard/member/${user.id}`);
+  }
+
+  if (user && (user.role == "admin" || user.role == "god")) { 
+    redirect('/dashboard/admin');
+  }
+
+  const locale = await getLocale();
+
   return (
-    <NextIntlClientProvider>
-      { children }
-    </NextIntlClientProvider>
-  );
+    <html lang={locale}>
+        <body>
+          <NextIntlClientProvider>
+            <ConvexClientProvider>
+              <PublicNavBar />
+              {children}
+            </ConvexClientProvider>
+          </NextIntlClientProvider>
+        </body>
+      </html>
+  )
 }
+      

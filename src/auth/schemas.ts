@@ -1,5 +1,5 @@
 import { type Infer, v } from "convex/values";
-import { type Id } from "~/convex/_generated/dataModel";
+import { type Id } from "convex/_generated/dataModel";
 
 export const emailValidator = v.string();
 export const stringValidator = v.string();
@@ -7,7 +7,7 @@ export const roles = v.union(v.literal("user"), v.literal("admin"), v.literal("g
 
 
 export type UserSession = {
-  userId: Id<"user">;
+  userId: Id<"userTable">;
   role: Infer<typeof roles>;
 }
 

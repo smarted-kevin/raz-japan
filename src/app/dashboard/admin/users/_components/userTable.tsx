@@ -26,6 +26,7 @@ import {
 } from "~/components/ui/dialog";
 import AddUserDialog from "./addUserDialog";
 import type { UserWithStudentData } from "../../_actions/schemas";
+import { dateDisplayFormat } from "~/lib/formatters";
 
 export default function UserTable({ users }: { users: UserWithStudentData[] }) {
   
@@ -86,7 +87,7 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
                             <TableRow key={s.id}>
                               <TableCell>{s.classroom_name}</TableCell>
                               <TableCell>{s.username}</TableCell>
-                              <TableCell>{s.expiry_date}</TableCell>
+                              <TableCell>{dateDisplayFormat(s.expiry_date)}</TableCell>
                             </TableRow>
                           ))}
                         </TableBody>

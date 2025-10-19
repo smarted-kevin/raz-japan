@@ -21,16 +21,20 @@ import {
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import { useRouter } from "next/navigation";
-import { addUser } from "../../_actions/user";
+import { authClient } from "~/lib/auth-client";
 import { Label } from "~/components/ui/label";
+import { useMutation } from "convex/react";
+import { api } from "convex/_generated/api";
 
 const userSchema = z.object({
   first_name: z.string(),
   last_name: z.string(), 
   email: z.string(),
+  password: z.string(),
   role: z.enum(["user", "admin"])
 })
+
+type Userform = z.infer<typeof userSchema>;
 
 export default function AddUserDialog({
   openState, setOpenState }: {
@@ -38,34 +42,63 @@ export default function AddUserDialog({
   setOpenState: (open: boolean) => void
 }) {
 
-  const router = useRouter();
+  const createUser = useMutation(api.mutations.users.createUser);
 
   const [error, setError] = React.useState<string>();
-  const form = useForm<z.infer<typeof userSchema>>({
+  const [loading, setLoading] = React.useState(false);
+  
+  const form = useForm<Userform>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       first_name: "",
       last_name: "",
       email: "",
+      password: "",
       role: "user"
-    }
+    },
   });
 
-  async function onSubmit(values: z.infer<typeof userSchema>) {
-    const result = await addUser({ 
-      first_name: values.first_name,
-      last_name: values.last_name,
-      email: values.email,
-      role: values.role
-    });
-    if (result.error) {
-      setError(result.error);
-    } else {
-      setError(undefined);
-      setOpenState(false);
-      router.refresh();
-    }
+  async function onSubmit({first_name, last_name, email, password, role}: Userform) {
+    const { data, error } = await authClient.signUp.email(
+      {
+        email: email,
+        password: password,
+        name: `${first_name} ${last_name}`,
+        role: role
+      } as Parameters<typeof authClient.signUp.email>[0] & { role: string },
+      {
+        onRequest: () => {
+          setLoading(true);
+        },
+        onSuccess: async () => {
+          setLoading(false);
+          // try {
+          //   await createUser(
+          //     {
+          //       first_name,
+          //       last_name,
+          //       email,
+          //       role,
+          //       updated_at: Date.now(),
+          //       status: "active"
+          //     }
+          //   )
+          // } catch (e) {
+          //   console.log(e);
+          // }
+        },
+        onError: async (ctx) => {
+          setLoading(false);
+          console.error(ctx.error);
+          console.error("response", ctx.response);
+          setError(ctx.error.message);
+          //toast.error(ctx.error.message);
+        },
+      },
+    );
+    console.log({ data, error });
   }
+
 
   return (
     <Dialog open={openState} onOpenChange={setOpenState}>
@@ -117,6 +150,21 @@ export default function AddUserDialog({
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex gap-x-4 items-center">
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
                       </FormControl>
                     </div>
                     <FormMessage />

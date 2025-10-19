@@ -3,14 +3,14 @@
 import { redirect } from "next/navigation";
 import type { signInSchema, signUpSchema } from "./schemas";
 import { fetchQuery, fetchMutation } from "convex/nextjs";
-import { api } from "~/convex/_generated/api";
+import { api } from "convex/_generated/api";
 import { comparePasswords, generateSalt, hashPassword } from "./core/passwordHasher";
 import { cookies } from "next/headers";
 import { createUserSession, removeUserSession } from "./core/session";
 
 
 export async function signIn(formData: signInSchema) {
-  const user = await fetchQuery(api.queries.user.getUserByEmail, { email: formData.email });
+  const user = await fetchQuery(api.queries.users.getUserByEmail, { email: formData.email });
 
   if (!user) return "User not found.";
 
@@ -23,7 +23,7 @@ export async function signIn(formData: signInSchema) {
     unhashedPassword: formData.password,
   });
 
-  const getHighestRole = (role: string) => {
+  const getHighestRole = (role: string | undefined) => {
     if (role === "god") { 
       return "god"; 
     } else if (role === "admin") {
@@ -48,7 +48,7 @@ export async function signIn(formData: signInSchema) {
 
 export async function signUp(formData: signUpSchema) {
   
-  const existingUser = await fetchQuery(api.queries.user.getUserByEmail, { email: formData.email });
+  const existingUser = await fetchQuery(api.queries.users.getUserByEmail, { email: formData.email });
 
   if (existingUser != null) return "Account already exists with this email.";
 
@@ -56,7 +56,7 @@ export async function signUp(formData: signUpSchema) {
     const salt = await generateSalt();
     const pwd = await hashPassword(formData.password, salt);
 
-    const user = await fetchMutation(api.mutations.user.createUser,
+    const user = await fetchMutation(api.mutations.users.createUser,
       { 
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -65,7 +65,6 @@ export async function signUp(formData: signUpSchema) {
         pwSalt: salt,
         role: "user",
         status: "active",
-        created_at: Date.now(),
         updated_at: Date.now(),
       }
     );

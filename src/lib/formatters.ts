@@ -24,9 +24,9 @@ export function capitalize(string: string) {
   }
 }
 
-export function dateDisplayFormat(date: Date | null | undefined): string {
-  if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
-    return "Invalid date";
+export function dateDisplayFormat(date: Date | number | null | undefined): string {
+  if (!date) {
+    return "";
   }
   return format(date, "yyyy-MM-dd");
 }

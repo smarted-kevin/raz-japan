@@ -24,7 +24,7 @@ import { Button } from "~/components/ui/button";
 import { ActivateDialog } from "./activateDialog";
 import { SquarePen } from "lucide-react";
 import { useMutation } from "convex/react";
-import { api } from "~/convex/_generated/api";
+import { api } from "convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { type Classroom, type StudentData } from "../../_actions/schemas";
 import { format } from "date-fns";

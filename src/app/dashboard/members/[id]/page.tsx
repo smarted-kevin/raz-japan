@@ -2,9 +2,10 @@ import { fetchQuery } from "convex/nextjs";
 import { CirclePlus } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
-import { api } from "~/convex/_generated/api";
-import { type Id } from "~/convex/_generated/dataModel";
+import { api } from "convex/_generated/api";
+import { type Id } from "convex/_generated/dataModel";
 import { redirect } from "next/navigation";
+import { SignOutButton } from "~/components/ui/auth/signOut";
 
 
 export default async function MemberPage(
@@ -13,7 +14,7 @@ export default async function MemberPage(
   }
 ) {
   const params = await props.params;
-  const user = await fetchQuery(api.queries.user.getUserWithStudents, { id: params.id as Id<"user"> });
+  const user = await fetchQuery(api.queries.users.getUserWithStudents, { id: params.id as Id<"userTable"> });
 
   if (!user) redirect('/sign-in');
 
@@ -23,6 +24,9 @@ export default async function MemberPage(
 
   return (
     <>
+      <div>
+        <SignOutButton />
+      </div>
       <div className="
           flex flex-col gap-y-4 my-12 mx-12 p-6 border-2 rounded-lg w-2/3">
         <div className="flex gap-x-4">
@@ -50,7 +54,7 @@ export default async function MemberPage(
               </Link>
             </Button>
           </div>
-          <div className="flex flex-col gap-y-2 border-2 max-w-max">
+          <div className="flex flex-col gap-y-2 border-2 rounded-lg max-w-max">
             {/** current students loop end **/}
             {currentStudents.length === 0 && 
               <p>No Students Here.</p>
@@ -67,7 +71,7 @@ export default async function MemberPage(
         {/** removed students loop start **/}
         <div className="flex flex-col gap-y-8">
           <h2 className="font-bold text-lg">Expired or Removed Students</h2>
-          <div className="flex flex-col gap-y-2 border-2 max-w-max">
+          <div className="flex flex-col gap-y-2 border-2 rounded-lg max-w-max">
             {removedStudents.length === 0 && 
               <p>No Students Here.</p>
             }

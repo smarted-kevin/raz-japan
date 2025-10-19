@@ -30,7 +30,7 @@ function LocaleButton({ locale }: { locale: Locale }) {
 
   return (
     <button
-      className="py-0.5 px-1.5 border-2 rounded-sm hover:bg-white hover:text-blue-400"
+      className="py-0.5 px-1.5 border-2 rounded-sm hover:bg-white hover:text-blue-400 transition-colors duration-500"
       name="locale"
       type="submit"
       value={locale}

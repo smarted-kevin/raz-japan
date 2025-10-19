@@ -20,7 +20,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import type { NewCourseForm} from "../../_actions/schemas";
 import { useMutation } from "convex/react";
-import { api } from "~/convex/_generated/api";
+import { api } from "convex/_generated/api";
 import { useRouter } from "next/navigation";
 
 export default function AddCourseDialog({ 

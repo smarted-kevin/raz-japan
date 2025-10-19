@@ -2,7 +2,7 @@
 
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import type { NewClassroomForm, NewStudentData } from "./schemas";
-import { api } from "~/convex/_generated/api";
+import { api } from "convex/_generated/api";
 import Words from "./wordList.json";
 
 export async function addClassroom(formData: NewClassroomForm) {

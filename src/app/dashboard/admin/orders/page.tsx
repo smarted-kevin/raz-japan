@@ -1,9 +1,18 @@
 import OrderTable from "./_components/orderTable";
-import { api } from "~/convex/_generated/api";
+import { api } from "convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import { type Full_Order } from "../_actions/schemas";
+import { getToken } from "~/lib/auth-server";
+import { redirect } from "next/navigation";
 
 export default async function OrderPage() {
+
+  const token = await getToken();
+  if (!token) redirect("/sign-in");
+  if (token) {
+    const user = await fetchQuery(api.auth.getCurrentUser, {}, {token});
+    if (!user || user.role != "admin") redirect("/sign-in");
+  }
 
   const orders = await fetchQuery(api.queries.full_order.getAllOrders);
 

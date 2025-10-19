@@ -1,5 +1,5 @@
 import CourseTable from "./_components/courseTable";
-import { api } from "~/convex/_generated/api";
+import { api } from "convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 
 export default async function CoursePage() {

@@ -1,6 +1,8 @@
+import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { notFound } from "next/navigation";
 import { routing } from "~/i18n/routing.public";
+import { ConvexClientProvider } from "../ConvexClientProvider";
 
 export default async function LocaleLayout({
   children,
@@ -16,10 +18,15 @@ export default async function LocaleLayout({
   }
 
   return (
-    <html lang={locale}>
-      <body>
-        <NextIntlClientProvider>{children}</NextIntlClientProvider>
-      </body>
-    </html>
+    <ConvexAuthNextjsServerProvider>
+      <html lang={locale}>
+        <body>
+          <NextIntlClientProvider>
+            <ConvexClientProvider>{children}</ConvexClientProvider>
+          </NextIntlClientProvider>
+        </body>
+      </html>
+
+    </ConvexAuthNextjsServerProvider>
   )
 }
