@@ -66,8 +66,8 @@ export const createAuth = (
             await requireActionCtx(ctx).runMutation(api.mutations.users.createUser, 
               {
                 auth_id: user.id,
-                first_name,
-                last_name,
+                first_name: first_name ?? "",
+                last_name: last_name ?? "",
                 email: user.email,
                 role: user.role as "user" | "admin",
                 updated_at: Date.now(),
