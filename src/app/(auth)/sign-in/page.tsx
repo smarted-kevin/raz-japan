@@ -1,5 +1,3 @@
-//import { SignInForm } from "~/components/ui/auth/sign-in"; /* SELF-MADE AUTH */
-//import { SignIn } from "~/components/ui/auth/signIn"; /* CONVEX AUTH */
 import { getServerSession } from "~/lib/get-session";
 import SignIn from "./SignIn";
 import type { User } from "convex/auth";
