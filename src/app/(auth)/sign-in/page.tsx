@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../../convex/_generated/api";
 import { getToken } from "~/lib/auth-server";
+import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
+
 
 export default async function SignInPage() {
 
@@ -29,8 +31,11 @@ export default async function SignInPage() {
   }
 
   return (
-    <div className="flex justify-center items-center my-8 min-w-screen">
-      <SignIn />
-    </div>
+    <>
+      <PublicNavBar/>
+      <div className="flex justify-center items-center my-8 min-w-screen">
+        <SignIn />
+      </div>
+    </>
   );
 }

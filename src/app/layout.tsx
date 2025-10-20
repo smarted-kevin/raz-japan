@@ -6,7 +6,6 @@ import { getLocale } from "next-intl/server";
 import { getServerSession } from "~/lib/get-session";
 import type { User } from "convex/auth";
 import { redirect } from "next/navigation";
-import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
 
 export const metadata: Metadata = {
   title: "Raz Japan",
@@ -36,7 +35,6 @@ export default async function RootLayout({
         <body>
           <NextIntlClientProvider>
             <ConvexClientProvider>
-              <PublicNavBar />
               {children}
             </ConvexClientProvider>
           </NextIntlClientProvider>

@@ -1,13 +1,14 @@
-//import { SignUpForm } from "~/components/ui/auth/sign-up";
-//import SignUpForm from "~/components/ui/auth/signUp";
 import SignUp from "./SignUp";
-
+import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
 
 export default async function SignUpPage() {
 
   return (
-    <div className="flex justify-center items-center my-8 min-w-screen">
-      <SignUp />
-    </div>
+    <>
+      <PublicNavBar/>
+      <div className="flex justify-center items-center my-8 min-w-screen">
+        <SignUp />
+      </div>
+    </>
   );
 }
