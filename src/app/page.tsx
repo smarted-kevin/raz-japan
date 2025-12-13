@@ -1,4 +1,9 @@
-import { BarChart3, BookOpen, BookText, Globe, Headphones, Heart, Mail, MessageSquare, PenTool, Phone, Sparkles, Trophy, UserPlus } from "lucide-react";
+import { 
+  BarChart3, BookOpen, BookText, 
+  Globe, Headphones, Heart, 
+  Mail, MessageSquare, PenTool, 
+  Phone, Sparkles, Trophy, UserPlus 
+} from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";

@@ -4,9 +4,13 @@ import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { BookOpen } from "lucide-react";
+import { authClient } from "~/lib/auth-client";
+import UserDropdown from "./userDropdown";
 
 export function PublicNavLinks() {
+
+  const { data: session } = authClient.useSession();
+
 
   const pathname = usePathname();
   const t = useTranslations("Homepage");
@@ -30,12 +34,17 @@ export function PublicNavLinks() {
           </Link>
         )
       })}
-     
-      <Button size="sm" className="ml-2">
-        <Link href="/sign-in">
-          {t("login_button")}
-        </Link>
-      </Button>
+      { !session && 
+        <Button size="sm" className="ml-2">
+          <Link href="/sign-in">
+            {t("login_button")}
+          </Link>
+        </Button>
+      }
+      { session &&
+        <UserDropdown user={session.user.id}/>
+      }
     </div>
+
   );
 }

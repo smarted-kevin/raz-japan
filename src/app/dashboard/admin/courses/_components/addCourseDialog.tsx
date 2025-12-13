@@ -19,9 +19,10 @@ import {
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import type { NewCourseForm} from "../../_actions/schemas";
-import { useMutation } from "convex/react";
-import { api } from "../../../../../../convex/_generated/api";
+import { useAction, useMutation } from "convex/react";
+import { api, internal } from "../../../../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export default function AddCourseDialog({ 
   openState, setOpenState }: {
@@ -29,7 +30,8 @@ export default function AddCourseDialog({
   setOpenState: (open: boolean) => void
 }) {
   const router = useRouter();
-  const addCourse = useMutation(api.mutations.course.createCourse);
+  //const addCourse = useMutation(api.mutations.course.createCourse);
+  const addCourse = useAction(api.stripe.createProduct);
 
   const [error, setError] = React.useState<string>();
   const form = useForm<NewCourseForm>({
@@ -41,7 +43,7 @@ export default function AddCourseDialog({
 
 
   async function onSubmit(values: NewCourseForm) {
-    const result = await addCourse({ course_name: values.course_name, price: values.price });
+    const result = await addCourse({ course_name: values.course_name, price: values.price }) as { course_id?: Id<"course">; error?: string };
     if (result.error) {
       setError(result.error);
     } else {

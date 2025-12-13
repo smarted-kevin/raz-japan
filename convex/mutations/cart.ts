@@ -47,13 +47,13 @@ export const updateCart = mutation({
 
     if (cart?._id != args.cart_id) return "Cart ids do not match";
 
-    const updated_cart = await ctx.db
+    await ctx.db
       .patch(args.cart_id,
         {
           new_students: args.new_students ?? cart.new_students,
           renewal_students: args.renewal_students ?? cart.renewal_students
         }
       )
-    return updated_cart;
+    return cart._id;
   }
 })

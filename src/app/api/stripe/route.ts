@@ -13,6 +13,8 @@ const stripe = new Stripe(env.STRIPE_SANDBOX_SECRET_KEY);
 
 export async function POST(req: NextRequest) {
   
+  console.log("In stripe api POST");
+
   let event: Stripe.Event;
   try {
     event = stripe.webhooks.constructEvent(
@@ -115,7 +117,9 @@ export async function POST(req: NextRequest) {
           ordered_students.push(updated_student);
         } else return "Something went wrong with updating student."
       })
-    )}
+    )} else {
+      return "not payment_intent.succeeded"
+    }
     
     // Activate students for new students and create ordered students
     if (cart.new_students && cart.new_students > 0 ) {

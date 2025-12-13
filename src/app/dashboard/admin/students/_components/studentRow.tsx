@@ -28,6 +28,7 @@ import { api } from "../../../../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { type Classroom, type StudentData } from "../../_actions/schemas";
 import { format } from "date-fns";
+import { dateDisplayFormat } from "~/lib/formatters";
 
 
 export default function StudentRow({ 
@@ -115,7 +116,7 @@ export default function StudentRow({
         <TableCell>{student.username}</TableCell>
         <TableCell>{student.password}</TableCell>
         <TableCell>{student_classroom[0]?.course_name}</TableCell>
-        <TableCell>{student.expiry_date ?? ""}</TableCell>
+        <TableCell>{dateDisplayFormat(student.expiry_date) ?? ""}</TableCell>
         <TableCell>{student.user_email ?? ""}</TableCell>
         <TableCell>{student_classroom[0]?.organization_name}</TableCell>
       </TableRow>

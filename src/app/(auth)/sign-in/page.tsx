@@ -3,9 +3,9 @@ import SignIn from "./SignIn";
 import type { User } from "convex/auth";
 import { redirect } from "next/navigation";
 import { fetchQuery } from "convex/nextjs";
-import { api } from "../../../../convex/_generated/api";
 import { getToken } from "~/lib/auth-server";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
+import { api } from "@/convex/_generated/api";
 
 
 export default async function SignInPage() {

@@ -1,4 +1,4 @@
-import { query } from "../_generated/server";
+import { internalQuery, query } from "../_generated/server";
 import { ConvexError, v } from "convex/values";
 import { getAuthUserId } from "@convex-dev/auth/server";
 
@@ -85,6 +85,7 @@ export const getUserWithStudents = query({
     
     return {
       id: user._id,
+      auth_id: user.auth_id,
       first_name: user.first_name,
       last_name: user.last_name,
       email: user.email,

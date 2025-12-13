@@ -3,24 +3,12 @@ import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  // users: defineTable({
-  //   image: v.optional(v.string()),
-  //   email: v.optional(v.string()),
-  //   emailVerificationTime: v.optional(v.number()),
-  //   /**Custom fields **/
-  //   first_name: v.optional(v.string()),
-  //   last_name: v.optional(v.string()),
-  //   role: v.optional(v.union(v.literal("user"), v.literal("admin"), v.literal("god"))),
-  //   status: v.optional(v.union(v.literal("active"), v.literal("inactive"))),
-  //   last_login: v.optional(v.number()),
-  //   updated_at: v.optional(v.number()),
-  // }).index("by_email", ["email"]).index("users_by_role", ["role"]),
-
   userTable: defineTable({
     auth_id: v.optional(v.string()),
     first_name: v.string(),
     last_name: v.string(),
     email: v.string(),
+    stripe_id: v.optional(v.string()),
     role: v.union(v.literal("user"), v.literal("admin"), v.literal("god")),
     updated_at: v.number(),
     last_login: v.optional(v.number()),
@@ -28,25 +16,6 @@ export default defineSchema({
   }).index("by_email", ["email"])
     .index("users_by_role", ["role"])
     .index("user_by_auth_id", ["auth_id"]),
-
-  // account: defineTable({
-  //   user_id: v.id("userTable"),
-  //   type: v.string(),
-  //   provider: v.string(),
-  //   provider_account_id: v.string(),
-  //   refresh_token: v.optional(v.string()),
-  //   access_token: v.optional(v.string()),
-  //   expires_at: v.optional(v.number()),
-  //   token_type: v.optional(v.string()),
-  //   scope: v.optional(v.string()),
-  //   id_token: v.optional(v.string()),
-  //   session_state: v.optional(v.string()),
-  //   refresh_token_expires_in: v.optional(v.number()),
-  //   created_at: v.number(),
-  //   updated_at: v.number(),
-  // })
-  //   .index("by_user_id", ["user_id"])
-  //   .index("by_provider_account", ["provider", "provider_account_id"]),
 
   session: defineTable({
     sessionId: v.string(),
@@ -104,6 +73,8 @@ export default defineSchema({
   course: defineTable({
     course_name: v.string(),
     price: v.number(),
+    stripe_price_id: v.optional(v.string()),
+    stripe_product_id: v.optional(v.string()),
     status: v.union(v.literal("active"), v.literal("inactive")),
   }).index("by_course_name", ["course_name"]),
 
@@ -147,9 +118,13 @@ export default defineSchema({
   full_order: defineTable({
     user_id: v.id("userTable"),
     total_amount: v.number(),
+    stripe_order_id: v.optional(v.string()),
+    status: v.optional(v.union(v.literal("created"), v.literal("pending"), v.literal("fulfilled"), v.literal("canceled"))),
     promotion_id: v.optional(v.id("promotion_code")),
     updated_date: v.number(),
-  }).index("by_user_id", ["user_id"]),
+  }).index("by_user_id", ["user_id"])
+    .index("by_stripe_order_id", ["stripe_order_id"])
+    .index("by_status", ["status"]),
 
   student_order: defineTable({
     activation_id: v.optional(v.id("activation_code")),

@@ -92,7 +92,8 @@ export const getRenewalStudentsWithClassroomAndCourse = query({
         },
         course: {
           course_name: course?.course_name,
-          price: course?.price
+          price: course?.price,
+          stripe_price_id: course?.stripe_price_id
         }
       }
     }));

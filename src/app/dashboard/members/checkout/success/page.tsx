@@ -15,6 +15,7 @@ import Stripe from "stripe";
 import { formatYen } from "~/lib/formatters";
 import { env } from "~/env";
 import type { Id } from "convex/_generated/dataModel";
+import { internal } from "@/convex/_generated/api";
 
 const stripe = new Stripe(env.STRIPE_SANDBOX_SECRET_KEY);
 
@@ -34,8 +35,8 @@ export default async function SuccessPage(
   if (paymentIntent.metadata.cart_id == null) { return notFound(); }
   
   const cart = await fetchQuery(
-    api.queries.cart.getCartById, 
-    { id: paymentIntent.metadata.cart_id as Id<"cart"> }
+    internal.queries.cart.getCartById, 
+    { id: paymentIntent.metadata?.cart_id as Id<"cart"> }
   );
 
   const user = await fetchQuery(

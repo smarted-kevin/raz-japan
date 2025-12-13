@@ -6,8 +6,15 @@ import {
   TableCell,
   TableRow,
 } from "~/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import type { Id } from "convex/_generated/dataModel";
 import { dateDisplayFormat } from "~/lib/formatters";
+import { isRenewable } from "~/lib/dateCompare";
+import { CircleAlert } from "lucide-react";
 
 type CheckboxProps = {
   student: StudentData;
@@ -31,12 +38,24 @@ export function RenewalStudentRow(
     <>
     <TableRow>
       <TableCell>
+        {isRenewable(60, student.expiry_date, Date.now()) &&
         <input type="checkbox"
           id={student.id}
           value={student.id}
           checked={isChecked}
           onChange={handleChange}
         />
+        }
+        {!isRenewable(60, student.expiry_date, Date.now()) &&
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <CircleAlert />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Must be within 60 days of expiry to renew</p>
+            </TooltipContent>
+          </Tooltip>
+        }
       </TableCell>
       <TableCell>{student.status}</TableCell>
       <TableCell>{student.classroom_name}</TableCell>

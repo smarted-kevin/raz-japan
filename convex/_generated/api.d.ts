@@ -32,6 +32,7 @@ import type * as queries_session from "../queries/session.js";
 import type * as queries_student from "../queries/student.js";
 import type * as queries_student_order from "../queries/student_order.js";
 import type * as queries_users from "../queries/users.js";
+import type * as stripe from "../stripe.js";
 
 import type {
   ApiFromModules,
@@ -72,6 +73,7 @@ declare const fullApi: ApiFromModules<{
   "queries/student": typeof queries_student;
   "queries/student_order": typeof queries_student_order;
   "queries/users": typeof queries_users;
+  stripe: typeof stripe;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 

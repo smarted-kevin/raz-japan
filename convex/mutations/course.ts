@@ -1,4 +1,4 @@
-import { mutation } from "../_generated/server";
+import { internalMutation, mutation } from "../_generated/server";
 import { v } from "convex/values";
 
 export const createCourse = mutation({
@@ -23,11 +23,35 @@ export const createCourse = mutation({
       }
     )
 
-    return {
-      course_id: new_course
-    };
+    return new_course;
   }
 });
+
+export const updateCourseWithStripe = internalMutation({
+  args: {
+    course_id: v.id("course"),
+    stripe_product_id: v.string(),
+    stripe_price_id: v.string()
+  },
+  handler: async (ctx, args) => {
+    const course = await ctx.db.get(args.course_id);
+    if (!course) return "No course found."
+
+    await ctx.db.patch(
+      args.course_id,
+      {
+        stripe_price_id: args.stripe_price_id,
+        stripe_product_id: args.stripe_product_id
+      }
+    );
+    const updated_course = await ctx.db.get(args.course_id);
+    
+    
+    return {
+      course_id: updated_course?._id
+    };
+  }
+})
 
 export const editCourse = mutation({
   args: {
@@ -40,15 +64,16 @@ export const editCourse = mutation({
     const course = await ctx.db.get(args.id);
     if (!course) return "No course found."
 
-    const updated_course = await ctx.db
-      .patch(
-        args.id,
-        {
-          course_name: args.course_name ?? course.course_name,
-          price: args.price ?? course.price,
-          status: args.status ?? course.status
-        }
-      )
-      return updated_course;
+    await ctx.db.patch(
+      args.id,
+      {
+        course_name: args.course_name ?? course.course_name,
+        price: args.price ?? course.price,
+        status: args.status ?? course.status
+      }
+    )
+
+    const updated_course = await ctx.db.get(args.id);
+    return updated_course;
   }
 });

@@ -1,7 +1,7 @@
-import { query } from "../_generated/server";
+import { internalQuery, query } from "../_generated/server";
 import { v } from "convex/values";
 
-export const getCartById = query({
+export const getCartById = internalQuery({
   args: { id: v.id("cart") },
   handler: async (ctx, args) => {
     const cart = ctx.db.get(args.id);

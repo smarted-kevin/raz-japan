@@ -33,8 +33,8 @@ export const authComponent = createClient<DataModel, typeof authSchema>(
 export const createAuth = (
   ctx: GenericCtx<DataModel>,
   { optionsOnly } = { optionsOnly: false }
-) => {
-  return betterAuth({
+) => 
+  betterAuth({
     // disable logging when createAuth is called just to generate options.
     // this is not required, but there's a lot of noise in logs without it.
     logger: {
@@ -85,8 +85,7 @@ export const createAuth = (
       // The Convex plugin is required for Convex compatibility
       convex(),
     ],
-  });
-};
+  } satisfies BetterAuthOptions);
 
 export type User = (typeof auth.$Infer.Session.user) & 
   { role: "user" | "admin" | "god" };
