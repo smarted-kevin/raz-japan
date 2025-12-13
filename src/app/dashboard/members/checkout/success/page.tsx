@@ -33,7 +33,7 @@ export default async function SuccessPage(
   )
 
   if (paymentIntent.metadata.cart_id == null) { return notFound(); }
-  
+  /*
   const cart = await fetchQuery(
     internal.queries.cart.getCartById, 
     { id: paymentIntent.metadata?.cart_id as Id<"cart"> }
@@ -52,13 +52,14 @@ export default async function SuccessPage(
   const isSuccess = paymentIntent.status === "succeeded";
 
   if (!isSuccess) return "Something went wrong.";
-
+*/
   return (
     <div className="mx-20">
       <div className="flex flex-col gap-y-4 mb-10">
         <h2 className="text-3xl font-bold">Success!</h2>
-        <h4 className="text-xl">{`Thank you for your order, ${user?.first_name}!`}</h4>
+        <h4 className="text-xl">{`Thank you for your order`}</h4>
       </div>
+      {/*
       <div className="flex flex-col gap-y-4">
         <h2 className="text-xl font-bold">Order Contents:</h2>
         <div>
@@ -107,6 +108,7 @@ export default async function SuccessPage(
           </Link>
         </Button>
       </div>
+        */}
 
     </div>
   )
