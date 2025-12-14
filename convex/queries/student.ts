@@ -1,4 +1,4 @@
-import { query } from "../_generated/server";
+import { internalQuery, query } from "../_generated/server";
 import { v } from "convex/values";
 
 export const getStudentById = query({
@@ -123,4 +123,70 @@ export const getStudentCountInClassroomByStatus = query({
 
     return studentCounts;
   }
+});
+
+/**
+ * Finds students expiring in approximately 1 month (30 days)
+ * Returns students with their user and course information for renewal notices
+ */
+export const getStudentsExpiringInOneMonth = internalQuery({
+  handler: async (ctx) => {
+    const now = Date.now();
+    const oneMonthFromNow = now + 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+    const oneDayBefore = oneMonthFromNow - 24 * 60 * 60 * 1000; // 1 day before to account for timing
+    
+    // Get all active students with expiry dates
+    const allStudents = await ctx.db
+      .query("student")
+      .withIndex("by_status", (q) => q.eq("status", "active"))
+      .collect();
+
+    // Filter students expiring in approximately 1 month (within a 2-day window)
+    const expiringStudents = allStudents.filter((student) => {
+      if (!student.expiry_date) return false;
+      return student.expiry_date >= oneDayBefore && student.expiry_date <= oneMonthFromNow;
+    });
+
+    // Get user and course information for each expiring student
+    const studentsWithDetails = await Promise.all(
+      expiringStudents.map(async (student) => {
+        const user = student.user_id ? await ctx.db.get(student.user_id) : undefined;
+        const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
+        const course = classroom && classroom.course_id ? await ctx.db.get(classroom.course_id) : undefined;
+
+        return {
+          studentId: student._id,
+          username: student.username,
+          expiryDate: student.expiry_date,
+          userId: student.user_id,
+          userEmail: user?.email,
+          userFirstName: user?.first_name,
+          userLastName: user?.last_name,
+          courseName: course?.course_name,
+          coursePrice: course?.price,
+        };
+      })
+    );
+
+    // Group by user to avoid sending multiple emails to the same user
+    const studentsByUser = new Map<string, typeof studentsWithDetails>();
+    
+    studentsWithDetails.forEach((student) => {
+      if (student.userId && student.userEmail) {
+        const userId = student.userId;
+        if (!studentsByUser.has(userId)) {
+          studentsByUser.set(userId, []);
+        }
+        studentsByUser.get(userId)!.push(student);
+      }
+    });
+
+    return Array.from(studentsByUser.entries()).map(([userId, students]) => ({
+      userId: userId,
+      userEmail: students[0].userEmail!,
+      userFirstName: students[0].userFirstName ?? "Valued Customer",
+      userLastName: students[0].userLastName ?? "",
+      expiringStudents: students,
+    }));
+  },
 });

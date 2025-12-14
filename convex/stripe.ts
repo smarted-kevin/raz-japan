@@ -6,6 +6,7 @@ import { action, internalAction } from "./_generated/server";
 import Stripe from "stripe";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
+import type { FunctionReference } from "convex/server";
 
 type CheckoutSession = Stripe.Checkout.Session;
 
@@ -87,7 +88,7 @@ export const checkout = action({
       line_items: line_items,
       mode: "payment",
       currency: "JPY",
-      success_url: "http://localhost:3000/dashboard/members/"+user.user_id+"/checkout/success",
+      success_url: "http://localhost:3000/dashboard/members/checkout/success",
       cancel_url: "http://localhost:3000/dashboard/members/"+user.user_id,
       metadata: {
         cart_id: cart_id,
@@ -232,21 +233,46 @@ export const fulfill = internalAction({
             }
           }
         }
+
+        // Send payment confirmation email
+        if (order) {
+          const orderDetails = await ctx.runQuery(
+            api.queries.full_order.getOrderById,
+            { id: order as Id<"full_order"> }
+          );
+
+          if (orderDetails) {
+            // Send email asynchronously - don't fail the webhook if email fails
+            try {
+              // Type assertion needed until Convex regenerates API types
+              const emailAction = (internal as {
+                email: {
+                  sendPaymentConfirmationEmail: FunctionReference<
+                    "action",
+                    "internal",
+                    {
+                      userId: Id<"userTable">;
+                      orderId: string;
+                      totalAmount: number;
+                      stripeOrderId?: string;
+                    }
+                  >;
+                };
+              }).email.sendPaymentConfirmationEmail;
+              await ctx.runAction(emailAction, {
+                userId: orderDetails.user_id,
+                orderId: String(orderDetails._id),
+                totalAmount: orderDetails.total_amount,
+                stripeOrderId: stripeId,
+              });
+            } catch (emailError) {
+              // Log error but don't fail the webhook
+              console.error("Failed to send payment confirmation email:", emailError);
+            }
+          }
+        }
         
       }
-      /*
-      if (event.type === "product.created") {
-        const product = event.data.object;
-        const course = await ctx.runQuery(api.queries.course.getCourseById, {id: product.metadata?.course_id as Id<"course">});
-        if (!course || course == null) return { success: false, error: "Course not found." };
-        await ctx.runMutation(internal.mutations.course.updateCourseWithStripe, {
-          course_id: course._id,
-          stripe_product_id: product.id,
-          stripe_price_id: product.default_price as string
-        });
-        return { success: true };
-      }
-      */
     } catch (err) {
       console.error(err);
       return { success: false, error: (err as { message: string }).message}

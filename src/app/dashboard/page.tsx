@@ -13,14 +13,12 @@ export default async function DashboardPage() {
     console.log(user);
   
     if (token && user.role == "admin") {
-      console.log("HERE");
       redirect("/dashboard/admin");
     }
     if (user && user.role == "user") {
-      console.log("THERE");
       const userTableUser = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id });
       if (userTableUser) {
-        redirect(`/dashboard/members/${userTableUser.user_id}`);
+        redirect(`${process.env.SITE_URL ?? "http://localhost:3000"}/dashboard/members/${userTableUser.user_id}`);
       }
     }
   }

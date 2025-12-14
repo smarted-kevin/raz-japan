@@ -13,6 +13,8 @@ import type * as betterAuth__generated_api from "../betterAuth/_generated/api.js
 import type * as betterAuth__generated_server from "../betterAuth/_generated/server.js";
 import type * as betterAuth_adapter from "../betterAuth/adapter.js";
 import type * as betterAuth_auth from "../betterAuth/auth.js";
+import type * as crons from "../crons.js";
+import type * as email from "../email.js";
 import type * as http from "../http.js";
 import type * as mutations_cart from "../mutations/cart.js";
 import type * as mutations_classroom from "../mutations/classroom.js";
@@ -54,6 +56,8 @@ declare const fullApi: ApiFromModules<{
   "betterAuth/_generated/server": typeof betterAuth__generated_server;
   "betterAuth/adapter": typeof betterAuth_adapter;
   "betterAuth/auth": typeof betterAuth_auth;
+  crons: typeof crons;
+  email: typeof email;
   http: typeof http;
   "mutations/cart": typeof mutations_cart;
   "mutations/classroom": typeof mutations_classroom;

@@ -5,7 +5,6 @@ import type { Id, DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { admin, customSession } from "better-auth/plugins";
-import { fetchQuery } from "convex/nextjs";
 import authSchema from "./betterAuth/schema";
 import { requireActionCtx } from "@convex-dev/better-auth/utils";
 import { type auth } from "./betterAuth/auth";
@@ -74,7 +73,6 @@ export const createAuth = (
                 status: "active",
               }
             );
-            console.log(user);
           }
         },
       }
