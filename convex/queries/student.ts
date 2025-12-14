@@ -183,10 +183,10 @@ export const getStudentsExpiringInOneMonth = internalQuery({
 
     return Array.from(studentsByUser.entries()).map(([userId, students]) => ({
       userId: userId,
-      userEmail: students[0].userEmail!,
+      userEmail: students[0].userEmail ?? "",
       userFirstName: students[0].userFirstName ?? "Valued Customer",
       userLastName: students[0].userLastName ?? "",
       expiringStudents: students,
-    }));
+    })) ?? [];
   },
 });
