@@ -183,10 +183,17 @@ export const getStudentsExpiringInOneMonth = internalQuery({
 
     return Array.from(studentsByUser.entries())
       .filter(([, students]) => students.length > 0)
-      .map(([userId, students]) => {
+      .map(([, students]) => {
         const firstStudent = students[0];
+        if (!firstStudent) {
+          throw new Error("Unexpected: empty students array after filter");
+        }
+        // firstStudent.userId is guaranteed to exist because we only added students where userId && userEmail were truthy
+        if (!firstStudent.userId) {
+          throw new Error("Unexpected: student without userId in grouped results");
+        }
         return {
-          userId: userId,
+          userId: firstStudent.userId,
           userEmail: firstStudent.userEmail ?? "",
           userFirstName: firstStudent.userFirstName ?? "Valued Customer",
           userLastName: firstStudent.userLastName ?? "",
