@@ -180,7 +180,7 @@ export const getStudentsExpiringInOneMonth = internalQuery({
         studentsByUser.get(userId)!.push(student);
       }
     });
-    if (studentsByUser && studentsByUser.size > 0) {
+    if (!studentsByUser == undefined && studentsByUser.size > 0) {
       return Array.from(studentsByUser.entries()).map(([userId, students]) => ({
         userId: userId,
         userEmail: students[0].userEmail ?? "",
