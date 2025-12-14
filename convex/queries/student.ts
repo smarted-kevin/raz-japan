@@ -180,13 +180,17 @@ export const getStudentsExpiringInOneMonth = internalQuery({
         studentsByUser.get(userId)!.push(student);
       }
     });
+    if (studentsByUser && studentsByUser.size > 0) {
+      return Array.from(studentsByUser.entries()).map(([userId, students]) => ({
+        userId: userId,
+        userEmail: students[0].userEmail ?? "",
+        userFirstName: students[0].userFirstName ?? "Valued Customer",
+        userLastName: students[0].userLastName ?? "",
+        expiringStudents: students,
+      }));
+    } else {
+      return [];
+    }
 
-    return Array.from(studentsByUser.entries()).map(([userId, students]) => ({
-      userId: userId,
-      userEmail: students[0].userEmail ?? "",
-      userFirstName: students[0].userFirstName ?? "Valued Customer",
-      userLastName: students[0].userLastName ?? "",
-      expiringStudents: students,
-    })) ?? [];
   },
 });
