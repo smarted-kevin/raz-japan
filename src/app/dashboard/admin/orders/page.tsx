@@ -1,7 +1,6 @@
 import OrderTable from "./_components/orderTable";
-import { api } from "../../../../../convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
-import { type Full_Order } from "../_actions/schemas";
 import { getToken } from "~/lib/auth-server";
 import { redirect } from "next/navigation";
 
@@ -14,8 +13,9 @@ export default async function OrderPage() {
     if (!user || user.role != "admin") redirect("/sign-in");
   }
 
-  const orders = await fetchQuery(api.queries.full_order.getAllOrders);
-
+  //const orders = await fetchQuery(api.queries.full_order.getAllOrders);
+  const orders = await fetchQuery(api.queries.full_order.getOrdersWithUserAndStudentData, {});
+  if (!orders) return <div>No orders found</div>;
   return (
     <>
       <main className="flex min-h-screen flex-col gap-y-8 p-24">

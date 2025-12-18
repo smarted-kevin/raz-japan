@@ -147,7 +147,9 @@ export const getUserRoleByAuthId = query({
     
     return {
       user_id: user._id,
-      role: user.role
+      role: user.role,
+      stripe_id: user.stripe_id,
+      email: user.email,
     }
   }
 })

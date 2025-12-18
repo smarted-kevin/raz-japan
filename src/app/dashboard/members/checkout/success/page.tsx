@@ -21,18 +21,10 @@ const stripe = new Stripe(env.STRIPE_SANDBOX_SECRET_KEY);
 
 
 export default async function SuccessPage(
-  props: { 
-    searchParams: Promise<{payment_intent: string}>
-  }
+ 
 ) { 
 
-  const searchParams = await props.searchParams;
-
-  const paymentIntent =  await stripe.paymentIntents.retrieve(
-    searchParams.payment_intent
-  )
-
-  if (paymentIntent.metadata.cart_id == null) { return notFound(); }
+ 
   /*
   const cart = await fetchQuery(
     internal.queries.cart.getCartById, 

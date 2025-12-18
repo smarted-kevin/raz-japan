@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -23,9 +22,10 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "~/components/ui/dialog";
-import { type Full_Order } from "../../_actions/schemas";
+import type { OrdersWithUserAndStudentData } from "../../_actions/schemas";
+import { dateDisplayFormat } from "~/lib/formatters";
 
-export default function OrderTable({ orders }: { orders: Full_Order[] }) {
+export default function OrderTable({ orders }: { orders: OrdersWithUserAndStudentData[] }) {
   
   const [status, setStatus] = useState("active")
 
@@ -46,13 +46,23 @@ export default function OrderTable({ orders }: { orders: Full_Order[] }) {
           <TableRow>
             <TableHead>User ID</TableHead>
             <TableHead>Order Total</TableHead>
+            <TableHead>Created Date</TableHead>
+            <TableHead>Student Orders</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {orders.map((order) => (
-            <TableRow key={order._id}>
-              <TableCell>{order.user_id}</TableCell>
-              <TableCell>{order.total_amount}</TableCell>
+            <TableRow key={order.order_id}>
+              <TableCell>{order.email}</TableCell>
+              <TableCell>{order.amount}</TableCell>
+              <TableCell>{dateDisplayFormat(order.created_date)}</TableCell>
+              <TableCell>{order.student_orders.map((student_order) => (
+                <div key={student_order.id}>
+                  {student_order.username}
+                  {student_order.amount}
+                  {student_order.order_type}
+                </div>
+              ))}</TableCell>
             </TableRow>
           ))}
         </TableBody>

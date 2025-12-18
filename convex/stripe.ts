@@ -33,6 +33,22 @@ export const checkout = action({
     const domain = process.env.SITE_URL ?? "http://localhost:3000";
     const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
 
+    let stripeCustomerId = user.stripe_id;
+
+    if (!stripeCustomerId || stripeCustomerId == "") {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          user_id: user.user_id,
+        },
+      });
+      stripeCustomerId = customer.id;
+      await ctx.runMutation(internal.mutations.users.updateStripeId, {
+        userId: user.user_id,
+        stripe_id: stripeCustomerId,
+      });
+    }
+
     //1. Get cart document by ID
     const cart = await ctx.runQuery(internal.queries.cart.getCartById, {id: cart_id});
 
@@ -85,6 +101,7 @@ export const checkout = action({
 
     //3. Creates stripe checkout session
     const session: CheckoutSession = await stripe.checkout.sessions.create({
+      customer: stripeCustomerId,
       line_items: line_items,
       mode: "payment",
       currency: "JPY",

@@ -137,11 +137,33 @@ export type Full_Order = {
 }
 
 export type Student_Order = {
-  student_id: Id<"student">
+    student_id: Id<"student">
+    amount: number,
+    order_id: Id<"full_order">,
+    order_type: "new" | "renewal" | "reactivation",
+    activation_id: Id<"activation_code"> | undefined,
+    username: string | undefined,
+    expiry_date: number | undefined,
+    status: "active" | "inactive" | "removed"
+}
+
+export type OrdersWithUserAndStudentData = {
+  user_id: Id<"userTable">,
+  email: string | undefined,
+  first_name: string | undefined,
+  last_name: string | undefined,
   amount: number,
   order_id: Id<"full_order">,
-  order_type: "new" | "renewal" | "reactivation",
-  activation_id: Id<"activation_code"> | undefined,
+  created_date: number,
+  student_orders: {
+    id: Id<"student_order">,
+    amount: number,
+    order_id: Id<"full_order">,
+    order_type: "new" | "renewal" | "reactivation",
+    username: string | undefined,
+    expiry_date: number | undefined,
+    status: "active" | "inactive" | "removed"
+  }[]
 }
 
 // CSV export schema

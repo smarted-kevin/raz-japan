@@ -1,5 +1,4 @@
-import { internal } from "../_generated/api";
-import { mutation } from "../_generated/server";
+import { internalMutation, mutation } from "../_generated/server";
 import { ConvexError, v } from "convex/values";
 
 export const createUser = mutation({
@@ -27,6 +26,18 @@ export const createUser = mutation({
 
     return user;
   }
+});
+
+export const updateStripeId = internalMutation({
+  args: {
+    userId: v.id("userTable"),
+    stripe_id: v.string(),
+  },
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.userId, {
+      stripe_id: args.stripe_id,
+    });
+  },
 });
 
 
