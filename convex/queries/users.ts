@@ -152,4 +152,25 @@ export const getUserRoleByAuthId = query({
       email: user.email,
     }
   }
-})
+});
+
+export const getStripeUserInfoByAuthId = query({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("userTable")
+      .withIndex("user_by_auth_id", (q) => q.eq("auth_id", args.userId))
+      .first();
+      
+    if (!user) throw new ConvexError("User not found");
+
+    return {
+      user_id: user._id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      role: user.role,
+      stripe_id: user.stripe_id,
+      email: user.email,
+    }
+  }
+});

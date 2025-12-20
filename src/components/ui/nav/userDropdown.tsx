@@ -29,7 +29,7 @@ export default function UserDropdown({ user }:{user: string}) {
       <DropdownMenuContent>
         <DropdownMenuItem 
           onSelect={() => 
-            redirect("http://localhost:3000/dashboard/members/"+(user_id?.user_id as Id<"userTable">))
+            redirect(process.env.SITE_URL ?? "http://localhost:3000" + "/dashboard/members/"+(user_id?.user_id as Id<"userTable">))
           }
         >
           Go to Dashboard

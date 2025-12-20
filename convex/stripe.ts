@@ -27,16 +27,17 @@ export const checkout = action({
       throw new Error("Not authenticated");
     }
 
-    const user = await ctx.runQuery(api.queries.users.getUserRoleByAuthId, { userId: identity.subject });
+    const user = await ctx.runQuery(api.queries.users.getStripeUserInfoByAuthId, { userId: identity.subject });
     
     //URL and stripe key needed for stripe session
     const domain = process.env.SITE_URL ?? "http://localhost:3000";
     const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
-
+    
     let stripeCustomerId = user.stripe_id;
 
     if (!stripeCustomerId || stripeCustomerId == "") {
       const customer = await stripe.customers.create({
+        name: user.first_name + " " + user.last_name,
         email: user.email,
         metadata: {
           user_id: user.user_id,
@@ -105,8 +106,8 @@ export const checkout = action({
       line_items: line_items,
       mode: "payment",
       currency: "JPY",
-      success_url: "http://localhost:3000/dashboard/members/checkout/success",
-      cancel_url: "http://localhost:3000/dashboard/members/"+user.user_id,
+      success_url: domain + "/dashboard/members/checkout/success",
+      cancel_url: domain + "/dashboard/members/" + user.user_id,
       metadata: {
         cart_id: cart_id,
         user: user.user_id
