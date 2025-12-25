@@ -29,7 +29,7 @@ async function generateOrderNumber(ctx: MutationCtx): Promise<string> {
         const match = /^RAZ-(\d+)$/.exec(order.order_number);
         if (match) {
           const num = parseInt(match[1], 10);
-          if (num > maxNumber) {
+          if (num && num > maxNumber) {
             maxNumber = num;
           }
         }
