@@ -28,6 +28,15 @@ export const userSchema = z.object({
   role: z.enum(["user", "admin"])
 })
 
+export type ClassroomStudentData = {
+  id: Id<"student">,
+  username: string,
+  password: string,
+  user_id: Id<"userTable"> | undefined,
+  expiry_date: number | undefined,
+  status: "active" | "inactive" | "removed"
+}
+
 export type StudentData = {
   id: Id<"student">,
   username: string,
@@ -133,7 +142,8 @@ export type Full_Order = {
   user_id: Id<"userTable">,
   total_amount: number,
   promotion_id?: Id<"promotion_code"> | undefined,
-  updated_date: number
+  updated_date: number,
+  order_number?: string | undefined
 }
 
 export type Student_Order = {
@@ -155,6 +165,7 @@ export type OrdersWithUserAndStudentData = {
   amount: number,
   order_id: Id<"full_order">,
   created_date: number,
+  order_number?: string | undefined,
   student_orders: {
     id: Id<"student_order">,
     amount: number,

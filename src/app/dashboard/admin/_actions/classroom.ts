@@ -4,6 +4,7 @@ import { fetchMutation, fetchQuery } from "convex/nextjs";
 import type { NewClassroomForm, NewStudentData } from "./schemas";
 import { api } from "../../../../../convex/_generated/api";
 import Words from "./wordList.json";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export async function addClassroom(formData: NewClassroomForm) {
     //check if classroom with entered name already exists
@@ -66,5 +67,80 @@ export async function addClassroom(formData: NewClassroomForm) {
     api.mutations.student.createStudents, { students: students}
   );
   
+  return createdStudents;
+}
+
+export async function addStudentsToClassroom(
+  classroomId: Id<"classroom">,
+  courseId: string,
+  studentCount: number
+) {
+  // Get existing students in the classroom to check count
+  const existingStudents = await fetchQuery(
+    api.queries.student.getStudentsByClassroomId,
+    { classroom_id: classroomId }
+  );
+
+  const currentCount = existingStudents.length;
+  const maxStudents = 36;
+
+  // Check if adding these students would exceed the limit
+  if (currentCount + studentCount > maxStudents) {
+    return `Cannot add ${studentCount} students. Current count: ${currentCount}, Maximum: ${maxStudents}. You can add at most ${maxStudents - currentCount} students.`;
+  }
+
+  const usedUsernames: string[] = [];
+  const usedPasswords: string[] = [];
+
+  // Get all existing usernames and passwords to avoid duplicates
+  existingStudents.forEach((student) => {
+    usedUsernames.push(student.username);
+    usedPasswords.push(student.password);
+  });
+
+  const students: NewStudentData[] = [];
+
+  const wordList = Words.words;
+  for (let i = 0; i < studentCount; i++) {
+    const usernameArray: string[] = wordList.filter(
+      (e) => !usedUsernames.includes(e)
+    );
+    const username: string | undefined =
+      usernameArray[Math.floor(Math.random() * usernameArray.length)];
+
+    const passwordArray: string[] = wordList.filter(
+      (e) => !usedPasswords.includes(e)
+    );
+    const password: string | undefined =
+      passwordArray[Math.floor(Math.random() * passwordArray.length)];
+
+    // Append 3 digits to end of username and password
+    const usernameSalt = Math.floor(Math.random() * 1000 / 2) + 100;
+    const passwordSalt = Math.floor(Math.random() * 1000 / 2) + 100;
+
+    // Create username and password
+    const saltedUser = username?.concat(usernameSalt.toString());
+    const saltedPassword = password?.concat(passwordSalt.toString());
+
+    // Add student object to array
+    if (saltedUser && saltedPassword) {
+      usedUsernames.push(saltedUser);
+      usedPasswords.push(saltedPassword);
+
+      students.push({
+        username: saltedUser,
+        password: saltedPassword,
+        classroom_id: classroomId,
+        course_id: courseId as Id<"course">,
+        status: "inactive",
+      });
+    }
+  }
+
+  const createdStudents = await fetchMutation(
+    api.mutations.student.createStudents,
+    { students: students }
+  );
+
   return createdStudents;
 }

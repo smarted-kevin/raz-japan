@@ -17,7 +17,14 @@ export const getStudentsByClassroomId = query({
       .withIndex("by_classroom_id", (q) => q.eq("classroom_id", args.classroom_id))
       .collect();
       
-    return students;
+    return students.map((student) => ({
+      id: student._id,
+      username: student.username,
+      password: student.password,
+      user_id: student.user_id,
+      expiry_date: student.expiry_date,
+      status: student.status,
+    }));
   }
 });
 

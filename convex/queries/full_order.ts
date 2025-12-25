@@ -84,6 +84,7 @@ export const getOrdersWithUserAndStudentData = query({
         amount: order.total_amount,
         order_id: order._id,
         created_date: order._creationTime,
+        order_number: order.order_number,
         student_orders: validStudentOrders,
       };
     }));

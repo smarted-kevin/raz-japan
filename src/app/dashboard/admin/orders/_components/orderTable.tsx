@@ -44,6 +44,7 @@ export default function OrderTable({ orders }: { orders: OrdersWithUserAndStuden
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>
+            <TableHead>Order Number</TableHead>
             <TableHead>User ID</TableHead>
             <TableHead>Order Total</TableHead>
             <TableHead>Created Date</TableHead>
@@ -53,6 +54,7 @@ export default function OrderTable({ orders }: { orders: OrdersWithUserAndStuden
         <TableBody>
           {orders.map((order) => (
             <TableRow key={order.order_id}>
+              <TableCell>{order.order_number ?? "N/A"}</TableCell>
               <TableCell>{order.email}</TableCell>
               <TableCell>{order.amount}</TableCell>
               <TableCell>{dateDisplayFormat(order.created_date)}</TableCell>

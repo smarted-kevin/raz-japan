@@ -122,9 +122,11 @@ export default defineSchema({
     status: v.optional(v.union(v.literal("created"), v.literal("pending"), v.literal("fulfilled"), v.literal("canceled"))),
     promotion_id: v.optional(v.id("promotion_code")),
     updated_date: v.number(),
+    order_number: v.optional(v.string()),
   }).index("by_user_id", ["user_id"])
     .index("by_stripe_order_id", ["stripe_order_id"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_order_number", ["order_number"]),
 
   student_order: defineTable({
     activation_id: v.optional(v.id("activation_code")),
@@ -138,5 +140,10 @@ export default defineSchema({
     .index("by_activation_id", ["activation_id"])
     .index("by_order_id", ["order_id"])
     .index("by_student_id", ["student_id"]),
+
+  order_counter: defineTable({
+    counter_name: v.string(),
+    value: v.number(),
+  }).index("by_counter_name", ["counter_name"]),
 });
 

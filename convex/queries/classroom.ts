@@ -9,6 +9,15 @@ export const getAllClassrooms = query( async (ctx) => {
     return classrooms;
 })
 
+export const getClassroomById = query({
+  args: { id: v.id("classroom") },
+  handler: async (ctx, args) => {
+    const classroom = await ctx.db.get(args.id);
+    if (!classroom) return null;
+    return classroom;
+  }
+})
+
 export const getAllClassroomsWithCourseAndOrgName = query({
   args: { student_counts: v.optional(v.boolean()) },
   handler: async (ctx, args) => {

@@ -19,6 +19,7 @@ import {
 import AddClassroomDialog from "./addClassroomDialog";
 import DownloadButton from "./downloadButton";
 import { type Classroom, type Course, type Organization } from "../../_actions/schemas";
+import Link from "next/link";
 
 export default function ClassroomTable({ 
   classrooms, courses, orgs 
@@ -76,7 +77,7 @@ export default function ClassroomTable({
                   classroomName={classroom.classroom_name}
                 />
               </TableCell>
-              <TableCell>{classroom.classroom_name}</TableCell>
+              <TableCell><Link href={`/dashboard/admin/classrooms/${classroom.classroom_id}`}>{classroom.classroom_name}</Link></TableCell>
               <TableCell>{classroom.course_name}</TableCell>
               <TableCell>{classroom.organization_name}</TableCell>
               <TableCell>{classroom.active_students}</TableCell>

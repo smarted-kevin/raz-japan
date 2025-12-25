@@ -28,9 +28,13 @@ export default function UserDropdown({ user }:{user: string}) {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem 
-          onSelect={() => 
-            redirect(process.env.SITE_URL ?? "http://localhost:3000" + "/dashboard/members/"+(user_id?.user_id as Id<"userTable">))
-          }
+          onSelect={() => {
+            if (user_id && user_id.role == "user") {
+              redirect(process.env.SITE_URL ?? "http://localhost:3000" + "/dashboard/members/"+(user_id?.user_id as Id<"userTable">))
+            } else if (user_id && user_id.role == "admin") {
+              redirect(process.env.SITE_URL ?? "http://localhost:3000" + "/dashboard/admin")
+            }
+          }}
         >
           Go to Dashboard
         </DropdownMenuItem>

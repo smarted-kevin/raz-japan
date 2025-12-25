@@ -100,6 +100,11 @@ export const checkout = action({
 
     if(!order) return "Something went wrong.";
 
+    // Get the created order to retrieve the order_number
+    const orderDetails = await ctx.runQuery(api.queries.full_order.getOrderById, {
+      id: order
+    });
+
     //3. Creates stripe checkout session
     const session: CheckoutSession = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
@@ -110,7 +115,8 @@ export const checkout = action({
       cancel_url: domain + "/dashboard/members/" + user.user_id,
       metadata: {
         cart_id: cart_id,
-        user: user.user_id
+        user: user.user_id,
+        order_number: orderDetails?.order_number ?? ""
       }
     });
 

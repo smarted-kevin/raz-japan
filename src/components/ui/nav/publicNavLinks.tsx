@@ -34,12 +34,19 @@ export function PublicNavLinks() {
           </Link>
         )
       })}
-      { !session && 
-        <Button size="sm" className="ml-2">
-          <Link href="/sign-in">
-            {t("login_button")}
-          </Link>
-        </Button>
+      { !session &&
+        <>
+          <Button size="sm" className="ml-2">
+            <Link href="/sign-up">
+              {t("sign_up_button")}
+            </Link>
+          </Button>
+          <Button size="sm" className="ml-2">
+            <Link href="/sign-in">
+              {t("login_button")}
+            </Link>
+          </Button>
+        </> 
       }
       { session &&
         <UserDropdown user={session.user.id}/>
