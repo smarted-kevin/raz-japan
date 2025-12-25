@@ -18,7 +18,7 @@ import { redirect } from "next/navigation";
 export default function UserDropdown({ user }:{user: string}) {
 
   const user_id = useQuery(api.queries.users.getUserRoleByAuthId, {userId: user});
-  const siteUrl = process.env.SITE_URL;
+  const siteUrl = process.env.SITE_URL ?? "";
 
   return (
     <DropdownMenu>
