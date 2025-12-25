@@ -18,6 +18,7 @@ import { redirect } from "next/navigation";
 export default function UserDropdown({ user }:{user: string}) {
 
   const user_id = useQuery(api.queries.users.getUserRoleByAuthId, {userId: user});
+  const siteUrl = process.env.SITE_URL;
 
   return (
     <DropdownMenu>
@@ -30,9 +31,9 @@ export default function UserDropdown({ user }:{user: string}) {
         <DropdownMenuItem 
           onSelect={() => {
             if (user_id && user_id.role == "user") {
-              redirect(process.env.SITE_URL ?? "http://localhost:3000" + "/dashboard/members/"+(user_id?.user_id as Id<"userTable">))
+              redirect(siteUrl + "/dashboard/members/"+(user_id?.user_id as Id<"userTable">))
             } else if (user_id && user_id.role == "admin") {
-              redirect(process.env.SITE_URL ?? "http://localhost:3000" + "/dashboard/admin")
+              redirect(siteUrl + "/dashboard/admin")
             }
           }}
         >
