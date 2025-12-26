@@ -8,7 +8,7 @@
 
 
 *UI*
-[ ] - Add sign-up link to top nav (if no user signed in)
+[x] - Add sign-up link to top nav (if no user signed in)
 [ ] - Member page layout - mockup and code
       [ ] - Navbar (profile, students, order history)
 [ ] - Dashboard top page:
