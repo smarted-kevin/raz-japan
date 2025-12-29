@@ -351,3 +351,73 @@ export const createProduct = action({
 
   }
 })
+
+/*
+updateMemberInfo action does the following:
+1. Verifies user authentication
+2. Gets user information from database
+3. Updates user information in database if values are provided
+4. If user has stripe_id, updates customer information in Stripe
+*/
+export const updateMemberInfo = action({
+  args: {
+    userId: v.id("userTable"),
+    first_name: v.optional(v.string()),
+    last_name: v.optional(v.string()),
+    email: v.optional(v.string()),
+  },
+  handler: async (ctx, { userId, first_name, last_name, email }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    // Get current user information
+    const user = await ctx.runQuery(api.queries.users.getUserById, { id: userId });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Verify the user is updating their own information
+    if (user.auth_id !== identity.subject) {
+      throw new Error("Unauthorized: You can only update your own information");
+    }
+
+    // Update user information in database
+    await ctx.runMutation(internal.mutations.users.updateUserInfo, {
+      userId,
+      first_name,
+      last_name,
+      email,
+    });
+
+    // If user has a stripe_id, update Stripe customer
+    if (user.stripe_id) {
+      const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
+      
+      const updateData: {
+        name?: string;
+        email?: string;
+      } = {};
+
+      // Build name from first_name and last_name if provided
+      if (first_name !== undefined || last_name !== undefined) {
+        const updatedFirstName = first_name ?? user.first_name;
+        const updatedLastName = last_name ?? user.last_name;
+        updateData.name = `${updatedFirstName} ${updatedLastName}`;
+      }
+
+      // Update email if provided
+      if (email !== undefined) {
+        updateData.email = email;
+      }
+
+      // Only update Stripe if there's something to update
+      if (Object.keys(updateData).length > 0) {
+        await stripe.customers.update(user.stripe_id, updateData);
+      }
+    }
+
+    return { success: true };
+  },
+})

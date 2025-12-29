@@ -40,4 +40,35 @@ export const updateStripeId = internalMutation({
   },
 });
 
+export const updateUserInfo = internalMutation({
+  args: {
+    userId: v.id("userTable"),
+    first_name: v.optional(v.string()),
+    last_name: v.optional(v.string()),
+    email: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const updateData: {
+      first_name?: string;
+      last_name?: string;
+      email?: string;
+      updated_at: number;
+    } = {
+      updated_at: Date.now(),
+    };
+
+    if (args.first_name !== undefined) {
+      updateData.first_name = args.first_name;
+    }
+    if (args.last_name !== undefined) {
+      updateData.last_name = args.last_name;
+    }
+    if (args.email !== undefined) {
+      updateData.email = args.email;
+    }
+
+    await ctx.db.patch(args.userId, updateData);
+  },
+});
+
 

@@ -8,6 +8,7 @@ import { type Id } from "convex/_generated/dataModel";
 import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
 import { MemberStudentTable } from "../_components/memberStudentTable";
+import MemberInformation from "./_components/memberInformation";
 
 
 export default async function MemberPage(
@@ -33,22 +34,12 @@ export default async function MemberPage(
 
   return (
     <>
-      <div className="
-          flex flex-col gap-y-4 my-12 mx-12 p-6 border-2 rounded-lg w-2/3">
-        <div className="flex gap-x-4">
-          <h1 className="text-xl font-bold">Member Information</h1>
-        </div>
-        <div className="flex flex-col gap-y-4">
-          <div className="flex gap-x-8">
-            <p className="font-bold">Name:</p>
-            <p>{user?.first_name} {user?.last_name}</p>
-          </div>
-          <div className="flex gap-x-8">
-            <p className="font-bold">Email:</p>
-            <p>{user?.email}</p>
-          </div>
-        </div>
-      </div>
+      <MemberInformation
+        userId={user.id}
+        firstName={user.first_name}
+        lastName={user.last_name}
+        email={user.email}
+      />
       <div className="flex flex-col gap-y-4 mx-12 p-6 border-2 rounded-lg w-2/3">
         <div className="flex flex-col gap-y-8">
           <div className="flex gap-x-8 items-center">
