@@ -87,7 +87,7 @@ export default defineSchema({
     activation_code: v.string(),
     course: v.id("course"),
     organization_id: v.id("organization"),
-    order_id: v.id("full_order"),
+    order_id: v.optional(v.id("full_order")),
     activated_date: v.optional(v.number()),
     removed_date: v.optional(v.number()),
     created_date: v.number(),

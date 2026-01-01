@@ -9,6 +9,7 @@ import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
 import { MemberStudentTable } from "../_components/memberStudentTable";
 import MemberInformation from "./_components/memberInformation";
+import ActivateStudentByCode from "./_components/activateStudentByCode";
 
 
 export default async function MemberPage(
@@ -40,6 +41,7 @@ export default async function MemberPage(
         lastName={user.last_name}
         email={user.email}
       />
+      <ActivateStudentByCode userId={user.id} />
       <div className="flex flex-col gap-y-4 mx-12 p-6 border-2 rounded-lg w-2/3">
         <div className="flex flex-col gap-y-8">
           <div className="flex gap-x-8 items-center">
@@ -54,7 +56,16 @@ export default async function MemberPage(
           {currentStudents.length === 0 && 
             <p>No Students Here.</p>
           }
-          <MemberStudentTable students={user.students} />
+          <MemberStudentTable students={currentStudents} />
+        </div>
+      </div>
+      <div className="flex flex-col gap-y-4 mx-12 p-6 border-2 rounded-lg w-2/3">
+        <div className="flex flex-col gap-y-8">
+          <h2 className="font-bold text-lg">Removed Students</h2>
+          {removedStudents.length === 0 && 
+            <p>No Removed Students Here.</p>
+          }
+          <MemberStudentTable students={removedStudents} />
         </div>
       </div>
     </>

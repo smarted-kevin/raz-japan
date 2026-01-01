@@ -18,6 +18,7 @@ export default function NavLinks() {
     { name: t("classrooms"), href: "/dashboard/admin/classrooms" },
     { name: t("courses"), href: "/dashboard/admin/courses"},
     { name: t("orders"), href: "/dashboard/admin/orders" },
+    { name: t("activation_codes"), href: "/dashboard/admin/activation-codes" },
   ];
 
   return (

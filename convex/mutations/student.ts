@@ -188,3 +188,86 @@ export const setStudentStatus = mutation({
     return updatedStudent;
   }
 })
+
+export const activateStudentByActivationCode = mutation({
+  args: {
+    activation_code: v.string(),
+    user_id: v.id("userTable")
+  },
+  handler: async (ctx, args) => {
+    // Find activation code
+    const activationCode = await ctx.db
+      .query("activation_code")
+      .withIndex("by_activation_code", (q) => q.eq("activation_code", args.activation_code))
+      .first();
+
+    if (!activationCode) {
+      return { success: false, error: "Activation code not found" };
+    }
+
+    // Check if activation code is already activated
+    if (activationCode.activated_date) {
+      return { success: false, error: "Activation code has already been used" };
+    }
+
+    // Check if activation code is removed
+    if (activationCode.removed_date) {
+      return { success: false, error: "Activation code has been removed" };
+    }
+
+    // Get course from activation code
+    const course = await ctx.db.get(activationCode.course);
+    if (!course) {
+      return { success: false, error: "Course not found" };
+    }
+
+    // Find an inactive student for this course
+    // First try to find a student with matching course_id
+    const students = await ctx.db
+      .query("student")
+      .withIndex("by_status", (q) => q.eq("status", "inactive"))
+      .collect();
+
+    const availableStudent = students.find((student) => {
+      if (!student.course_id) return false;
+      return student.course_id === activationCode.course;
+    });
+
+    if (!availableStudent) {
+      return { success: false, error: "No available student found for this course" };
+    }
+
+    // Verify user exists
+    const user = await ctx.db.get(args.user_id);
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    // Activate the student
+    const start_date = new Date();
+    await ctx.db.patch(availableStudent._id, {
+      status: "active",
+      expiry_date: new Date(start_date.setFullYear(start_date.getFullYear() + 1)).getTime(),
+      user_id: user._id,
+      updated_on: Date.now()
+    });
+
+    // Update activation code with activated_date
+    await ctx.db.patch(activationCode._id, {
+      activated_date: Date.now()
+    });
+
+    // Get the updated student
+    const updatedStudent = await ctx.db.get(availableStudent._id);
+
+    return {
+      success: true,
+      student: {
+        student_id: updatedStudent?._id,
+        username: updatedStudent?.username,
+        password: updatedStudent?.password,
+        expiry_date: updatedStudent?.expiry_date
+      }
+    };
+  }
+})

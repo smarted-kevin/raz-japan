@@ -26,7 +26,8 @@
         "students": "生徒",
         "classrooms": "クラスルーム",
         "courses": "コース",
-        "orders": "注文履歴"
+        "orders": "注文履歴",
+        "activation_codes": "アクティベーションコード"
       }
     }
   }

@@ -26,7 +26,8 @@
         "students": "Students",
         "classrooms": "Classrooms",
         "courses": "Courses",
-        "orders": "Orders"
+        "orders": "Orders",
+        "activation_codes": "Activation Codes"
       }
     }
   }
