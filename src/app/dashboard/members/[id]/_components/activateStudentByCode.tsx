@@ -52,7 +52,7 @@ export default function ActivateStudentByCode({
   };
 
   return (
-    <div className="flex flex-col gap-y-4 mx-12 p-6 border-2 rounded-lg w-2/3">
+    <div className="flex flex-col gap-y-4 mx-12 my-6 p-6 border-2 rounded-lg w-2/3">
       <h2 className="font-bold text-lg">Add student by activation code</h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
         <div className="flex flex-col gap-y-2">
@@ -79,7 +79,7 @@ export default function ActivateStudentByCode({
             Student activated successfully!
           </div>
         )}
-        <Button type="submit" disabled={isSubmitting || !activationCode.trim()}>
+        <Button className="w-1/4 mx-auto" type="submit" disabled={isSubmitting || !activationCode.trim()}>
           {isSubmitting ? "Activating..." : "Activate Student"}
         </Button>
       </form>

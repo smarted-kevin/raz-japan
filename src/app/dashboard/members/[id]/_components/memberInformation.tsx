@@ -18,7 +18,7 @@ export default function MemberInformation({
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   return (
-    <div className="flex flex-col gap-y-4 my-12 mx-12 p-6 border-2 rounded-lg w-2/3">
+    <div className="flex flex-col gap-y-4 my-6 mx-12 p-6 border-2 rounded-lg w-2/3">
       <div className="flex gap-x-4 items-center">
         <h1 className="text-xl font-bold">Member Information</h1>
         <EditMemberDialog

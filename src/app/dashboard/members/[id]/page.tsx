@@ -42,7 +42,7 @@ export default async function MemberPage(
         email={user.email}
       />
       <ActivateStudentByCode userId={user.id} />
-      <div className="flex flex-col gap-y-4 mx-12 p-6 border-2 rounded-lg w-2/3">
+      <div className="flex flex-col gap-y-4 mx-12 my-6 p-6 border-2 rounded-lg w-2/3">
         <div className="flex flex-col gap-y-8">
           <div className="flex gap-x-8 items-center">
             <h2 className="font-bold text-lg">Current Students</h2>
@@ -56,18 +56,19 @@ export default async function MemberPage(
           {currentStudents.length === 0 && 
             <p>No Students Here.</p>
           }
-          <MemberStudentTable students={currentStudents} />
+          {currentStudents.length > 0 && (
+            <MemberStudentTable students={currentStudents} />
+          )}
         </div>
       </div>
-      <div className="flex flex-col gap-y-4 mx-12 p-6 border-2 rounded-lg w-2/3">
-        <div className="flex flex-col gap-y-8">
-          <h2 className="font-bold text-lg">Removed Students</h2>
-          {removedStudents.length === 0 && 
-            <p>No Removed Students Here.</p>
-          }
-          <MemberStudentTable students={removedStudents} />
+      {removedStudents.length > 0 && (
+        <div className="flex flex-col gap-y-4 mx-12 my-6 p-6 border-2 rounded-lg w-2/3">
+          <div className="flex flex-col gap-y-8">
+            <h2 className="font-bold text-lg">Expired Students</h2>
+              <MemberStudentTable students={removedStudents} />
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 }

@@ -10,14 +10,14 @@
 [ ] - Make new logo
 
 *BACKEND*
-[ ] - createActivationCodes function
+[x] - createActivationCodes function
 [ ] - removeActivationCode function (sets activation code removed_date to current date)
 
 *UI/UX*
 [ ] - Fill out Japanese on member pages and order pages
 [ ] - Left sidebar for dashboard page??
 [ ] - member page navbar (profile, students, order history)
-[ ] - Add activation codes page, or as a tab to orders page
+[x] - Add activation codes page, or as a tab to orders page
 
 
 
