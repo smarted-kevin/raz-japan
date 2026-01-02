@@ -39,9 +39,9 @@ export const getAllActivationCodes = query(async (ctx) => {
     activationCodes.map(async (code) => {
       const organization = await ctx.db.get(code.organization_id);
       return {
-        id: code._id as string,
+        id: code._id,
         activation_code: code.activation_code,
-        organization_id: code.organization_id as string,
+        organization_id: code.organization_id,
         organization_name: organization?.organization_name ?? "",
         activated_date: code.activated_date,
         removed_date: code.removed_date,

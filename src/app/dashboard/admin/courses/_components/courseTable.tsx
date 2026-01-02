@@ -9,7 +9,6 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -17,12 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTrigger,
-} from "~/components/ui/dialog";
 import AddCourseDialog from "./addCourseDialog";
 import { type Course } from "../../_actions/schemas";
 import { formatYen } from "~/lib/formatters";

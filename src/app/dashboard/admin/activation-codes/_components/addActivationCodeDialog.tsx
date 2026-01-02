@@ -27,7 +27,6 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import type { Course } from "../../_actions/schemas";
 import { addActivationCodes, type NewActivationCodeForm } from "../../_actions/activation_code";
-import { useRouter } from "next/navigation";
 import type { Id } from "convex/_generated/dataModel";
 
 type OrganizationWithId = {
@@ -47,7 +46,6 @@ export default function AddActivationCodeDialog({
   openState: boolean;
   setOpenState: (open: boolean) => void;
 }) {
-  const router = useRouter();
   const [error, setError] = React.useState<string>();
   const form = useForm<NewActivationCodeForm>({
     defaultValues: {
@@ -71,7 +69,7 @@ export default function AddActivationCodeDialog({
       setError(undefined);
       setOpenState(false);
       form.reset();
-      router.refresh();
+      // No need for router.refresh() - data will update automatically via useQuery
     }
   }
 

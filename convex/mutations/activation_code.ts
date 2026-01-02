@@ -33,4 +33,23 @@ export const createActivationCode = mutation({
     }
     return activation_codes ?? [];
   }
-})
+});
+
+export const removeActivationCode = mutation({
+  args: {
+    activation_code_id: v.id("activation_code")
+  },
+  handler: async (ctx, args) => {
+    const activationCode = await ctx.db.get(args.activation_code_id);
+    if (!activationCode) {
+      return { success: false, error: "Activation code not found" };
+    }
+    if (activationCode.removed_date) {
+      return { success: false, error: "Activation code has already been removed" };
+    }
+    await ctx.db.patch(args.activation_code_id, {
+      removed_date: Date.now()
+    });
+    return { success: true };
+  }
+});

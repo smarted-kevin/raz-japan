@@ -10,8 +10,9 @@
 [ ] - Make new logo
 
 *BACKEND*
+[ ] - connect activation code to full order (activating code should create a student order and full order and assign activation code to order documents)
 [x] - createActivationCodes function
-[ ] - removeActivationCode function (sets activation code removed_date to current date)
+[x] - removeActivationCode function (sets activation code removed_date to current date)
 
 *UI/UX*
 [ ] - Fill out Japanese on member pages and order pages

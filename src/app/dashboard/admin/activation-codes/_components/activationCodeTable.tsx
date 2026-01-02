@@ -18,17 +18,15 @@ import {
 } from "~/components/ui/select";
 import AddActivationCodeDialog from "./addActivationCodeDialog";
 import { dateDisplayFormat } from "~/lib/formatters";
-import type { Course } from "../../_actions/schemas";
 import type { Id } from "convex/_generated/dataModel";
-
-type OrganizationWithId = {
-  _id: Id<"organization">;
-  organization_name: string;
-  status: "active" | "inactive";
-};
+import { Button } from "~/components/ui/button";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Trash2Icon } from "lucide-react";
+import { toast } from "sonner";
 
 export type ActivationCodeData = {
-  id: string;
+  id: Id<"activation_code">;
   activation_code: string;
   organization_id: string;
   organization_name: string;
@@ -39,24 +37,30 @@ export type ActivationCodeData = {
 
 type Status = "used" | "unused" | "removed" | "all";
 
+
+
 function getStatus(code: ActivationCodeData): Status {
   if (code.removed_date) return "removed";
   if (code.activated_date) return "used";
   return "unused";
 }
 
-export default function ActivationCodeTable({
-  activationCodes,
-  courses,
-  orgs,
-}: {
-  activationCodes: ActivationCodeData[];
-  courses: Course[];
-  orgs: OrganizationWithId[];
-}) {
+export default function ActivationCodeTable() {
   const [openState, setOpenState] = React.useState(false);
   const [statusFilter, setStatusFilter] = React.useState<Status>("all");
   const [orgFilter, setOrgFilter] = React.useState<string>("all");
+
+  // Use reactive queries that automatically update when data changes
+  const activationCodes = useQuery(api.queries.activation_code.getAllActivationCodes);
+  const courses = useQuery(api.queries.course.getAllCourses);
+  const orgs = useQuery(api.queries.organization.getAllOrganizations);
+
+  const removeActivationCode = useMutation(api.mutations.activation_code.removeActivationCode);
+  
+  // Show loading state while data is being fetched
+  if (activationCodes === undefined || courses === undefined || orgs === undefined) {
+    return <div>Loading...</div>;
+  }
 
   const filteredCodes = activationCodes.filter((code) => {
     const codeStatus = getStatus(code);
@@ -98,8 +102,8 @@ export default function ActivationCodeTable({
           </Select>
         </div>
         <AddActivationCodeDialog
-          courses={courses}
-          orgs={orgs}
+          courses={courses ?? []}
+          orgs={orgs ?? []}
           openState={openState}
           setOpenState={setOpenState}
         />
@@ -107,6 +111,7 @@ export default function ActivationCodeTable({
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>
+            <TableHead></TableHead>
             <TableHead>Organization Name</TableHead>
             <TableHead>Activation Code</TableHead>
             <TableHead>Status</TableHead>
@@ -126,6 +131,20 @@ export default function ActivationCodeTable({
               const status = getStatus(code);
               return (
                 <TableRow key={code.id}>
+                  <TableCell>
+                    {status === "unused" && (
+                    <Button variant="outline"  onClick={async () => {
+                      const result = await removeActivationCode({ activation_code_id: code.id });
+                      if (result.success) {
+                        toast.success("Activation code removed successfully");
+                      } else {
+                        toast.error(result.error);
+                      }
+                    }}>
+                      <Trash2Icon className="w-4 h-4 mr-2" />Remove
+                    </Button>
+                    )}
+                  </TableCell>
                   <TableCell>{code.organization_name}</TableCell>
                   <TableCell className="font-mono">{code.activation_code}</TableCell>
                   <TableCell>
@@ -160,4 +179,3 @@ export default function ActivationCodeTable({
     </>
   );
 }
-
