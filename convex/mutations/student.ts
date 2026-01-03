@@ -1,5 +1,6 @@
 import { mutation } from "../_generated/server";
 import { v } from "convex/values";
+import { generateOrderNumber } from "./full_order";
 
 export const createStudent = mutation({
   args: { 
@@ -252,9 +253,33 @@ export const activateStudentByActivationCode = mutation({
       updated_on: Date.now()
     });
 
-    // Update activation code with activated_date
+    // Create full_order
+    const orderNumber = await generateOrderNumber(ctx);
+    const fullOrderId = await ctx.db.insert("full_order", {
+      user_id: user._id,
+      total_amount: course.price,
+      updated_date: Date.now(),
+      stripe_order_id: undefined,
+      status: "fulfilled",
+      order_number: orderNumber,
+      promotion_id: undefined,
+    });
+
+    // Create student_order with activation_id
+    await ctx.db.insert("student_order", {
+      activation_id: activationCode._id,
+      amount: course.price,
+      order_id: fullOrderId,
+      order_type: "new",
+      student_id: availableStudent._id,
+      created_date: Date.now(),
+      updated_on: Date.now(),
+    });
+
+    // Update activation code with activated_date and order_id
     await ctx.db.patch(activationCode._id, {
-      activated_date: Date.now()
+      activated_date: Date.now(),
+      order_id: fullOrderId,
     });
 
     // Get the updated student

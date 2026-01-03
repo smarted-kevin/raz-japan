@@ -8,7 +8,7 @@ import type { MutationCtx } from "../_generated/server";
  * Uses an atomic counter table to prevent race conditions.
  * This function atomically reads, increments, and updates the counter within the same mutation.
  */
-async function generateOrderNumber(ctx: MutationCtx): Promise<string> {
+export async function generateOrderNumber(ctx: MutationCtx): Promise<string> {
   const COUNTER_NAME = "order_number";
   
   // Try to get existing counter
@@ -87,7 +87,7 @@ export const createFullOrder = mutation({
     promotion_id: v.optional(v.id("promotion_code")),
     updated_date: v.number(),
     stripe_order_id: v.optional(v.string()),
-    status: v.union(v.literal("created"), v.literal("pending"), v.literal("fulfilled"), v.literal("canceled")),
+    status: v.optional(v.union(v.literal("created"), v.literal("pending"), v.literal("fulfilled"), v.literal("canceled"))),
     order_number: v.optional(v.string())
   },
   handler: async (ctx, args) => {
@@ -103,7 +103,7 @@ export const createFullOrder = mutation({
           promotion_id: args.promotion_id ?? undefined,
           updated_date: args.updated_date ?? Date.now(),
           stripe_order_id: args.stripe_order_id ?? "",
-          status: "created",
+          status: args.status ?? "created",
           order_number: orderNumber
         }
       )
