@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "../button";
-import { User } from "lucide-react";
+import { User, History } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { SignOutButton } from "../auth/signOut";
@@ -39,6 +39,16 @@ export default function UserDropdown({ user }:{user: string}) {
         >
           Go to Dashboard
         </DropdownMenuItem>
+        {user_id && user_id.role === "user" && (
+          <DropdownMenuItem 
+            onSelect={() => {
+              redirect(siteUrl + "/dashboard/members/" + (user_id?.user_id as Id<"userTable">) + "/order-history")
+            }}
+          >
+            <History className="mr-2 h-4 w-4" />
+            Order History
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>

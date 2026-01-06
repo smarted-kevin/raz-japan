@@ -296,3 +296,111 @@ export const activateStudentByActivationCode = mutation({
     };
   }
 })
+
+export const renewStudentByActivationCode = mutation({
+  args: {
+    activation_code: v.string(),
+    student_id: v.id("student")
+  },
+  handler: async (ctx, args) => {
+    // Find activation code
+    const activationCode = await ctx.db
+      .query("activation_code")
+      .withIndex("by_activation_code", (q) => q.eq("activation_code", args.activation_code))
+      .first();
+
+    if (!activationCode) {
+      return { success: false, error: "Activation code not found" };
+    }
+
+    // Check if activation code is already activated
+    if (activationCode.activated_date) {
+      return { success: false, error: "Activation code has already been used" };
+    }
+
+    // Check if activation code is removed
+    if (activationCode.removed_date) {
+      return { success: false, error: "Activation code has been removed" };
+    }
+
+    // Get course from activation code
+    const course = await ctx.db.get(activationCode.course);
+    if (!course) {
+      return { success: false, error: "Course not found" };
+    }
+
+    // Get existing student
+    const student = await ctx.db.get(args.student_id);
+    if (!student) {
+      return { success: false, error: "Student not found" };
+    }
+
+    // Check if student is active
+    if (student.status !== "active") {
+      return { success: false, error: "Student must be active to renew" };
+    }
+
+    // Check if student has a user assigned
+    if (!student.user_id) {
+      return { success: false, error: "Student must be assigned to a user" };
+    }
+
+    // Verify user exists
+    const user = await ctx.db.get(student.user_id);
+    if (!user) {
+      return { success: false, error: "User not found" };
+    }
+
+    // Extend expiry date by 1 year from current expiry date
+    const currentExpiryDate = student.expiry_date ?? Date.now();
+    const newExpiryDate = new Date(currentExpiryDate);
+    newExpiryDate.setFullYear(newExpiryDate.getFullYear() + 1);
+
+    await ctx.db.patch(student._id, {
+      expiry_date: newExpiryDate.getTime(),
+      updated_on: Date.now()
+    });
+
+    // Create full_order
+    const orderNumber = await generateOrderNumber(ctx);
+    const fullOrderId = await ctx.db.insert("full_order", {
+      user_id: user._id,
+      total_amount: course.price,
+      updated_date: Date.now(),
+      stripe_order_id: undefined,
+      status: "fulfilled",
+      order_number: orderNumber,
+      promotion_id: undefined,
+    });
+
+    // Create student_order with activation_id
+    await ctx.db.insert("student_order", {
+      activation_id: activationCode._id,
+      amount: course.price,
+      order_id: fullOrderId,
+      order_type: "renewal",
+      student_id: student._id,
+      created_date: Date.now(),
+      updated_on: Date.now(),
+    });
+
+    // Update activation code with activated_date and order_id
+    await ctx.db.patch(activationCode._id, {
+      activated_date: Date.now(),
+      order_id: fullOrderId,
+    });
+
+    // Get the updated student
+    const updatedStudent = await ctx.db.get(student._id);
+
+    return {
+      success: true,
+      student: {
+        student_id: updatedStudent?._id,
+        username: updatedStudent?.username,
+        password: updatedStudent?.password,
+        expiry_date: updatedStudent?.expiry_date
+      }
+    };
+  }
+})

@@ -112,3 +112,67 @@ export const getOrderByStripeId = query({
     return order;
   }
 });
+
+/**
+ * Get all orders for a specific user with student order data
+ * @param user_id - The user ID to get orders for
+ * @returns array of orders with student order data
+ */
+export const getOrdersByUserId = query({
+  args: { user_id: v.id("userTable") },
+  handler: async (ctx, args) => {
+    // Get all orders for this user
+    const orders = await ctx.db
+      .query("full_order")
+      .withIndex("by_user_id", (q) => q.eq("user_id", args.user_id))
+      .collect();
+
+    // For each order, get student order data
+    const result = await Promise.all(orders.map(async (order) => {
+      // Get student orders for this order
+      const studentOrders = await ctx.db
+        .query("student_order")
+        .withIndex("by_order_id", (q) => q.eq("order_id", order._id))
+        .collect();
+
+      // Get student data for each student order
+      const studentOrdersWithData = await Promise.all(studentOrders.map(async (student_order) => {
+        const student = await ctx.db.get(student_order.student_id);
+        if (!student) {
+          return null;
+        }
+
+        return {
+          id: student_order._id,
+          amount: student_order.amount,
+          order_id: student_order.order_id,
+          order_type: student_order.order_type,
+          username: student.username,
+          activation_id: student_order.activation_id,
+        };
+      }));
+
+      // Filter out null values
+      const validStudentOrders = studentOrdersWithData.filter((so) => so !== null) as {
+        id: Id<"student_order">;
+        amount: number;
+        order_id: Id<"full_order">;
+        order_type: "new" | "renewal" | "reactivation";
+        username: string;
+        activation_id: Id<"activation_code"> | undefined;
+      }[];
+
+      return {
+        order_id: order._id,
+        total_amount: order.total_amount,
+        order_number: order.order_number,
+        created_date: order._creationTime,
+        status: order.status,
+        student_orders: validStudentOrders,
+      };
+    }));
+
+    // Sort by created_date descending (most recent first)
+    return result.sort((a, b) => b.created_date - a.created_date);
+  }
+});

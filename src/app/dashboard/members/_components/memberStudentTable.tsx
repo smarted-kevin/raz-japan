@@ -3,9 +3,6 @@
 import {
   Table,
   TableBody,
-  TableCaption,
-  TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -25,6 +22,7 @@ export function MemberStudentTable({ students }:{ students:StudentData[] }) {
           <TableHead>Classroom</TableHead>
           <TableHead>Expiry Date</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
