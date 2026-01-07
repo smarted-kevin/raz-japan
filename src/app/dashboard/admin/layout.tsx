@@ -2,7 +2,7 @@ import TopNav from "./_components/navBar";
 import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
 import { fetchQuery } from "convex/nextjs";
-import { api } from "convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 
 type UserRole = "user" | "admin" | "org_admin" | "god";
 
