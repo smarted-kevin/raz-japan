@@ -32,7 +32,7 @@ export default function UserDropdown({ user }:{user: string}) {
           onSelect={() => {
             if (user_id && user_id.role == "user") {
               redirect(siteUrl + "/dashboard/members/"+(user_id?.user_id as Id<"userTable">))
-            } else if (user_id && user_id.role == "admin") {
+            } else if (user_id && (user_id.role == "admin" || user_id.role == "org_admin" || user_id.role == "god")) {
               redirect(siteUrl + "/dashboard/admin")
             }
           }}

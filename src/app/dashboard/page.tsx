@@ -12,7 +12,8 @@ export default async function DashboardPage() {
   
     console.log(user);
   
-    if (token && user.role == "admin") {
+    // Redirect admin, org_admin, and god users to admin dashboard
+    if (token && (user.role == "admin" || user.role == "org_admin" || user.role == "god")) {
       redirect("/dashboard/admin");
     }
     if (user && user.role == "user") {

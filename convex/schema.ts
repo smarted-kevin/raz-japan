@@ -9,18 +9,20 @@ export default defineSchema({
     last_name: v.string(),
     email: v.string(),
     stripe_id: v.optional(v.string()),
-    role: v.union(v.literal("user"), v.literal("admin"), v.literal("god")),
+    role: v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god")),
+    org_id: v.optional(v.id("organization")),
     updated_at: v.number(),
     last_login: v.optional(v.number()),
     status: v.union(v.literal("active"), v.literal("inactive")),
   }).index("by_email", ["email"])
     .index("users_by_role", ["role"])
-    .index("user_by_auth_id", ["auth_id"]),
+    .index("user_by_auth_id", ["auth_id"])
+    .index("by_org_id", ["org_id"]),
 
   session: defineTable({
     sessionId: v.string(),
     user_id: v.id("userTable"),
-    role: v.union(v.literal("user"), v.literal("admin"), v.literal("god")),
+    role: v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god")),
     expires_at: v.number(),
   }).index("by_user_id", ["user_id"]).index("by_session_id", ["sessionId"]),
 

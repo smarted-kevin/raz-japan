@@ -1,4 +1,5 @@
 import { query } from "../_generated/server";
+import { v } from "convex/values";
 
 /**
  * Gets dashboard statistics for admin page
@@ -117,6 +118,111 @@ export const getDashboardStats = query({
       },
       studentsExpiringThisMonth: expiringStudentsWithDetails,
       studentsByCourse,
+    };
+  },
+});
+
+/**
+ * Gets dashboard statistics filtered by organization for org_admin users
+ * Returns:
+ * - Total number of students (all statuses) in the organization
+ * - Students expiring within the current month
+ * - Total number of students by classroom
+ */
+export const getDashboardStatsByOrganization = query({
+  args: { org_id: v.id("organization") },
+  handler: async (ctx, args) => {
+    // Get organization info
+    const organization = await ctx.db.get(args.org_id);
+    
+    // Get all classrooms belonging to this organization
+    const orgClassrooms = await ctx.db
+      .query("classroom")
+      .withIndex("by_organization", (q) => q.eq("organization_id", args.org_id))
+      .collect();
+    
+    const classroomIds = new Set(orgClassrooms.map((c) => c._id));
+    
+    // Get all students in organization's classrooms
+    const allStudents = await ctx.db.query("student").collect();
+    const orgStudents = allStudents.filter(
+      (student) => student.classroom_id && classroomIds.has(student.classroom_id)
+    );
+    
+    const totalStudentsCount = orgStudents.length;
+    const activeStudentsCount = orgStudents.filter((s) => s.status === "active").length;
+    const inactiveStudentsCount = orgStudents.filter((s) => s.status === "inactive").length;
+    const removedStudentsCount = orgStudents.filter((s) => s.status === "removed").length;
+
+    // Get students expiring within the current month
+    const now = Date.now();
+    const currentDate = new Date(now);
+    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getTime();
+    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
+
+    const studentsExpiringThisMonth = orgStudents
+      .filter((student) => {
+        if (!student.expiry_date) return false;
+        return student.expiry_date >= startOfMonth && student.expiry_date <= endOfMonth;
+      })
+      .map((student) => {
+        return {
+          id: student._id,
+          username: student.username,
+          expiry_date: student.expiry_date,
+          status: student.status,
+          classroom_id: student.classroom_id,
+        };
+      });
+
+    // Get classroom info for expiring students
+    const expiringStudentsWithDetails = await Promise.all(
+      studentsExpiringThisMonth.map(async (student) => {
+        const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
+        const course = classroom?.course_id ? await ctx.db.get(classroom.course_id) : undefined;
+        
+        return {
+          id: student.id,
+          username: student.username,
+          expiry_date: student.expiry_date,
+          status: student.status,
+          classroom_name: classroom?.classroom_name ?? "Unknown",
+          course_name: course?.course_name ?? "Unknown",
+        };
+      })
+    );
+
+    // Get students by classroom
+    const studentsByClassroom = await Promise.all(
+      orgClassrooms.map(async (classroom) => {
+        const classroomStudents = orgStudents.filter(
+          (s) => s.classroom_id === classroom._id
+        );
+        const course = await ctx.db.get(classroom.course_id);
+        
+        return {
+          classroom_id: classroom._id,
+          classroom_name: classroom.classroom_name,
+          course_name: course?.course_name ?? "Unknown",
+          total_students: classroomStudents.length,
+          active_students: classroomStudents.filter((s) => s.status === "active").length,
+          inactive_students: classroomStudents.filter((s) => s.status === "inactive").length,
+          removed_students: classroomStudents.filter((s) => s.status === "removed").length,
+        };
+      })
+    );
+
+    return {
+      organizationName: organization?.organization_name ?? "Unknown",
+      totalClassrooms: orgClassrooms.length,
+      totalStudentsCount,
+      studentsByStatus: {
+        active: activeStudentsCount,
+        inactive: inactiveStudentsCount,
+        removed: removedStudentsCount,
+      },
+      studentsExpiringThisMonth: expiringStudentsWithDetails,
+      studentsByClassroom,
     };
   },
 });

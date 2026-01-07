@@ -37,7 +37,10 @@ export type ActivationCodeData = {
 
 type Status = "used" | "unused" | "removed" | "all";
 
-
+interface ActivationCodeTableProps {
+  orgId?: Id<"organization">;
+  isOrgAdmin: boolean;
+}
 
 function getStatus(code: ActivationCodeData): Status {
   if (code.removed_date) return "removed";
@@ -45,13 +48,23 @@ function getStatus(code: ActivationCodeData): Status {
   return "unused";
 }
 
-export default function ActivationCodeTable() {
+export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCodeTableProps) {
   const [openState, setOpenState] = React.useState(false);
   const [statusFilter, setStatusFilter] = React.useState<Status>("all");
   const [orgFilter, setOrgFilter] = React.useState<string>("all");
 
   // Use reactive queries that automatically update when data changes
-  const activationCodes = useQuery(api.queries.activation_code.getAllActivationCodes);
+  // For org_admin, use the organization-filtered query
+  const allActivationCodes = useQuery(
+    api.queries.activation_code.getAllActivationCodes,
+    isOrgAdmin ? "skip" : undefined
+  );
+  const orgActivationCodes = useQuery(
+    api.queries.activation_code.getActivationCodesByOrganization,
+    isOrgAdmin && orgId ? { org_id: orgId } : "skip"
+  );
+  
+  const activationCodes = isOrgAdmin ? orgActivationCodes : allActivationCodes;
   const courses = useQuery(api.queries.course.getAllCourses);
   const orgs = useQuery(api.queries.organization.getAllOrganizations);
 

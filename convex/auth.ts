@@ -68,7 +68,7 @@ export const createAuth = (
                 first_name: first_name ?? "",
                 last_name: last_name ?? "",
                 email: user.email,
-                role: user.role as "user" | "admin",
+                role: user.role as "user" | "admin" | "org_admin",
                 updated_at: Date.now(),
                 status: "active",
               }
@@ -86,7 +86,7 @@ export const createAuth = (
   } satisfies BetterAuthOptions);
 
 export type User = (typeof auth.$Infer.Session.user) & 
-  { role: "user" | "admin" | "god" };
+  { role: "user" | "admin" | "org_admin" | "god" };
 
 // Example function for getting the current user
 // Feel free to edit, omit, etc.

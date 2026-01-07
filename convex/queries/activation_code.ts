@@ -51,3 +51,32 @@ export const getAllActivationCodes = query(async (ctx) => {
   );
 });
 
+export const getActivationCodesByOrganization = query({
+  args: { org_id: v.id("organization") },
+  handler: async (ctx, args) => {
+    const activationCodes = await ctx.db
+      .query("activation_code")
+      .collect();
+
+    // Filter by organization_id
+    const orgCodes = activationCodes.filter(
+      (code) => code.organization_id === args.org_id
+    );
+
+    return Promise.all(
+      orgCodes.map(async (code) => {
+        const organization = await ctx.db.get(code.organization_id);
+        return {
+          id: code._id,
+          activation_code: code.activation_code,
+          organization_id: code.organization_id,
+          organization_name: organization?.organization_name ?? "",
+          activated_date: code.activated_date,
+          removed_date: code.removed_date,
+          created_date: code.created_date,
+        };
+      })
+    );
+  }
+});
+

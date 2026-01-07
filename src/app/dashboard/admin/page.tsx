@@ -5,7 +5,8 @@ import { getToken } from "~/lib/auth-server";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { dateDisplayFormat } from "~/lib/formatters";
-import { Users, GraduationCap, Calendar, BookOpen } from "lucide-react";
+import { Users, GraduationCap, Calendar, BookOpen, Building2 } from "lucide-react";
+import type { Id } from "@/convex/_generated/dataModel";
 
 type DashboardStats = {
   activeUsersCount: number;
@@ -32,19 +33,67 @@ type DashboardStats = {
   }>;
 };
 
+type OrgDashboardStats = {
+  organizationName: string;
+  totalClassrooms: number;
+  totalStudentsCount: number;
+  studentsByStatus: {
+    active: number;
+    inactive: number;
+    removed: number;
+  };
+  studentsExpiringThisMonth: Array<{
+    id: string;
+    username: string;
+    expiry_date: number | undefined;
+    status: "active" | "inactive" | "removed";
+    classroom_name: string;
+    course_name: string;
+  }>;
+  studentsByClassroom: Array<{
+    classroom_id: string;
+    classroom_name: string;
+    course_name: string;
+    total_students: number;
+    active_students: number;
+    inactive_students: number;
+    removed_students: number;
+  }>;
+};
+
 export default async function Page() {
   const token = await getToken();
   if (!token) redirect("/sign-in");
-  if (token) {
-    const user = await fetchQuery(api.auth.getCurrentUser, {}, {token});
-    if (!user || user.role != "admin") redirect("/sign-in");
+  
+  const user = await fetchQuery(api.auth.getCurrentUser, {}, { token });
+  if (!user) redirect("/sign-in");
+  
+  const allowedRoles = ["admin", "org_admin", "god"];
+  if (!allowedRoles.includes(user.role)) {
+    redirect("/sign-in");
   }
 
-  // TypeScript error expected until Convex regenerates API types for dashboard query
-  const dashboardQuery = (api.queries as unknown as { dashboard: { getDashboardStats: Parameters<typeof fetchQuery>[0] } }).dashboard.getDashboardStats;
-  const stats = (await fetchQuery(dashboardQuery, {})) as DashboardStats | null;
+  const isOrgAdmin = user.role === "org_admin";
   
-  if (!stats) {
+  // Get user details including org_id for org_admin users
+  let orgStats: OrgDashboardStats | null = null;
+  let stats: DashboardStats | null = null;
+  
+  if (isOrgAdmin) {
+    const userDetails = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id });
+    if (userDetails.org_id) {
+      orgStats = await fetchQuery(api.queries.dashboard.getDashboardStatsByOrganization, { 
+        org_id: userDetails.org_id as Id<"organization"> 
+      });
+    }
+  } else {
+    // Regular admin/god dashboard
+    const dashboardQuery = (api.queries as unknown as { dashboard: { getDashboardStats: Parameters<typeof fetchQuery>[0] } }).dashboard.getDashboardStats;
+    stats = (await fetchQuery(dashboardQuery, {})) as DashboardStats | null;
+  }
+  
+  // Show loading state if no data
+  if (!stats && !orgStats) {
     return (
       <main className="flex min-h-screen flex-col gap-y-8 p-8 md:p-24">
         <h1 className="font-bold text-2xl">Dashboard</h1>
@@ -52,151 +101,313 @@ export default async function Page() {
       </main>
     );
   }
-  
-  return ( 
-    <main className="flex min-h-screen flex-col gap-y-8 p-8 md:p-24">
-      <h1 className="font-bold text-2xl">Dashboard</h1>
-      
-      {/* Summary Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+
+  // Render org_admin dashboard
+  if (isOrgAdmin && orgStats) {
+    return (
+      <main className="flex min-h-screen flex-col gap-y-8 p-8 md:p-24">
+        <div className="flex items-center gap-2">
+          <Building2 className="h-6 w-6" />
+          <h1 className="font-bold text-2xl">{orgStats.organizationName} Dashboard</h1>
+        </div>
+        
+        {/* Summary Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Classrooms</CardTitle>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{orgStats.totalClassrooms}</div>
+              <p className="text-xs text-muted-foreground">
+                Classrooms in organization
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+              <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{orgStats.totalStudentsCount}</div>
+              <p className="text-xs text-muted-foreground">
+                {orgStats.studentsByStatus.active} active, {orgStats.studentsByStatus.inactive} inactive
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Expiring This Month</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{orgStats.studentsExpiringThisMonth.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Students expiring soon
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Students</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{orgStats.studentsByStatus.active}</div>
+              <p className="text-xs text-muted-foreground">
+                Currently active
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Students Expiring This Month */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+          <CardHeader>
+            <CardTitle>Students Expiring This Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeUsersCount}</div>
-            <p className="text-xs text-muted-foreground">
-              Users with active status
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Students</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalStudentsCount}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.studentsByStatus.active} active, {stats.studentsByStatus.inactive} inactive, {stats.studentsByStatus.removed} removed
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Expiring This Month</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.studentsExpiringThisMonth.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Students expiring in current month
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.studentsByCourse.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Courses with students
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Students Expiring This Month */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Students Expiring This Month</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {stats.studentsExpiringThisMonth.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Course</TableHead>
-                  <TableHead>Expiry Date</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stats.studentsExpiringThisMonth.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell className="font-medium">{student.username}</TableCell>
-                    <TableCell>{student.course_name}</TableCell>
-                    <TableCell>
-                      {student.expiry_date ? dateDisplayFormat(student.expiry_date) : "N/A"}
-                    </TableCell>
-                    <TableCell>
-                      <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                        student.status === "active" 
-                          ? "bg-green-100 text-green-800" 
-                          : student.status === "inactive"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}>
-                        {student.status}
-                      </span>
-                    </TableCell>
+            {orgStats.studentsExpiringThisMonth.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Classroom</TableHead>
+                    <TableHead>Course</TableHead>
+                    <TableHead>Expiry Date</TableHead>
+                    <TableHead>Status</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-muted-foreground">No students expiring this month.</p>
-          )}
-        </CardContent>
-      </Card>
+                </TableHeader>
+                <TableBody>
+                  {orgStats.studentsExpiringThisMonth.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-medium">{student.username}</TableCell>
+                      <TableCell>{student.classroom_name}</TableCell>
+                      <TableCell>{student.course_name}</TableCell>
+                      <TableCell>
+                        {student.expiry_date ? dateDisplayFormat(student.expiry_date) : "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                          student.status === "active" 
+                            ? "bg-green-100 text-green-800" 
+                            : student.status === "inactive"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}>
+                          {student.status}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-muted-foreground">No students expiring this month.</p>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Students by Course */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Students by Course</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {stats.studentsByCourse.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Course Name</TableHead>
-                  <TableHead>Total Students</TableHead>
-                  <TableHead>Active</TableHead>
-                  <TableHead>Inactive</TableHead>
-                  <TableHead>Removed</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stats.studentsByCourse.map((course) => (
-                  <TableRow key={course.course_id}>
-                    <TableCell className="font-medium">{course.course_name}</TableCell>
-                    <TableCell>{course.total_students}</TableCell>
-                    <TableCell>
-                      <span className="text-green-600 font-medium">{course.active_students}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-yellow-600 font-medium">{course.inactive_students}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-600 font-medium">{course.removed_students}</span>
-                    </TableCell>
+        {/* Students by Classroom */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Students by Classroom</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {orgStats.studentsByClassroom.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Classroom Name</TableHead>
+                    <TableHead>Course</TableHead>
+                    <TableHead>Total Students</TableHead>
+                    <TableHead>Active</TableHead>
+                    <TableHead>Inactive</TableHead>
+                    <TableHead>Removed</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <p className="text-muted-foreground">No courses with students found.</p>
-          )}
-        </CardContent>
-      </Card>
-    </main>
-  )
+                </TableHeader>
+                <TableBody>
+                  {orgStats.studentsByClassroom.map((classroom) => (
+                    <TableRow key={classroom.classroom_id}>
+                      <TableCell className="font-medium">{classroom.classroom_name}</TableCell>
+                      <TableCell>{classroom.course_name}</TableCell>
+                      <TableCell>{classroom.total_students}</TableCell>
+                      <TableCell>
+                        <span className="text-green-600 font-medium">{classroom.active_students}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-yellow-600 font-medium">{classroom.inactive_students}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-600 font-medium">{classroom.removed_students}</span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-muted-foreground">No classrooms found.</p>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
+  // Render admin/god dashboard
+  if (stats) {
+    return ( 
+      <main className="flex min-h-screen flex-col gap-y-8 p-8 md:p-24">
+        <h1 className="font-bold text-2xl">Dashboard</h1>
+        
+        {/* Summary Cards */}
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.activeUsersCount}</div>
+              <p className="text-xs text-muted-foreground">
+                Users with active status
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Students</CardTitle>
+              <GraduationCap className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.totalStudentsCount}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.studentsByStatus.active} active, {stats.studentsByStatus.inactive} inactive, {stats.studentsByStatus.removed} removed
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Expiring This Month</CardTitle>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.studentsExpiringThisMonth.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Students expiring in current month
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Courses</CardTitle>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.studentsByCourse.length}</div>
+              <p className="text-xs text-muted-foreground">
+                Courses with students
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Students Expiring This Month */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Students Expiring This Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats.studentsExpiringThisMonth.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Course</TableHead>
+                    <TableHead>Expiry Date</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stats.studentsExpiringThisMonth.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="font-medium">{student.username}</TableCell>
+                      <TableCell>{student.course_name}</TableCell>
+                      <TableCell>
+                        {student.expiry_date ? dateDisplayFormat(student.expiry_date) : "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                          student.status === "active" 
+                            ? "bg-green-100 text-green-800" 
+                            : student.status === "inactive"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : "bg-gray-100 text-gray-800"
+                        }`}>
+                          {student.status}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-muted-foreground">No students expiring this month.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Students by Course */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Students by Course</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {stats.studentsByCourse.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Course Name</TableHead>
+                    <TableHead>Total Students</TableHead>
+                    <TableHead>Active</TableHead>
+                    <TableHead>Inactive</TableHead>
+                    <TableHead>Removed</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stats.studentsByCourse.map((course) => (
+                    <TableRow key={course.course_id}>
+                      <TableCell className="font-medium">{course.course_name}</TableCell>
+                      <TableCell>{course.total_students}</TableCell>
+                      <TableCell>
+                        <span className="text-green-600 font-medium">{course.active_students}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-yellow-600 font-medium">{course.inactive_students}</span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-600 font-medium">{course.removed_students}</span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <p className="text-muted-foreground">No courses with students found.</p>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
+  return null;
 }

@@ -4,7 +4,7 @@ import { getAuthUserId } from "@convex-dev/auth/server";
 
 
 export const userAuthorized = query({
-  args: { role: v.union(v.literal("user"), v.literal("admin"), v.literal("admin")) },
+  args: { role: v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god")) },
   handler: async (ctx) => {
     const userId = await getAuthUserId(ctx);
     return userId ?? "nothing";
@@ -30,7 +30,7 @@ export const getUserById = query({
 });
 
 export const getUsersByRole = query({
-  args: { role: v.union(v.literal("user"), v.literal("admin")) },
+  args: { role: v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god")) },
   handler: async (ctx, args) => {
     const users = await ctx.db
       .query("userTable")
@@ -148,6 +148,7 @@ export const getUserRoleByAuthId = query({
     return {
       user_id: user._id,
       role: user.role,
+      org_id: user.org_id,
       stripe_id: user.stripe_id,
       email: user.email,
     }
@@ -169,8 +170,23 @@ export const getStripeUserInfoByAuthId = query({
       first_name: user.first_name,
       last_name: user.last_name,
       role: user.role,
+      org_id: user.org_id,
       stripe_id: user.stripe_id,
       email: user.email,
     }
+  }
+});
+
+export const getUserWithOrgId = query({
+  args: { id: v.id("userTable") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.id);
+    if (!user) return null;
+
+    return {
+      id: user._id,
+      role: user.role,
+      org_id: user.org_id,
+    };
   }
 });

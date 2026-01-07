@@ -80,6 +80,43 @@ export const getAllStudentsWithClassroomAndUser = query({
   }
 });
 
+export const getStudentsByOrganization = query({
+  args: { org_id: v.id("organization") },
+  handler: async (ctx, args) => {
+    // First get all classrooms belonging to this organization
+    const classrooms = await ctx.db
+      .query("classroom")
+      .withIndex("by_organization", (q) => q.eq("organization_id", args.org_id))
+      .collect();
+
+    const classroomIds = new Set(classrooms.map((c) => c._id));
+
+    // Get all students
+    const allStudents = await ctx.db.query("student").collect();
+
+    // Filter students that belong to classrooms in this organization
+    const orgStudents = allStudents.filter(
+      (student) => student.classroom_id && classroomIds.has(student.classroom_id)
+    );
+
+    return await Promise.all(orgStudents.map(async (student) => {
+      const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
+      const user = student.user_id ? await ctx.db.get(student.user_id) : undefined;
+
+      return {
+        id: student._id,
+        username: student.username,
+        password: student.password,
+        user_id: student.user_id,
+        user_email: user?.email ?? undefined,
+        expiry_date: student.expiry_date,
+        status: student.status,
+        classroom_name: classroom?.classroom_name,
+      };
+    }));
+  }
+});
+
 export const getRenewalStudentsWithClassroomAndCourse = query({
   args: { ids: v.array(v.id("student")) },
   handler: async (ctx, args) => {
