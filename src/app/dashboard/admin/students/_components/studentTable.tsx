@@ -38,6 +38,7 @@ export default function StudentTable(
           <SelectItem value="removed">Removed</SelectItem>
         </SelectContent>
       </Select>
+      {students.filter((student) => student.status === status).length > 0 ? (
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>
@@ -58,6 +59,9 @@ export default function StudentTable(
           ))}
         </TableBody>
       </Table>
+      ) : (
+        <p>NO STUDENTS HERE!</p>
+      )}
     </>
   )
 }

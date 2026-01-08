@@ -21,13 +21,16 @@ import DownloadButton from "./downloadButton";
 import { type Classroom, type Course, type Organization } from "../../_actions/schemas";
 import Link from "next/link";
 
+interface ClassroomTableProps {
+  classrooms: Classroom[];
+  courses: Course[];
+  orgs: Organization[];
+  isOrgAdmin?: boolean;
+}
+
 export default function ClassroomTable({ 
-  classrooms, courses, orgs 
-}: { 
-  classrooms: Classroom[],
-  courses: Course[],
-  orgs: Organization[]
-}) {
+  classrooms, courses, orgs, isOrgAdmin = false 
+}: ClassroomTableProps) {
   
   const [openState, setOpenState] = React.useState(false);
   const [status, setStatus] = React.useState("active");
@@ -48,12 +51,14 @@ export default function ClassroomTable({
             <SelectItem value="removed">removed</SelectItem>
           </SelectContent>
         </Select>
-        <AddClassroomDialog 
-          courses={courses} 
-          orgs={orgs}
-          openState={openState}
-          setOpenState={setOpenState}
-        />
+        {!isOrgAdmin && (
+          <AddClassroomDialog 
+            courses={courses} 
+            orgs={orgs}
+            openState={openState}
+            setOpenState={setOpenState}
+          />
+        )}
       </div>
       <Table>
         <TableHeader className="bg-primary-foreground">

@@ -43,7 +43,7 @@ export default async function ClassroomPage() {
     <>
       <main className="flex min-h-screen flex-col gap-y-8 p-24">
         <h1 className="font-bold text-2xl">CLASSROOMS</h1>
-        {classrooms && <ClassroomTable classrooms={classrooms} courses={courses} orgs={orgs} /> }
+        {classrooms && <ClassroomTable classrooms={classrooms} courses={courses} orgs={orgs} isOrgAdmin={isOrgAdmin} /> }
       </main>
     </>
   )

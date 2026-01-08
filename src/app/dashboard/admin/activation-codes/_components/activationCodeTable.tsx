@@ -98,28 +98,32 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
               <SelectItem value="removed">Removed</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={orgFilter} onValueChange={setOrgFilter}>
-            <SelectTrigger className="min-w-48">
-              <SelectValue>
-                Organization: {orgFilter === "all" ? "All" : orgFilter}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Organizations</SelectItem>
-              {orgs.map((org) => (
-                <SelectItem key={org.organization_name} value={org.organization_name}>
-                  {org.organization_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {!isOrgAdmin && (
+            <Select value={orgFilter} onValueChange={setOrgFilter}>
+              <SelectTrigger className="min-w-48">
+                <SelectValue>
+                  Organization: {orgFilter === "all" ? "All" : orgFilter}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Organizations</SelectItem>
+                {orgs.map((org) => (
+                  <SelectItem key={org.organization_name} value={org.organization_name}>
+                    {org.organization_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select> 
+          )}
         </div>
-        <AddActivationCodeDialog
-          courses={courses ?? []}
-          orgs={orgs ?? []}
-          openState={openState}
-          setOpenState={setOpenState}
-        />
+        {!isOrgAdmin && (
+          <AddActivationCodeDialog
+            courses={courses ?? []}
+            orgs={orgs ?? []}
+            openState={openState}
+            setOpenState={setOpenState}
+          />
+        )}
       </div>
       <Table>
         <TableHeader className="bg-primary-foreground">
@@ -145,7 +149,7 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
               return (
                 <TableRow key={code.id}>
                   <TableCell>
-                    {status === "unused" && (
+                    {status === "unused" && !isOrgAdmin && (
                     <Button variant="outline"  onClick={async () => {
                       const result = await removeActivationCode({ activation_code_id: code.id });
                       if (result.success) {
