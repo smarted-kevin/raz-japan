@@ -6,7 +6,24 @@ import "./src/env.js";
 import createNextIntlPlugin from "next-intl/plugin";
 
 /** @type {import("next").NextConfig} */
-const config = {};
+const config = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.convex.cloud",
+      },
+      {
+        protocol: "https",
+        hostname: "**.convex.site",
+      },
+      {
+        protocol: "https",
+        hostname: "**.convex.dev",
+      },
+    ],
+  },
+};
 
 const withNextIntl = createNextIntlPlugin();
 

@@ -34,6 +34,7 @@ import type * as queries_dashboard from "../queries/dashboard.js";
 import type * as queries_full_order from "../queries/full_order.js";
 import type * as queries_organization from "../queries/organization.js";
 import type * as queries_session from "../queries/session.js";
+import type * as queries_storage from "../queries/storage.js";
 import type * as queries_student from "../queries/student.js";
 import type * as queries_student_order from "../queries/student_order.js";
 import type * as queries_users from "../queries/users.js";
@@ -80,6 +81,7 @@ declare const fullApi: ApiFromModules<{
   "queries/full_order": typeof queries_full_order;
   "queries/organization": typeof queries_organization;
   "queries/session": typeof queries_session;
+  "queries/storage": typeof queries_storage;
   "queries/student": typeof queries_student;
   "queries/student_order": typeof queries_student_order;
   "queries/users": typeof queries_users;
