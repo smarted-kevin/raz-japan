@@ -7,7 +7,8 @@ export type UserData = {
   first_name: string | undefined,
   last_name: string | undefined,
   email: string | undefined,
-  status: "active" | "inactive" | undefined
+  status: "active" | "inactive" | undefined,
+  role?: "user" | "admin" | "org_admin" | "god"
 }
 
 export type BasicUserData = Pick<UserData, 

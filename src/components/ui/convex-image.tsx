@@ -3,23 +3,25 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-interface HeroBannerProps {
+interface ConvexImageProps {
   storageId: string;
   alt: string;
   width: number;
   height: number;
   className?: string;
   priority?: boolean;
+  placeholderClassName?: string;
 }
 
-export function HeroBanner({ 
+export function ConvexImage({ 
   storageId, 
   alt, 
   width, 
   height, 
   className,
-  priority = false 
-}: HeroBannerProps) {
+  priority = false,
+  placeholderClassName = "bg-gradient-to-br from-gray-200 to-gray-300"
+}: ConvexImageProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -53,7 +55,7 @@ export function HeroBanner({
   if (!imageUrl) {
     return (
       <div 
-        className={`bg-gradient-to-br from-blue-400 to-indigo-500 animate-pulse ${className}`}
+        className={`animate-pulse ${placeholderClassName} ${className ?? ""}`}
         style={{ width: '100%', aspectRatio: `${width}/${height}` }}
       />
     );

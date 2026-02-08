@@ -16,13 +16,19 @@ import { formatYen } from "~/lib/formatters";
 import { env } from "~/env";
 import type { Id } from "convex/_generated/dataModel";
 import { internal } from "@/convex/_generated/api";
+import { redirect } from "next/navigation";
+import { getToken } from "~/lib/auth-server";
 
 const stripe = new Stripe(env.STRIPE_SANDBOX_SECRET_KEY);
 
 
 export default async function SuccessPage(
  
-) { 
+) {
+  const token = await getToken();
+  const session = await fetchQuery(api.auth.getCurrentUser, {}, { token });
+
+  if (!session) redirect('/sign-in'); 
 
  
   /*

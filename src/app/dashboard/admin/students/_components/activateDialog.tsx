@@ -22,7 +22,7 @@ import { useMutation } from "convex/react";
 
 export function ActivateDialog({ id }:{ id:string }) {
   
-  const activateStudent = useMutation(api.mutations.student.activateStudent);
+  //const activateStudent = useMutation(api.mutations.student.activateStudent);
 
   const today = new Date();
   

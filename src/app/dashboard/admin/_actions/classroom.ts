@@ -50,9 +50,10 @@ export async function addClassroom(formData: NewClassroomForm) {
     const saltedPassword = password?.concat(passwordSalt.toString());
 
     //Add student object to array
-    if (saltedUser && saltedPassword){
-      usedUsernames.push(saltedUser);
-      usedPasswords.push(saltedPassword);
+    if (username && password && saltedUser && saltedPassword){
+      // Push raw words (not salted) to prevent reuse of the same base word
+      usedUsernames.push(username);
+      usedPasswords.push(password);
     
       students.push({
         username: saltedUser,
@@ -92,15 +93,24 @@ export async function addStudentsToClassroom(
   const usedUsernames: string[] = [];
   const usedPasswords: string[] = [];
 
+  const wordList = Words.words;
+
+  // Helper function to extract base word from salted username/password
+  const extractBaseWord = (salted: string): string | undefined => {
+    return wordList.find((word) => salted.startsWith(word));
+  };
+
   // Get all existing usernames and passwords to avoid duplicates
+  // Extract the base word (without salt) for proper comparison
   existingStudents.forEach((student) => {
-    usedUsernames.push(student.username);
-    usedPasswords.push(student.password);
+    const baseUsername = extractBaseWord(student.username);
+    const basePassword = extractBaseWord(student.password);
+    if (baseUsername) usedUsernames.push(baseUsername);
+    if (basePassword) usedPasswords.push(basePassword);
   });
 
   const students: NewStudentData[] = [];
 
-  const wordList = Words.words;
   for (let i = 0; i < studentCount; i++) {
     const usernameArray: string[] = wordList.filter(
       (e) => !usedUsernames.includes(e)
@@ -123,9 +133,10 @@ export async function addStudentsToClassroom(
     const saltedPassword = password?.concat(passwordSalt.toString());
 
     // Add student object to array
-    if (saltedUser && saltedPassword) {
-      usedUsernames.push(saltedUser);
-      usedPasswords.push(saltedPassword);
+    if (username && password && saltedUser && saltedPassword) {
+      // Push raw words (not salted) to prevent reuse of the same base word
+      usedUsernames.push(username);
+      usedPasswords.push(password);
 
       students.push({
         username: saltedUser,

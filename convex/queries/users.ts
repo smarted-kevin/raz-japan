@@ -127,6 +127,7 @@ export const getUsersWithStudents = query(async (ctx) => {
           last_name: user.last_name,
           email: user.email,
           status: user.status,
+          role: user.role,
           students: studentsWithClassrooms,
         }
       })

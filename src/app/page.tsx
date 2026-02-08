@@ -7,11 +7,12 @@ import {
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
-import { HeroBanner } from "~/components/ui/hero-banner";
+import { ConvexImage } from "~/components/ui/convex-image";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
 
 // Banner image from Convex storage
 const BANNER_STORAGE_ID = "kg29gdjrjf06330bwdnjmfm37x7y7exm";
+const DASHBOARD_STORAGE_ID = "kg2678ax28zp8vm25w9s2nymk57yyyxq";
 
 export default function HomePage() {
 
@@ -155,13 +156,14 @@ export default function HomePage() {
             {/* Right Content - Banner Image */}
             <div className="relative">
               <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
-                <HeroBanner
+                <ConvexImage
                   storageId={BANNER_STORAGE_ID}
                   alt="Kids reading app showing dashboard with badges, books on tablet and phone, and interactive reading room"
                   width={800}
                   height={600}
                   className="w-full h-auto"
                   priority
+                  placeholderClassName="bg-gradient-to-br from-blue-400 to-indigo-500"
                 />
               </div>
               {/* Floating Badge */}
@@ -181,8 +183,8 @@ export default function HomePage() {
         </div>
         
         {/* Wave divider */}
-        <div className="absolute bottom-0 left-0 right-0">
-          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
+        <div className="absolute -bottom-1 left-0 right-0">
+          <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full block" preserveAspectRatio="none">
             <path d="M0 120L60 105C120 90 240 60 360 45C480 30 600 30 720 37.5C840 45 960 60 1080 67.5C1200 75 1320 75 1380 75L1440 75V120H1380C1320 120 1200 120 1080 120C960 120 840 120 720 120C600 120 480 120 360 120C240 120 120 120 60 120H0Z" fill="white"/>
           </svg>
         </div>
@@ -339,69 +341,16 @@ export default function HomePage() {
             
             <div className="relative">
               {/* Dashboard Preview Card */}
-              <div className="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 shadow-2xl">
-                <div className="bg-white rounded-xl p-6 space-y-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-bold text-gray-900">Weekly Overview</h3>
-                    <span className="text-xs text-gray-500">This Week</span>
-                  </div>
-                  
-                  {/* Mini Stats */}
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-blue-600">12</div>
-                      <div className="text-xs text-gray-500">Books Read</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">4.2h</div>
-                      <div className="text-xs text-gray-500">Time Spent</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-purple-600">95%</div>
-                      <div className="text-xs text-gray-500">Quiz Avg</div>
-                    </div>
-                  </div>
-                  
-                  {/* Progress Bar */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Level Progress</span>
-                      <span className="font-medium text-gray-900">Level K → L</span>
-                    </div>
-                    <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full w-3/4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full" />
-                    </div>
-                  </div>
-                  
-                  {/* Recent Activity */}
-                  <div className="pt-2">
-                    <p className="text-xs text-gray-500 mb-2">Recent Activity</p>
-                    <div className="space-y-2">
-                      {[
-                        { book: "Amazing Antarctica", status: "Completed", color: "text-green-600" },
-                        { book: "Best Friends Q and U", status: "In Progress", color: "text-blue-600" },
-                      ].map((item, index) => (
-                        <div key={index} className="flex items-center justify-between text-sm">
-                          <span className="text-gray-700">{item.book}</span>
-                          <span className={`${item.color} font-medium`}>{item.status}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Floating notification */}
-              <div className="absolute -top-4 -right-4 bg-white rounded-xl p-3 shadow-lg border border-gray-100 hidden md:block">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-gray-900">New Badge Earned!</p>
-                    <p className="text-xs text-gray-500">Super Reader 🏆</p>
-                  </div>
-                </div>
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
+                <ConvexImage
+                  storageId={DASHBOARD_STORAGE_ID}
+                  alt="Kids A-Z dashboard"
+                  width={800}
+                  height={600}
+                  className="w-full h-auto"
+                  priority
+                  placeholderClassName="bg-gradient-to-br from-blue-400 to-indigo-500"
+                />
               </div>
             </div>
           </div>
@@ -412,10 +361,7 @@ export default function HomePage() {
       <section className="py-16 md:py-24 bg-gradient-to-br from-amber-50 to-orange-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700 mb-4">
-              <Award className="h-4 w-4" />
-              <span>Gamified Learning</span>
-            </div>
+        
             
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               Badges & Rewards That Motivate

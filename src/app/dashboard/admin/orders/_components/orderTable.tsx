@@ -2,6 +2,16 @@
 
 import { useState } from "react";
 import {
+  useReactTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+} from "@tanstack/react-table";
+import {
   Table,
   TableBody,
   TableCell,
@@ -16,59 +26,227 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTrigger,
-} from "~/components/ui/dialog";
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import type { OrdersWithUserAndStudentData } from "../../_actions/schemas";
 import { dateDisplayFormat } from "~/lib/formatters";
 
-export default function OrderTable({ orders }: { orders: OrdersWithUserAndStudentData[] }) {
-  
-  const [status, setStatus] = useState("active")
+const columns: ColumnDef<OrdersWithUserAndStudentData>[] = [
+  {
+    accessorKey: "order_number",
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Order Number
+        <ArrowUpDown className="h-4 w-4" />
+      </button>
+    ),
+    cell: ({ row }) => row.original.order_number ?? "N/A",
+  },
+  {
+    accessorKey: "email",
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        User ID
+        <ArrowUpDown className="h-4 w-4" />
+      </button>
+    ),
+  },
+  {
+    accessorKey: "amount",
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Order Total
+        <ArrowUpDown className="h-4 w-4" />
+      </button>
+    ),
+  },
+  {
+    accessorKey: "created_date",
+    header: ({ column }) => (
+      <button
+        className="flex items-center gap-1"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      >
+        Created Date
+        <ArrowUpDown className="h-4 w-4" />
+      </button>
+    ),
+    cell: ({ row }) => dateDisplayFormat(row.original.created_date),
+  },
+  {
+    id: "student_orders",
+    header: "Student Orders",
+    cell: ({ row }) =>
+      row.original.student_orders.map((so) => (
+        <div key={so.id}>
+          {so.username} {so.amount} {so.order_type}
+        </div>
+      )),
+  },
+];
+
+export default function OrderTable({
+  orders,
+}: {
+  orders: OrdersWithUserAndStudentData[];
+}) {
+  const [status, setStatus] = useState("active");
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [userFilter, setUserFilter] = useState("");
+
+  const table = useReactTable({
+    data: orders,
+    columns,
+    state: { sorting, globalFilter: userFilter },
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setUserFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: { pageSize: 10 },
+    },
+  });
 
   return (
-    <>
-      <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="w-1/2">
-          <SelectValue>{status}</SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="active">active</SelectItem>
-          <SelectItem value="inactive">inactive</SelectItem>
-          <SelectItem value="removed">removed</SelectItem>
-        </SelectContent>
-      </Select>
+    <div className="space-y-4">
+      <div className="flex gap-4">
+        <Input
+          placeholder="Filter by user..."
+          value={userFilter}
+          onChange={(e) => setUserFilter(e.target.value)}
+          className="max-w-sm"
+        />
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-48">
+            <SelectValue>{status}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">active</SelectItem>
+            <SelectItem value="inactive">inactive</SelectItem>
+            <SelectItem value="removed">removed</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <Table>
         <TableHeader className="bg-primary-foreground">
-          <TableRow>
-            <TableHead>Order Number</TableHead>
-            <TableHead>User ID</TableHead>
-            <TableHead>Order Total</TableHead>
-            <TableHead>Created Date</TableHead>
-            <TableHead>Student Orders</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {orders.map((order) => (
-            <TableRow key={order.order_id}>
-              <TableCell>{order.order_number ?? "N/A"}</TableCell>
-              <TableCell>{order.email}</TableCell>
-              <TableCell>{order.amount}</TableCell>
-              <TableCell>{dateDisplayFormat(order.created_date)}</TableCell>
-              <TableCell>{order.student_orders.map((student_order) => (
-                <div key={student_order.id}>
-                  {student_order.username}
-                  {student_order.amount}
-                  {student_order.order_type}
-                </div>
-              ))}</TableCell>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                </TableHead>
+              ))}
             </TableRow>
           ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.length ? (
+            table.getRowModel().rows.map((row) => (
+              <TableRow key={row.id}>
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))
+          ) : (
+            <TableRow>
+              <TableCell colSpan={columns.length} className="h-24 text-center">
+                No results.
+              </TableCell>
+            </TableRow>
+          )}
         </TableBody>
       </Table>
-    </>
-  )
+
+      <div className="flex items-center justify-between px-2">
+        <div className="text-muted-foreground text-sm">
+          {table.getFilteredRowModel().rows.length} total rows
+        </div>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">Rows per page</span>
+            <Select
+              value={String(table.getState().pagination.pageSize)}
+              onValueChange={(value) => table.setPageSize(Number(value))}
+            >
+              <SelectTrigger className="w-18">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[10, 20, 30, 50].map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="text-sm">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

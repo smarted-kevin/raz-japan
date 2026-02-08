@@ -28,16 +28,43 @@ import AddUserDialog from "./addUserDialog";
 import type { UserWithStudentData } from "../../_actions/schemas";
 import { dateDisplayFormat } from "~/lib/formatters";
 
+const roleLabels: Record<string, string> = {
+  user: "Users",
+  admin: "Admins",
+  org_admin: "Organization Admins",
+  all: "All",
+};
+
 export default function UserTable({ users }: { users: UserWithStudentData[] }) {
   
   const [openState, setOpenState] = React.useState(false);
-  const [status, setStatus] = React.useState("active")
+  const [status, setStatus] = React.useState("active");
+  const [roleFilter, setRoleFilter] = React.useState("user");
+
+  const filteredUsers = React.useMemo(() => {
+    return users.filter((user) => {
+      const statusMatch = user.status === status;
+      const roleMatch = roleFilter === "all" || user.role === roleFilter;
+      return statusMatch && roleMatch;
+    });
+  }, [users, status, roleFilter]);
 
   return (
     <>
-      <div className="flex gap-x-10 w-3/4 justify-between">
+      <div className="flex gap-x-4 w-full items-center">
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue>{roleLabels[roleFilter]}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="user">Users</SelectItem>
+            <SelectItem value="admin">Admins</SelectItem>
+            <SelectItem value="org_admin">Organization Admins</SelectItem>
+            <SelectItem value="all">All</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-1/2">
+          <SelectTrigger className="w-[150px]">
             <SelectValue>{status}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -46,26 +73,29 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
             <SelectItem value="removed">removed</SelectItem>
           </SelectContent>
         </Select>
-        <AddUserDialog 
-          openState={openState}
-          setOpenState={setOpenState}
-        />
+        <div className="ml-auto">
+          <AddUserDialog 
+            openState={openState}
+            setOpenState={setOpenState}
+          />
+        </div>
       </div>
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Role</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Students</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.map((user) => (
-            (status === user.status) &&
+          {filteredUsers.map((user) => (
             <TableRow key={user.id}>
               <TableCell>{`${user.first_name} ${user.last_name}`}</TableCell>
               <TableCell>{user.email}</TableCell>
+              <TableCell>{user.role}</TableCell>
               <TableCell>{user.status}</TableCell>
               <TableCell>
                 {user.students.length > 0 &&

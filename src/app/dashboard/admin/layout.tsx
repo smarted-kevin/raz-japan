@@ -1,4 +1,7 @@
-import TopNav from "./_components/navBar";
+import Sidebar from "./_components/sidebar";
+import MobileSidebar from "./_components/mobileSidebar";
+import { SidebarProvider } from "./_components/sidebarContext";
+import { SidebarContent } from "./_components/sidebarContent";
 import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
 import { fetchQuery } from "convex/nextjs";
@@ -24,10 +27,26 @@ export default async function AdminLayout({
   }
 
   return (
-      <>
-        <TopNav role={userRole} />
-        <div className="container mx-auto pt-4">{ children }</div>
-      </>
+    <SidebarProvider>
+      <div className="flex h-screen overflow-hidden">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <Sidebar role={userRole} />
+        </div>
 
+        {/* Mobile Top Bar */}
+        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-primary h-16 flex items-center px-4 border-b border-primary-foreground/10">
+          <MobileSidebar role={userRole} />
+          <h2 className="ml-4 text-lg font-semibold text-white">Admin Dashboard</h2>
+        </div>
+
+        {/* Main Content Area */}
+        <SidebarContent>
+          <div className="container mx-auto p-4 md:p-6">
+            {children}
+          </div>
+        </SidebarContent>
+      </div>
+    </SidebarProvider>
   )
 }
