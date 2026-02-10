@@ -39,7 +39,7 @@ export default async function OrderHistoryPage(
         <h1 className="font-bold text-2xl">Order History</h1>
       </div>
       <div className="p-6 border-2 rounded-lg">
-        <OrderHistoryTable orders={orders} />
+        <OrderHistoryTable orders={orders} userId={params.id as Id<"userTable">} />
       </div>
     </div>
   );

@@ -4,8 +4,8 @@ import { useMemo, useState, useCallback } from "react";
 import {
   useReactTable,
   getCoreRowModel,
-  getSortedRowModel,
   getFilteredRowModel,
+  getSortedRowModel,
   getPaginationRowModel,
   flexRender,
   type ColumnDef,

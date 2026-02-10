@@ -102,6 +102,66 @@ export const getOrderById = query({
   }
 });
 
+/**
+ * Get order by ID with student order data including expiry dates
+ * @param id - The order ID
+ * @returns order with student order data including expiry dates and prices
+ */
+export const getOrderByIdWithStudentData = query({
+  args: { id: v.id("full_order") },
+  handler: async (ctx, args) => {
+    const order = await ctx.db.get(args.id);
+    if (!order) {
+      return null;
+    }
+
+    // Get student orders for this order
+    const studentOrders = await ctx.db
+      .query("student_order")
+      .withIndex("by_order_id", (q) => q.eq("order_id", order._id))
+      .collect();
+
+    // Get student data for each student order
+    const studentOrdersWithData = await Promise.all(studentOrders.map(async (student_order) => {
+      const student = await ctx.db.get(student_order.student_id);
+      if (!student) {
+        return null;
+      }
+
+      return {
+        id: student_order._id,
+        amount: student_order.amount,
+        order_id: student_order.order_id,
+        order_type: student_order.order_type,
+        username: student.username,
+        expiry_date: student.expiry_date,
+        activation_id: student_order.activation_id,
+      };
+    }));
+
+    // Filter out null values
+    const validStudentOrders = studentOrdersWithData.filter((so) => so !== null) as {
+      id: Id<"student_order">;
+      amount: number;
+      order_id: Id<"full_order">;
+      order_type: "new" | "renewal" | "reactivation";
+      username: string;
+      expiry_date: number | undefined;
+      activation_id: Id<"activation_code"> | undefined;
+    }[];
+
+    return {
+      order_id: order._id,
+      total_amount: order.total_amount,
+      order_number: order.order_number,
+      created_date: order._creationTime,
+      status: order.status,
+      user_id: order.user_id,
+      student_orders: validStudentOrders,
+    };
+  }
+});
+
 export const getOrderByStripeId = query({
   args: { stripe_id: v.string() },
   handler: async (ctx, args) => {

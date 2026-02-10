@@ -10,6 +10,7 @@ import {
 } from "~/components/ui/table";
 import { dateDisplayFormat, formatYen, capitalize } from "~/lib/formatters";
 import type { Id } from "convex/_generated/dataModel";
+import Link from "next/link";
 
 type StudentOrderData = {
   id: Id<"student_order">;
@@ -29,7 +30,7 @@ type OrderData = {
   student_orders: StudentOrderData[];
 };
 
-export function OrderHistoryTable({ orders }: { orders: OrderData[] }) {
+export function OrderHistoryTable({ orders, userId }: { orders: OrderData[]; userId: Id<"userTable"> }) {
   if (orders.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
@@ -54,7 +55,14 @@ export function OrderHistoryTable({ orders }: { orders: OrderData[] }) {
             <TableCell className="font-medium">
               {dateDisplayFormat(order.created_date)}
             </TableCell>
-            <TableCell>{order.order_number ?? "N/A"}</TableCell>
+            <TableCell>
+              <Link
+                href={`/dashboard/members/${userId}/order-history/${order.order_id}`}
+                className="text-primary hover:underline font-medium"
+              >
+                {order.order_number ?? "N/A"}
+              </Link>
+            </TableCell>
             <TableCell>
               {order.student_orders.some((so) => so.activation_id)
                 ? formatYen(0)
