@@ -9,6 +9,10 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as betterAuth__generated_api from "../betterAuth/_generated/api.js";
+import type * as betterAuth__generated_server from "../betterAuth/_generated/server.js";
+import type * as betterAuth_adapter from "../betterAuth/adapter.js";
+import type * as betterAuth_auth from "../betterAuth/auth.js";
 import type * as crons from "../crons.js";
 import type * as email from "../email.js";
 import type * as http from "../http.js";
@@ -42,8 +46,20 @@ import type {
   FunctionReference,
 } from "convex/server";
 
+/**
+ * A utility for referencing Convex functions in your app's API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  "betterAuth/_generated/api": typeof betterAuth__generated_api;
+  "betterAuth/_generated/server": typeof betterAuth__generated_server;
+  "betterAuth/adapter": typeof betterAuth_adapter;
+  "betterAuth/auth": typeof betterAuth_auth;
   crons: typeof crons;
   email: typeof email;
   http: typeof http;
@@ -71,30 +87,14 @@ declare const fullApi: ApiFromModules<{
   "queries/users": typeof queries_users;
   stripe: typeof stripe;
 }>;
+declare const fullApiWithMounts: typeof fullApi;
 
-/**
- * A utility for referencing Convex functions in your app's public API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = api.myModule.myFunction;
- * ```
- */
 export declare const api: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "public">
 >;
-
-/**
- * A utility for referencing Convex functions in your app's internal API.
- *
- * Usage:
- * ```js
- * const myFunctionReference = internal.myModule.myFunction;
- * ```
- */
 export declare const internal: FilterApi<
-  typeof fullApi,
+  typeof fullApiWithMounts,
   FunctionReference<any, "internal">
 >;
 

@@ -42,7 +42,7 @@ export default async function AdminLayout({
 
         {/* Main Content Area */}
         <SidebarContent>
-          <div className="container mx-auto p-4 md:p-6">
+          <div className="container mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-6">
             {children}
           </div>
         </SidebarContent>

@@ -247,10 +247,10 @@ export default function ClassroomTable({
   );
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-4 w-full items-center flex-wrap">
+    <div className="space-y-4 w-full min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4 w-full items-stretch sm:items-center">
         <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-full sm:w-[150px]">
             <SelectValue>{capitalize(statusFilter)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -260,7 +260,7 @@ export default function ClassroomTable({
         </Select>
 
         <Select value={courseFilter} onValueChange={handleCourseFilterChange}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue placeholder="Filter by course" />
           </SelectTrigger>
           <SelectContent>
@@ -275,7 +275,7 @@ export default function ClassroomTable({
 
         {!isOrgAdmin && (
           <Select value={orgFilter} onValueChange={handleOrgFilterChange}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Filter by organization" />
             </SelectTrigger>
             <SelectContent>
@@ -290,7 +290,7 @@ export default function ClassroomTable({
         )}
 
         {!isOrgAdmin && (
-          <div className="ml-auto">
+          <div className="w-full sm:w-auto sm:ml-auto">
             <AddClassroomDialog 
               courses={courses} 
               orgs={orgs}
@@ -303,6 +303,7 @@ export default function ClassroomTable({
 
       {table.getRowModel().rows.length > 0 ? (
         <>
+          <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
           <Table>
             <TableHeader className="bg-primary-foreground">
               {table.getHeaderGroups().map((headerGroup) => (
@@ -324,12 +325,13 @@ export default function ClassroomTable({
               ))}
             </TableBody>
           </Table>
+          </div>
 
-          <div className="flex items-center justify-between px-2">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
             <div className="text-muted-foreground text-sm">
               {table.getFilteredRowModel().rows.length} total classrooms
             </div>
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6">
               <div className="flex items-center gap-2">
                 <span className="text-sm">Rows per page</span>
                 <Select

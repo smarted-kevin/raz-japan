@@ -27,6 +27,7 @@ const ClassroomRow = memo(function ClassroomRow({ classroom }: ClassroomRowProps
           {classroom.classroom_name}
         </Link>
       </TableCell>
+      <TableCell className="capitalize">{classroom.status ?? "N/A"}</TableCell>
       <TableCell>{classroom.course_name ?? "N/A"}</TableCell>
       <TableCell>{classroom.organization_name ?? "N/A"}</TableCell>
       <TableCell>{classroom.active_students ?? 0}</TableCell>

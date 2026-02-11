@@ -8,7 +8,7 @@ export default async function CoursePage() {
 
   return (
     <>
-      <main className="flex min-h-screen flex-col gap-y-8 p-24">
+      <main className="flex min-h-screen flex-col gap-y-6 p-4 sm:p-6 md:p-8 lg:p-12 xl:p-24">
         <h1 className="font-bold text-2xl">COURSES</h1>
         {courses && <CourseTable courses={courses} /> }
       </main>

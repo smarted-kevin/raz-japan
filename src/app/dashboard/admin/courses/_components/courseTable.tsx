@@ -26,10 +26,10 @@ export default function CourseTable({ courses }: { courses: Course[] }) {
   const [status, setStatus] = React.useState("active")
 
   return (
-    <>
-      <div className="flex gap-x-10 w-3/4 justify-between">
+    <div className="space-y-4 w-full min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:gap-x-10 w-full justify-between">
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-1/2">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue>{status}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -43,6 +43,7 @@ export default function CourseTable({ courses }: { courses: Course[] }) {
           setOpenState={setOpenState}
         />
       </div>
+      <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
       <Table>
         <TableHeader className="bg-primary-foreground">
           <TableRow>
@@ -60,6 +61,7 @@ export default function CourseTable({ courses }: { courses: Course[] }) {
           ))}
         </TableBody>
       </Table>
-    </>
+      </div>
+    </div>
   )
 }

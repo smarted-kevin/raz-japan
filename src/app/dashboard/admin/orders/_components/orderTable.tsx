@@ -126,16 +126,16 @@ export default function OrderTable({
   });
 
   return (
-    <div className="space-y-4">
-      <div className="flex gap-4">
+    <div className="space-y-4 w-full min-w-0">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
         <Input
           placeholder="Filter by user..."
           value={userFilter}
           onChange={(e) => setUserFilter(e.target.value)}
-          className="max-w-sm"
+          className="w-full sm:max-w-sm min-w-0"
         />
         <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue>{status}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -146,6 +146,7 @@ export default function OrderTable({
         </Select>
       </div>
 
+      <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
       <Table>
         <TableHeader className="bg-primary-foreground">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -181,12 +182,13 @@ export default function OrderTable({
           )}
         </TableBody>
       </Table>
+      </div>
 
-      <div className="flex items-center justify-between px-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
         <div className="text-muted-foreground text-sm">
           {table.getFilteredRowModel().rows.length} total rows
         </div>
-        <div className="flex items-center gap-6">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-6">
           <div className="flex items-center gap-2">
             <span className="text-sm">Rows per page</span>
             <Select

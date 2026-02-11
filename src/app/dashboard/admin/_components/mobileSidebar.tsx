@@ -40,14 +40,12 @@ export default function MobileSidebar({ role }: MobileSidebarProps) {
           <SheetTitle className="text-white">Admin Dashboard</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col h-[calc(100vh-80px)]">
+          <div className="border-b border-primary-foreground/10 p-4 flex items-center justify-between gap-3">
+            <DashboardLocaleSwitcher />
+            <SignOutButton />
+          </div>
           <div className="flex-1 overflow-y-auto">
             <SidebarNav role={role} onLinkClick={() => setOpen(false)} />
-          </div>
-          <div className="border-t border-primary-foreground/10 p-4 space-y-3">
-            <div className="flex justify-center">
-              <DashboardLocaleSwitcher />
-            </div>
-            <SignOutButton />
           </div>
         </div>
       </SheetContent>
