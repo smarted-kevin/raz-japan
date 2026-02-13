@@ -162,6 +162,66 @@ export const getOrderByIdWithStudentData = query({
   }
 });
 
+/**
+ * Get order by ID with user and student data (for admin view)
+ */
+export const getOrderByIdWithUserAndStudentData = query({
+  args: { id: v.id("full_order") },
+  handler: async (ctx, args) => {
+    const order = await ctx.db.get(args.id);
+    if (!order) return null;
+
+    const user = await ctx.db.get(order.user_id);
+    if (!user) return null;
+
+    const studentOrders = await ctx.db
+      .query("student_order")
+      .withIndex("by_order_id", (q) => q.eq("order_id", order._id))
+      .collect();
+
+    const studentOrdersWithData = await Promise.all(
+      studentOrders.map(async (so) => {
+        const student = await ctx.db.get(so.student_id);
+        if (!student) return null;
+        return {
+          id: so._id,
+          amount: so.amount,
+          order_id: so.order_id,
+          order_type: so.order_type,
+          username: student.username,
+          expiry_date: student.expiry_date,
+          status: student.status,
+          activation_id: so.activation_id,
+        };
+      })
+    );
+
+    const validStudentOrders = studentOrdersWithData.filter(Boolean) as {
+      id: Id<"student_order">;
+      amount: number;
+      order_id: Id<"full_order">;
+      order_type: "new" | "renewal" | "reactivation";
+      username: string;
+      expiry_date: number | undefined;
+      status: "active" | "inactive" | "removed";
+      activation_id: Id<"activation_code"> | undefined;
+    }[];
+
+    return {
+      order_id: order._id,
+      order_number: order.order_number,
+      created_date: order._creationTime,
+      status: order.status,
+      total_amount: order.total_amount,
+      user_id: user._id,
+      email: user.email,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      student_orders: validStudentOrders,
+    };
+  },
+});
+
 export const getOrderByStripeId = query({
   args: { stripe_id: v.string() },
   handler: async (ctx, args) => {

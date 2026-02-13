@@ -25,7 +25,9 @@ export default async function MemberLayout({ children }: { children: React.React
     <NextIntlClientProvider>
       <ConvexClientProvider>
         <PublicNavBar/>
-        <div className="container mx-auto pt-4">{ children }</div>
+        <div className="container mx-auto min-w-0 px-4 pt-6 pb-8 sm:px-6">
+      {children}
+    </div>
       </ConvexClientProvider>
     </NextIntlClientProvider>
   )

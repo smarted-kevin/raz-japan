@@ -420,4 +420,74 @@ export const updateMemberInfo = action({
 
     return { success: true };
   },
-})
+});
+
+const ALLOWED_ADMIN_ROLES = ["admin", "org_admin", "god"] as const;
+
+/**
+ * Admin action to update any user's information.
+ * Requires caller to have admin, org_admin, or god role.
+ */
+export const adminUpdateUserInfo = action({
+  args: {
+    userId: v.id("userTable"),
+    first_name: v.optional(v.string()),
+    last_name: v.optional(v.string()),
+    email: v.optional(v.string()),
+    status: v.optional(v.union(v.literal("active"), v.literal("inactive"))),
+  },
+  handler: async (ctx, { userId, first_name, last_name, email, status }) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    // Get caller's role to verify admin access
+    const caller = await ctx.runQuery(api.queries.users.getUserRoleByAuthId, {
+      userId: identity.subject,
+    });
+    if (!ALLOWED_ADMIN_ROLES.includes(caller.role as (typeof ALLOWED_ADMIN_ROLES)[number])) {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    // Get target user information
+    const user = await ctx.runQuery(api.queries.users.getUserById, { id: userId });
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Update user information in database
+    await ctx.runMutation(internal.mutations.users.updateUserInfo, {
+      userId,
+      first_name,
+      last_name,
+      email,
+      status,
+    });
+
+    // If user has a stripe_id, update Stripe customer (name/email only)
+    if (user.stripe_id && (first_name !== undefined || last_name !== undefined || email !== undefined)) {
+      const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
+
+      const updateData: {
+        name?: string;
+        email?: string;
+      } = {};
+
+      if (first_name !== undefined || last_name !== undefined) {
+        const updatedFirstName = first_name ?? user.first_name;
+        const updatedLastName = last_name ?? user.last_name;
+        updateData.name = `${updatedFirstName} ${updatedLastName}`;
+      }
+      if (email !== undefined) {
+        updateData.email = email;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await stripe.customers.update(user.stripe_id, updateData);
+      }
+    }
+
+    return { success: true };
+  },
+});

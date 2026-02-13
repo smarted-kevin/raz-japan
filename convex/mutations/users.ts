@@ -48,12 +48,14 @@ export const updateUserInfo = internalMutation({
     first_name: v.optional(v.string()),
     last_name: v.optional(v.string()),
     email: v.optional(v.string()),
+    status: v.optional(v.union(v.literal("active"), v.literal("inactive"))),
   },
   handler: async (ctx, args) => {
     const updateData: {
       first_name?: string;
       last_name?: string;
       email?: string;
+      status?: "active" | "inactive";
       updated_at: number;
     } = {
       updated_at: Date.now(),
@@ -67,6 +69,9 @@ export const updateUserInfo = internalMutation({
     }
     if (args.email !== undefined) {
       updateData.email = args.email;
+    }
+    if (args.status !== undefined) {
+      updateData.status = args.status;
     }
 
     await ctx.db.patch(args.userId, updateData);

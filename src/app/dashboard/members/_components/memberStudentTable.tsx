@@ -9,29 +9,38 @@ import {
 } from "~/components/ui/table";
 import type { StudentData } from "../../admin/_actions/schemas";
 import { MemberStudentRow } from "./memberStudentRow";
+import { MemberStudentCard } from "./memberStudentCard";
 
-
-export function MemberStudentTable({ students }:{ students:StudentData[] }) {
-
+export function MemberStudentTable({ students }: { students: StudentData[] }) {
   return (
-    <Table>
-      <TableHeader className="bg-primary-foreground">
-        <TableRow>
-          <TableHead>Student Username</TableHead>
-          <TableHead>Password</TableHead>
-          <TableHead>Classroom</TableHead>
-          <TableHead>Expiry Date</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      {/* Mobile: Card layout */}
+      <div className="flex flex-col gap-3 md:hidden">
         {students.map((student) => (
-          <MemberStudentRow key={student.id} student={student} />
+          <MemberStudentCard key={student.id} student={student} />
         ))}
-      </TableBody>
-    </Table>
+      </div>
 
+      {/* Desktop: Table layout */}
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader className="bg-muted/50">
+            <TableRow>
+              <TableHead>Student Username</TableHead>
+              <TableHead>Password</TableHead>
+              <TableHead>Classroom</TableHead>
+              <TableHead>Expiry Date</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {students.map((student) => (
+              <MemberStudentRow key={student.id} student={student} />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </>
   );
-
 }

@@ -8,10 +8,9 @@ export default async function OrderPage() {
 
   const token = await getToken();
   if (!token) redirect("/sign-in");
-  if (token) {
-    const user = await fetchQuery(api.auth.getCurrentUser, {}, {token});
-    if (!user || user.role != "admin") redirect("/sign-in");
-  }
+  const user = await fetchQuery(api.auth.getCurrentUser, {}, { token });
+  const allowedRoles = ["admin", "org_admin", "god"];
+  if (!user || !allowedRoles.includes(user.role)) redirect("/sign-in");
 
   //const orders = await fetchQuery(api.queries.full_order.getAllOrders);
   const orders = await fetchQuery(api.queries.full_order.getOrdersWithUserAndStudentData, {});

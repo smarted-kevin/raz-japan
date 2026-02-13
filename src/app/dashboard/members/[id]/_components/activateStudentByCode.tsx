@@ -7,7 +7,14 @@ import { api } from "../../../../../../convex/_generated/api";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import type { Id } from "convex/_generated/dataModel";
+import { KeyRound } from "lucide-react";
 
 export default function ActivateStudentByCode({
   userId,
@@ -52,38 +59,56 @@ export default function ActivateStudentByCode({
   };
 
   return (
-    <div className="flex flex-col gap-y-4 mx-12 my-6 p-6 border-2 rounded-lg w-2/3">
-      <h2 className="font-bold text-lg">Add student by activation code</h2>
-      <form onSubmit={handleSubmit} className="flex flex-col gap-y-4">
-        <div className="flex flex-col gap-y-2">
-          <Label htmlFor="activation-code">Activation Code</Label>
-          <Input
-            id="activation-code"
-            type="text"
-            value={activationCode}
-            onChange={(e) => {
-              setActivationCode(e.target.value);
-              setError(null);
-              setSuccess(false);
-            }}
-            placeholder="Enter activation code"
-            disabled={isSubmitting}
-            required
-          />
+    <Card className="w-full max-w-3xl overflow-hidden">
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+            <KeyRound className="h-5 w-5 text-primary" aria-hidden />
+          </div>
+          <CardTitle className="text-base sm:text-lg">Add student by activation code</CardTitle>
         </div>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:flex-row sm:items-end sm:gap-3">
+          <div className="flex flex-1 flex-col gap-2">
+            <Label htmlFor="activation-code" className="sr-only sm:not-sr-only">
+              Activation Code
+            </Label>
+            <Input
+              id="activation-code"
+              type="text"
+              value={activationCode}
+              onChange={(e) => {
+                setActivationCode(e.target.value);
+                setError(null);
+                setSuccess(false);
+              }}
+              placeholder="Enter activation code"
+              disabled={isSubmitting}
+              required
+              className="w-full"
+            />
+          </div>
+          <Button
+            className="w-full shrink-0 sm:w-auto sm:min-w-[140px]"
+            type="submit"
+            disabled={isSubmitting || !activationCode.trim()}
+          >
+            {isSubmitting ? "Activating..." : "Activate Student"}
+          </Button>
+        </form>
         {error && (
-          <div className="text-red-600 text-sm">{error}</div>
+          <p className="mt-3 text-sm text-destructive" role="alert">
+            {error}
+          </p>
         )}
         {success && (
-          <div className="text-green-600 text-sm">
+          <p className="mt-3 text-sm text-green-600 dark:text-green-500" role="status">
             Student activated successfully!
-          </div>
+          </p>
         )}
-        <Button className="w-1/4 mx-auto" type="submit" disabled={isSubmitting || !activationCode.trim()}>
-          {isSubmitting ? "Activating..." : "Activate Student"}
-        </Button>
-      </form>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 

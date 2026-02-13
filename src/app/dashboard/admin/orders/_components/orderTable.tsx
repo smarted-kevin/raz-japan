@@ -35,6 +35,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
+import Link from "next/link";
 import type { OrdersWithUserAndStudentData } from "../../_actions/schemas";
 import { dateDisplayFormat } from "~/lib/formatters";
 
@@ -50,7 +51,14 @@ const columns: ColumnDef<OrdersWithUserAndStudentData>[] = [
         <ArrowUpDown className="h-4 w-4" />
       </button>
     ),
-    cell: ({ row }) => row.original.order_number ?? "N/A",
+    cell: ({ row }) => (
+      <Link
+        href={`/dashboard/admin/orders/${row.original.order_id}`}
+        className="text-primary hover:underline font-medium"
+      >
+        {row.original.order_number ?? "N/A"}
+      </Link>
+    ),
   },
   {
     accessorKey: "email",

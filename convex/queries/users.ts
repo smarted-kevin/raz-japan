@@ -95,6 +95,47 @@ export const getUserWithStudents = query({
   }
 })
 
+/**
+ * Get user detail for admin view - includes role, students with classroom/status/expiry, and orders
+ */
+export const getUserDetailForAdmin = query({
+  args: { id: v.id("userTable") },
+  handler: async (ctx, args) => {
+    const user = await ctx.db.get(args.id);
+    if (!user) return null;
+
+    const students = await ctx.db
+      .query("student")
+      .withIndex("by_user_id", (q) => q.eq("user_id", args.id))
+      .collect();
+
+    const studentsWithClassroom = await Promise.all(
+      students.map(async (student) => {
+        const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
+        return {
+          id: student._id,
+          username: student.username,
+          user_id: student.user_id,
+          expiry_date: student.expiry_date,
+          status: student.status,
+          classroom_name: classroom?.classroom_name ?? "N/A",
+        };
+      })
+    );
+
+    return {
+      id: user._id,
+      auth_id: user.auth_id,
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      status: user.status,
+      role: user.role,
+      students: studentsWithClassroom,
+    };
+  },
+});
+
 export const getUsersWithStudents = query(async (ctx) => {
   
     const users = await ctx.db.query("userTable").collect();

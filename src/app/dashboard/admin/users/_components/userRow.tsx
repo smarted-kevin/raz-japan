@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useState } from "react";
+import Link from "next/link";
 import {
   TableCell,
   TableRow,
@@ -28,10 +29,18 @@ interface UserRowProps {
 
 const UserRow = memo(function UserRow({ user }: UserRowProps) {
   const [open, setOpen] = useState(false);
+  const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "N/A";
 
   return (
     <TableRow>
-      <TableCell>{`${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "N/A"}</TableCell>
+      <TableCell>
+        <Link
+          href={`/dashboard/admin/users/${user.id}`}
+          className="text-primary hover:underline font-medium"
+        >
+          {fullName}
+        </Link>
+      </TableCell>
       <TableCell>{user.email ?? "N/A"}</TableCell>
       <TableCell>{user.role ?? "N/A"}</TableCell>
       <TableCell>{user.status ?? "N/A"}</TableCell>
