@@ -150,7 +150,9 @@ const columns: ColumnDef<ActivationCodeData>[] = [
 
 export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCodeTableProps) {
   const [openState, setOpenState] = useState(false);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: "status", desc: true },
+  ]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
     { id: "status", value: "all" },
     { id: "organization_name", value: "all" },
