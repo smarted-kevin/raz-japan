@@ -1,10 +1,24 @@
-import { 
-  Award, BarChart3, BookOpen, BookText, 
-  CheckCircle2, Globe, Headphones, Heart, 
-  Laptop, Mail, MessageSquare, PenTool, 
-  Phone, Smartphone, Sparkles, Star, Trophy, UserPlus 
+import {
+  Award,
+  BarChart3,
+  BookOpen,
+  BookText,
+  CheckCircle2,
+  Globe,
+  Headphones,
+  Heart,
+  Laptop,
+  Mail,
+  MessageSquare,
+  PenTool,
+  Phone,
+  Sparkles,
+  Star,
+  Trophy,
+  UserPlus,
 } from "lucide-react";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { ConvexImage } from "~/components/ui/convex-image";
@@ -14,102 +28,101 @@ import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
 const BANNER_STORAGE_ID = "kg29gdjrjf06330bwdnjmfm37x7y7exm";
 const DASHBOARD_STORAGE_ID = "kg2678ax28zp8vm25w9s2nymk57yyyxq";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getTranslations("Landing");
 
   const steps = [
     {
       icon: UserPlus,
-      title: "Create Your Account",
-      description: "Sign up in seconds with your email. No credit card required to start your free trial.",
-      step: "Step 1",
+      title: t("step_create_account"),
+      description: t("step_create_account_desc"),
+      step: t("step_1"),
     },
     {
       icon: Sparkles,
-      title: "Set Up Your Child's Profile",
-      description:
-        "Tell us about your child's reading level and interests. Our system will personalize their learning journey.",
-      step: "Step 2",
+      title: t("step_add_student"),
+      description: t("step_add_student_desc"),
+      step: t("step_2"),
     },
     {
       icon: BookOpen,
-      title: "Start Reading Together",
-      description:
-        "Access thousands of leveled books instantly. Your child can read, listen, and complete fun quizzes.",
-      step: "Step 3",
+      title: t("step_get_credentials"),
+      description: t("step_get_credentials_desc"),
+      step: t("step_3"),
     },
     {
       icon: Trophy,
-      title: "Track Progress & Celebrate",
-      description: "Watch your child's reading skills grow with detailed progress reports and achievement badges.",
-      step: "Step 4",
+      title: t("step_start_reading"),
+      description: t("step_start_reading_desc"),
+      step: t("step_4"),
     },
-  ]
+  ];
 
   const features = [
     {
       icon: BookText,
-      title: "Leveled Reading Library",
-      description: "Access over 3,000 books across 29 reading levels, from beginner to advanced readers.",
+      title: t("feature_leveled"),
+      description: t("feature_leveled_desc"),
     },
     {
       icon: Headphones,
-      title: "Audio Support",
-      description: "Every book includes professional narration to help with pronunciation and comprehension.",
+      title: t("feature_audio"),
+      description: t("feature_audio_desc"),
     },
     {
       icon: PenTool,
-      title: "Interactive Quizzes",
-      description: "Fun comprehension quizzes after each book to reinforce learning and understanding.",
+      title: t("feature_quizzes"),
+      description: t("feature_quizzes_desc"),
     },
     {
       icon: BarChart3,
-      title: "Progress Tracking",
-      description: "Detailed reports show reading growth, time spent, and books completed over time.",
+      title: t("feature_progress"),
+      description: t("feature_progress_desc"),
     },
     {
       icon: Globe,
-      title: "Bilingual Support",
-      description: "Books available in both English and Japanese to support language learning goals.",
+      title: t("feature_bilingual"),
+      description: t("feature_bilingual_desc"),
     },
     {
       icon: Heart,
-      title: "Personalized Learning",
-      description: "Adaptive technology adjusts to your child's pace and recommends perfect-fit books.",
+      title: t("feature_personalized"),
+      description: t("feature_personalized_desc"),
     },
-  ]
+  ];
 
   const highlights = [
     {
       icon: BookOpen,
-      stat: "3,000+",
-      label: "Books Available",
-      description: "A vast library of leveled readers for every skill level",
+      stat: t("books_stat"),
+      label: t("books_label"),
+      description: t("books_description"),
       color: "from-blue-500 to-cyan-500",
     },
     {
       icon: Laptop,
-      stat: "Any Device",
-      label: "PC, Tablet & Mobile",
-      description: "Read seamlessly on desktop, tablet, or smartphone",
+      stat: t("device_stat"),
+      label: t("device_label"),
+      description: t("device_description"),
       color: "from-purple-500 to-pink-500",
     },
     {
       icon: Trophy,
-      stat: "50+",
-      label: "Badges & Rewards",
-      description: "Fun achievements that motivate kids to keep reading",
+      stat: t("badges_stat"),
+      label: t("badges_label"),
+      description: t("badges_description"),
       color: "from-amber-500 to-orange-500",
     },
-  ]
+  ];
 
   const badges = [
-    { name: "Super Saver", description: "Collect 4000 stars" },
-    { name: "First Book", description: "Read your first book" },
-    { name: "Treasure Hunter", description: "Collect 8000 stars" },
-    { name: "Super Reader", description: "Read 5 days in a row" },
-    { name: "Quiz Whiz", description: "Complete 5 perfect quizzes" },
-    { name: "Level Up", description: "Complete a reading level" },
-  ]
+    { name: t("badge_super_saver"), description: t("badge_super_saver_desc") },
+    { name: t("badge_first_book"), description: t("badge_first_book_desc") },
+    { name: t("badge_treasure_hunter"), description: t("badge_treasure_hunter_desc") },
+    { name: t("badge_super_reader"), description: t("badge_super_reader_desc") },
+    { name: t("badge_quiz_whiz"), description: t("badge_quiz_whiz_desc") },
+    { name: t("badge_level_up"), description: t("badge_level_up_desc") },
+  ];
 
   return (
     <main className="overflow-x-hidden">
@@ -128,27 +141,22 @@ export default function HomePage() {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div className="text-white space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium">
-                <Sparkles className="h-4 w-4 text-yellow-300" />
-                <span>Unlock the joy of reading for your child</span>
-              </div>
-
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                Where Every Child Becomes a{" "}
-                <span className="text-yellow-300">Confident Reader</span>
+                {t("hero_title")}{" "}
+                <span className="text-yellow-300">{t("hero_title_highlight")}</span>
               </h1>
 
               <p className="text-lg md:text-xl text-blue-100 max-w-lg">
-                Access over 3,000 interactive books on any device. Watch your child grow with fun badges, rewards, and an easy-to-use dashboard designed for parents.
+                {t("hero_subtitle")}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold shadow-lg shadow-yellow-400/30">
                   <BookOpen className="mr-2 h-5 w-5" />
-                  Start Free Trial
+                  {t("start_free_trial")}
                 </Button>
                 <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 bg-transparent">
-                  Watch Demo
+                  {t("watch_demo")}
                 </Button>
               </div>
             </div>
@@ -158,25 +166,13 @@ export default function HomePage() {
               <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
                 <ConvexImage
                   storageId={BANNER_STORAGE_ID}
-                  alt="Kids reading app showing dashboard with badges, books on tablet and phone, and interactive reading room"
+                  alt={t("banner_alt")}
                   width={800}
                   height={600}
                   className="w-full h-auto"
                   priority
                   placeholderClassName="bg-gradient-to-br from-blue-400 to-indigo-500"
                 />
-              </div>
-              {/* Floating Badge */}
-              <div className="absolute -bottom-4 -left-4 bg-white rounded-xl p-4 shadow-xl hidden md:block">
-                <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                    <Star className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-gray-900">10,000+</p>
-                    <p className="text-sm text-gray-500">Happy Families</p>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -195,10 +191,10 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Everything Your Child Needs to Love Reading
+              {t("highlights_title")}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              A complete reading platform designed for children and trusted by parents worldwide
+              {t("highlights_subtitle")}
             </p>
           </div>
 
@@ -233,57 +229,43 @@ export default function HomePage() {
             <div className="order-2 lg:order-1">
               <div className="relative">
                 {/* Device mockups representation */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="col-span-2 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-2 shadow-2xl">
-                    <div className="bg-blue-600 rounded-xl aspect-video flex items-center justify-center">
-                      <div className="text-center text-white">
-                        <Laptop className="h-12 w-12 mx-auto mb-2 opacity-80" />
-                        <p className="text-sm font-medium">Desktop</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-1.5 shadow-xl">
-                      <div className="bg-purple-500 rounded-lg aspect-[3/4] flex items-center justify-center">
-                        <div className="text-center text-white">
-                          <BookOpen className="h-6 w-6 mx-auto mb-1 opacity-80" />
-                          <p className="text-xs font-medium">Tablet</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-1 shadow-xl mx-2">
-                      <div className="bg-green-500 rounded-lg aspect-[9/16] flex items-center justify-center">
-                        <div className="text-center text-white">
-                          <Smartphone className="h-4 w-4 mx-auto mb-1 opacity-80" />
-                          <p className="text-[10px] font-medium">Mobile</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <div className="relative">
+              {/* Dashboard Preview Card */}
+              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
+                <ConvexImage
+                  storageId={DASHBOARD_STORAGE_ID}
+                  alt={t("dashboard_alt")}
+                  width={800}
+                  height={600}
+                  className="w-full h-auto"
+                  priority
+                  placeholderClassName="bg-gradient-to-br from-blue-400 to-indigo-500"
+                />
+              </div>
+            </div>
               </div>
             </div>
             
             <div className="order-1 lg:order-2 space-y-6">
               <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700">
                 <Globe className="h-4 w-4" />
-                <span>Read Anywhere</span>
+                <span>{t("read_anywhere")}</span>
               </div>
               
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                3,000+ Books at Your Fingertips, On Any Device
+                {t("read_anywhere_title")}
               </h2>
               
               <p className="text-lg text-gray-600">
-                Whether at home on the computer, traveling with a tablet, or waiting with a smartphone - your child&apos;s entire reading library travels with them. Progress syncs automatically across all devices.
+                {t("read_anywhere_description")}
               </p>
               
               <ul className="space-y-4">
                 {[
-                  "Seamless sync across PC, tablet, and mobile",
-                  "Offline reading mode for travel",
-                  "Pick up exactly where you left off",
-                  "Works on any modern browser - no app required"
+                  t("sync_feature"),
+                  t("offline_feature"),
+                  t("resume_feature"),
+                  t("browser_feature"),
                 ].map((item, index) => (
                   <li key={index} className="flex items-center gap-3">
                     <CheckCircle2 className="h-5 w-5 text-green-500 flex-shrink-0" />
@@ -294,80 +276,21 @@ export default function HomePage() {
               
               <Button className="bg-blue-600 hover:bg-blue-700">
                 <BookOpen className="mr-2 h-5 w-5" />
-                Browse Our Library
+                {t("browse_library")}
               </Button>
             </div>
           </div>
         </div>
       </section>
-
-      {/* Dashboard Section */}
-      <section className="py-16 md:py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-purple-100 px-4 py-2 text-sm font-medium text-purple-700">
-                <BarChart3 className="h-4 w-4" />
-                <span>Parent Dashboard</span>
-              </div>
-              
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                Easy-to-Use Dashboard for Busy Parents
-              </h2>
-              
-              <p className="text-lg text-gray-600">
-                Stay connected to your child&apos;s reading journey without the complexity. Our intuitive dashboard gives you instant insights and complete control.
-              </p>
-              
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[
-                  { title: "Reading Time", desc: "Track daily & weekly progress" },
-                  { title: "Books Completed", desc: "See finished books at a glance" },
-                  { title: "Quiz Scores", desc: "Monitor comprehension levels" },
-                  { title: "Level Progress", desc: "Watch skills grow over time" },
-                ].map((item, index) => (
-                  <div key={index} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                    <h4 className="font-semibold text-gray-900 mb-1">{item.title}</h4>
-                    <p className="text-sm text-gray-500">{item.desc}</p>
-                  </div>
-                ))}
-              </div>
-              
-              <Button className="bg-purple-600 hover:bg-purple-700">
-                <BarChart3 className="mr-2 h-5 w-5" />
-                See Dashboard Demo
-              </Button>
-            </div>
-            
-            <div className="relative">
-              {/* Dashboard Preview Card */}
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
-                <ConvexImage
-                  storageId={DASHBOARD_STORAGE_ID}
-                  alt="Kids A-Z dashboard"
-                  width={800}
-                  height={600}
-                  className="w-full h-auto"
-                  priority
-                  placeholderClassName="bg-gradient-to-br from-blue-400 to-indigo-500"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Badges & Motivation Section */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-amber-50 to-orange-50">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-        
-            
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Badges & Rewards That Motivate
+              {t("badges_section_title")}
             </h2>
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Turn reading into an adventure! Children earn exciting badges and rewards as they progress, making them eager to read more every day.
+              {t("badges_section_subtitle")}
             </p>
           </div>
 
@@ -389,20 +312,20 @@ export default function HomePage() {
             {[
               {
                 icon: Star,
-                title: "Stars Collection",
-                description: "Kids earn stars for every book read and quiz completed. Watch their collection grow!",
+                title: t("stars_title"),
+                description: t("stars_description"),
                 color: "from-yellow-400 to-amber-500",
               },
               {
                 icon: Trophy,
-                title: "Achievement Badges",
-                description: "50+ unique badges to unlock for reading streaks, quiz scores, and level completions.",
+                title: t("achievement_title"),
+                description: t("achievement_description"),
                 color: "from-amber-500 to-orange-500",
               },
               {
                 icon: Award,
-                title: "Level Progression",
-                description: "Visual level-up system shows children their reading skills improving over time.",
+                title: t("level_title"),
+                description: t("level_description"),
                 color: "from-orange-500 to-red-500",
               },
             ].map((item, index) => {
@@ -428,10 +351,10 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
-              Getting Started is Easy
+              {t("getting_started_title")}
             </h2>
             <p className="mb-12 text-pretty text-lg text-gray-600">
-              Join thousands of families who are building confident readers. Get started in just 4 simple steps.
+              {t("getting_started_subtitle")}
             </p>
           </div>
 
@@ -464,10 +387,10 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
-              About Raz-Japan
+              {t("about_title")}
             </h2>
             <p className="mb-12 text-pretty text-lg text-gray-600 leading-relaxed">
-              Raz-Japan combines proven reading pedagogy with engaging technology to create a comprehensive literacy program. Our platform adapts to each child&apos;s unique learning style, making reading practice enjoyable and effective.
+              {t("about_subtitle")}
             </p>
           </div>
 
@@ -490,13 +413,13 @@ export default function HomePage() {
 
           <div className="mt-16 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center md:p-12">
             <h3 className="mb-4 text-balance text-2xl font-bold text-white md:text-3xl">
-              Built by Educators, Loved by Families
+              {t("built_by_educators")}
             </h3>
             <p className="mx-auto mb-6 max-w-2xl text-pretty text-blue-100 leading-relaxed">
-              Developed in collaboration with reading specialists and teachers, Raz-Japan is grounded in research-based literacy instruction. Our mission is to make every child a confident, enthusiastic reader.
+              {t("built_by_educators_desc")}
             </p>
             <Button size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold">
-              Start Your Free Trial
+              {t("start_free_trial")}
             </Button>
           </div>
         </div>
@@ -507,10 +430,10 @@ export default function HomePage() {
         <div className="container mx-auto px-4">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
-              Get in Touch
+              {t("contact_title")}
             </h2>
             <p className="mb-12 text-pretty text-lg text-gray-600">
-              Have questions? Our friendly support team is here to help you and your family succeed.
+              {t("contact_subtitle")}
             </p>
           </div>
 
@@ -520,8 +443,8 @@ export default function HomePage() {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
                   <Mail className="h-6 w-6 text-blue-600" />
                 </div>
-                <h3 className="mb-2 font-bold text-gray-900">Email Us</h3>
-                <p className="mb-4 text-sm text-gray-500">Get a response within 24 hours</p>
+                <h3 className="mb-2 font-bold text-gray-900">{t("email_us")}</h3>
+                <p className="mb-4 text-sm text-gray-500">{t("email_response")}</p>
                 <Button variant="outline" size="sm" className="w-full">
                   support@raz-japan.com
                 </Button>
@@ -533,10 +456,10 @@ export default function HomePage() {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-purple-100">
                   <MessageSquare className="h-6 w-6 text-purple-600" />
                 </div>
-                <h3 className="mb-2 font-bold text-gray-900">Live Chat</h3>
-                <p className="mb-4 text-sm text-gray-500">Chat with our team instantly</p>
+                <h3 className="mb-2 font-bold text-gray-900">{t("live_chat")}</h3>
+                <p className="mb-4 text-sm text-gray-500">{t("chat_instantly")}</p>
                 <Button variant="outline" size="sm" className="w-full">
-                  Start Chat
+                  {t("start_chat")}
                 </Button>
               </CardContent>
             </Card>
@@ -546,8 +469,8 @@ export default function HomePage() {
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
                   <Phone className="h-6 w-6 text-green-600" />
                 </div>
-                <h3 className="mb-2 font-bold text-gray-900">Call Us</h3>
-                <p className="mb-4 text-sm text-gray-500">Mon-Fri, 9am-6pm JST</p>
+                <h3 className="mb-2 font-bold text-gray-900">{t("call_us")}</h3>
+                <p className="mb-4 text-sm text-gray-500">{t("call_hours")}</p>
                 <Button variant="outline" size="sm" className="w-full">
                   +81-3-1234-5678
                 </Button>
@@ -569,42 +492,42 @@ export default function HomePage() {
                 <span className="text-xl font-bold">Raz-Japan</span>
               </Link>
               <p className="mb-4 max-w-md text-sm text-gray-400 leading-relaxed">
-                Empowering children to become confident, enthusiastic readers through personalized, engaging literacy experiences.
+                {t("footer_tagline")}
               </p>
             </div>
 
             <div>
-              <h3 className="mb-4 font-bold">Quick Links</h3>
+              <h3 className="mb-4 font-bold">{t("quick_links")}</h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="#getting-started" className="text-gray-400 transition-colors hover:text-white">
-                    Getting Started
+                    {t("footer_getting_started")}
                   </Link>
                 </li>
                 <li>
                   <Link href="#about" className="text-gray-400 transition-colors hover:text-white">
-                    About Us
+                    {t("about_us")}
                   </Link>
                 </li>
                 <li>
                   <Link href="#contact" className="text-gray-400 transition-colors hover:text-white">
-                    Contact
+                    {t("contact_title")}
                   </Link>
                 </li>
               </ul>
             </div>
 
             <div>
-              <h3 className="mb-4 font-bold">Legal</h3>
+              <h3 className="mb-4 font-bold">{t("legal")}</h3>
               <ul className="space-y-2 text-sm">
                 <li>
                   <Link href="#" className="text-gray-400 transition-colors hover:text-white">
-                    Privacy Policy
+                    {t("privacy_policy")}
                   </Link>
                 </li>
                 <li>
                   <Link href="#" className="text-gray-400 transition-colors hover:text-white">
-                    Terms of Service
+                    {t("terms_of_service")}
                   </Link>
                 </li>
               </ul>
@@ -612,7 +535,7 @@ export default function HomePage() {
           </div>
 
           <div className="mt-8 border-t border-gray-800 pt-8 text-center text-sm text-gray-400">
-            <p>© 2026 Raz-Japan. All rights reserved.</p>
+            <p>{t("copyright")}</p>
           </div>
         </div>
       </footer>

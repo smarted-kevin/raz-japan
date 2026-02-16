@@ -15,8 +15,10 @@ export function PublicNavBar() {
           </div>
           <span className="text-xl font-bold text-foreground">Raz-Japan</span>
         </Link>
-        <PublicNavLinks />
-        <MobileNavMenu />
+        <div className="flex items-center gap-2">
+          <PublicNavLinks />
+          <MobileNavMenu />
+        </div>
       </div>
     </nav>
   );

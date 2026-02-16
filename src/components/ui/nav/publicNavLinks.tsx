@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authClient } from "~/lib/auth-client";
 import UserDropdown from "./userDropdown";
+import { PublicLocaleSwitcher } from "./publicLocaleSwitcher";
 
 export function PublicNavLinks() {
 
@@ -34,6 +35,7 @@ export function PublicNavLinks() {
           </Link>
         )
       })}
+      <PublicLocaleSwitcher />
       { !session &&
         <>
           <Button size="sm" className="ml-2">
