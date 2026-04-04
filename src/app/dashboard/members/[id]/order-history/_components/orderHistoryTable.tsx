@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -31,10 +32,12 @@ type OrderData = {
 };
 
 export function OrderHistoryTable({ orders, userId }: { orders: OrderData[]; userId: Id<"userTable"> }) {
+  const t = useTranslations("dashboard.members");
+
   if (orders.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        No orders found.
+        {t("no_orders_found")}
       </div>
     );
   }
@@ -43,10 +46,10 @@ export function OrderHistoryTable({ orders, userId }: { orders: OrderData[]; use
     <Table>
       <TableHeader className="bg-primary-foreground">
         <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Order Number</TableHead>
-          <TableHead>Total Amount</TableHead>
-          <TableHead>Students</TableHead>
+          <TableHead>{t("date")}</TableHead>
+          <TableHead>{t("order_number")}</TableHead>
+          <TableHead>{t("total_amount")}</TableHead>
+          <TableHead>{t("students")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

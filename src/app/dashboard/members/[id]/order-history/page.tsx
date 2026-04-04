@@ -7,6 +7,7 @@ import { api } from "@/convex/_generated/api";
 import { type Id } from "convex/_generated/dataModel";
 import { getToken } from "~/lib/auth-server";
 import { OrderHistoryTable } from "./_components/orderHistoryTable";
+import { getTranslations } from "next-intl/server";
 
 export default async function OrderHistoryPage(
   props: { 
@@ -28,6 +29,8 @@ export default async function OrderHistoryPage(
     { user_id: params.id as Id<"userTable"> }
   );
 
+  const t = await getTranslations("dashboard.members");
+
   return (
     <div className="flex flex-col gap-y-4 mx-12 my-6">
       <div className="flex items-center gap-4">
@@ -36,7 +39,7 @@ export default async function OrderHistoryPage(
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="font-bold text-2xl">Order History</h1>
+        <h1 className="font-bold text-2xl">{t("order_history")}</h1>
       </div>
       <div className="p-6 border-2 rounded-lg">
         <OrderHistoryTable orders={orders} userId={params.id as Id<"userTable">} />

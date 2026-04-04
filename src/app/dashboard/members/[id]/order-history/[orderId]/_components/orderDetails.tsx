@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -32,6 +33,8 @@ type OrderData = {
 };
 
 export function OrderDetails({ order }: { order: OrderData }) {
+  const t = useTranslations("dashboard.members");
+
   // Calculate display total (0 if any student has activation_id, otherwise total_amount)
   const displayTotal = order.student_orders.some((so) => so.activation_id)
     ? 0
@@ -43,13 +46,13 @@ export function OrderDetails({ order }: { order: OrderData }) {
       <div className="space-y-2 print:mb-4 print:border-b print:pb-4">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-xl font-bold print:text-2xl">Order Receipt</h2>
+            <h2 className="text-xl font-bold print:text-2xl">{t("order_receipt")}</h2>
             <p className="text-sm text-muted-foreground mt-1 print:text-base print:text-black">
-              Order Number: <span className="font-medium">{order.order_number ?? "N/A"}</span>
+              {t("order_number")}: <span className="font-medium">{order.order_number ?? "N/A"}</span>
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground print:text-base print:text-black">Order Date</p>
+            <p className="text-sm text-muted-foreground print:text-base print:text-black">{t("order_date")}</p>
             <p className="font-medium print:text-lg">{dateDisplayFormat(order.created_date)}</p>
           </div>
         </div>
@@ -60,16 +63,16 @@ export function OrderDetails({ order }: { order: OrderData }) {
         <Table>
           <TableHeader className="bg-primary-foreground print:bg-gray-100">
             <TableRow className="print:border-b">
-              <TableHead className="print:font-bold print:text-black">Username</TableHead>
-              <TableHead className="print:font-bold print:text-black">Expiry Date</TableHead>
-              <TableHead className="text-right print:font-bold print:text-black">Price</TableHead>
+              <TableHead className="print:font-bold print:text-black">{t("username")}</TableHead>
+              <TableHead className="print:font-bold print:text-black">{t("expiry_date")}</TableHead>
+              <TableHead className="text-right print:font-bold print:text-black">{t("price")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {order.student_orders.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={3} className="text-center text-muted-foreground py-8 print:text-black">
-                  No students found in this order.
+                  {t("no_students_in_order")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -95,7 +98,7 @@ export function OrderDetails({ order }: { order: OrderData }) {
       <div className="flex justify-end print:mt-6">
         <div className="w-full max-w-md space-y-2 border-t pt-4 print:border-t-2 print:border-black">
           <div className="flex justify-between items-center text-lg font-bold print:text-xl print:text-black">
-            <span>Order Total:</span>
+            <span>{t("order_total")}</span>
             <span>{formatYen(displayTotal)}</span>
           </div>
         </div>

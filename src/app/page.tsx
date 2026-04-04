@@ -151,9 +151,11 @@ export default async function HomePage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold shadow-lg shadow-yellow-400/30">
-                  <BookOpen className="mr-2 h-5 w-5" />
-                  {t("start_free_trial")}
+                <Button asChild size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold shadow-lg shadow-yellow-400/30">
+                  <Link href="/getting-started">
+                    <BookOpen className="mr-2 h-5 w-5" />
+                    {t("get_started_now")}
+                  </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 bg-transparent">
                   {t("watch_demo")}
@@ -273,11 +275,6 @@ export default async function HomePage() {
                   </li>
                 ))}
               </ul>
-              
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <BookOpen className="mr-2 h-5 w-5" />
-                {t("browse_library")}
-              </Button>
             </div>
           </div>
         </div>
@@ -413,13 +410,13 @@ export default async function HomePage() {
 
           <div className="mt-16 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center md:p-12">
             <h3 className="mb-4 text-balance text-2xl font-bold text-white md:text-3xl">
-              {t("built_by_educators")}
+              {t("beloved_classroom_tool")}
             </h3>
             <p className="mx-auto mb-6 max-w-2xl text-pretty text-blue-100 leading-relaxed">
-              {t("built_by_educators_desc")}
+              {t("beloved_classroom_tool_desc")}
             </p>
-            <Button size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold">
-              {t("start_free_trial")}
+            <Button asChild size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold">
+              <Link href="/getting-started">{t("get_started_now")}</Link>
             </Button>
           </div>
         </div>
@@ -528,6 +525,11 @@ export default async function HomePage() {
                 <li>
                   <Link href="#" className="text-gray-400 transition-colors hover:text-white">
                     {t("terms_of_service")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/scta" className="text-gray-400 transition-colors hover:text-white">
+                    {t("scta_link")}
                   </Link>
                 </li>
               </ul>

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../../../convex/_generated/api";
@@ -24,6 +25,7 @@ export function ExtendStudentByCode({
   studentId: Id<"student">;
   studentUsername: string;
 }) {
+  const t = useTranslations("dashboard.members");
   const [activationCode, setActivationCode] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -79,20 +81,19 @@ export function ExtendStudentByCode({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="text-xs">
-          Extend with Activation Code
+          {t("extend_with_code")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Extend Student Subscription</DialogTitle>
+          <DialogTitle>{t("extend_subscription_title")}</DialogTitle>
           <DialogDescription>
-            Enter an activation code to extend the subscription for student{" "}
-            <span className="font-semibold">{studentUsername}</span> by 1 year.
+            {t("extend_subscription_desc", { username: studentUsername })}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-y-4 mt-4">
           <div className="flex flex-col gap-y-2">
-            <Label htmlFor="extend-activation-code">Activation Code</Label>
+            <Label htmlFor="extend-activation-code">{t("activation_code")}</Label>
             <Input
               id="extend-activation-code"
               type="text"
@@ -102,7 +103,7 @@ export function ExtendStudentByCode({
                 setError(null);
                 setSuccess(false);
               }}
-              placeholder="Enter activation code"
+              placeholder={t("enter_activation_code")}
               disabled={isSubmitting}
               required
             />
@@ -112,11 +113,11 @@ export function ExtendStudentByCode({
           )}
           {success && (
             <div className="text-green-600 text-sm">
-              Student subscription extended successfully!
+              {t("student_extended_success")}
             </div>
           )}
           <Button type="submit" disabled={isSubmitting || !activationCode.trim()}>
-            {isSubmitting ? "Extending..." : "Extend Subscription"}
+            {isSubmitting ? t("extending") : t("extend_subscription")}
           </Button>
         </form>
       </DialogContent>

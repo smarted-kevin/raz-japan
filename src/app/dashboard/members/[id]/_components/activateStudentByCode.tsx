@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "../../../../../../convex/_generated/api";
@@ -21,6 +22,7 @@ export default function ActivateStudentByCode({
 }: {
   userId: Id<"userTable">;
 }) {
+  const t = useTranslations("dashboard.members");
   const [activationCode, setActivationCode] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -65,14 +67,14 @@ export default function ActivateStudentByCode({
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
             <KeyRound className="h-5 w-5 text-primary" aria-hidden />
           </div>
-          <CardTitle className="text-base sm:text-lg">Add student by activation code</CardTitle>
+          <CardTitle className="text-base sm:text-lg">{t("add_student_by_code")}</CardTitle>
         </div>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 sm:flex-row sm:items-end sm:gap-3">
           <div className="flex flex-1 flex-col gap-2">
             <Label htmlFor="activation-code" className="sr-only sm:not-sr-only">
-              Activation Code
+              {t("activation_code")}
             </Label>
             <Input
               id="activation-code"
@@ -83,7 +85,7 @@ export default function ActivateStudentByCode({
                 setError(null);
                 setSuccess(false);
               }}
-              placeholder="Enter activation code"
+              placeholder={t("enter_activation_code")}
               disabled={isSubmitting}
               required
               className="w-full"
@@ -94,7 +96,7 @@ export default function ActivateStudentByCode({
             type="submit"
             disabled={isSubmitting || !activationCode.trim()}
           >
-            {isSubmitting ? "Activating..." : "Activate Student"}
+            {isSubmitting ? t("activating") : t("activate_student")}
           </Button>
         </form>
         {error && (
@@ -104,7 +106,7 @@ export default function ActivateStudentByCode({
         )}
         {success && (
           <p className="mt-3 text-sm text-green-600 dark:text-green-500" role="status">
-            Student activated successfully!
+            {t("student_activated_success")}
           </p>
         )}
       </CardContent>

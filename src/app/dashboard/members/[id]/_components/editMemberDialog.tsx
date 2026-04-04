@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -48,6 +49,7 @@ export default function EditMemberDialog({
   openState: boolean;
   setOpenState: (open: boolean) => void;
 }) {
+  const t = useTranslations("dashboard.members");
   const updateMemberInfo = useAction(api.stripe.updateMemberInfo);
   const [error, setError] = React.useState<string>();
   const [loading, setLoading] = React.useState(false);
@@ -87,10 +89,10 @@ export default function EditMemberDialog({
   return (
     <Dialog open={openState} onOpenChange={setOpenState}>
       <DialogTrigger className="w-min" asChild>
-        <Button variant="outline">Edit</Button>
+        <Button variant="outline">{t("edit")}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle className="font-bold">Edit Member Information</DialogTitle>
+        <DialogTitle className="font-bold">{t("edit_member_info")}</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-y-4">
@@ -116,7 +118,7 @@ export default function EditMemberDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel>Last Name</FormLabel>
+                      <FormLabel>{t("last_name")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
@@ -142,10 +144,10 @@ export default function EditMemberDialog({
               />
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={() => setOpenState(false)}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Saving..." : "Save Changes"}
+                  {loading ? t("saving") : t("save_changes")}
                 </Button>
               </DialogFooter>
             </div>

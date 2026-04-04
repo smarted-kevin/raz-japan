@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import EditMemberDialog from "./editMemberDialog";
 import type { Id } from "convex/_generated/dataModel";
 import {
@@ -22,6 +23,7 @@ export default function MemberInformation({
   lastName: string;
   email: string;
 }) {
+  const t = useTranslations("dashboard.members");
   const [dialogOpen, setDialogOpen] = React.useState(false);
 
   return (
@@ -32,7 +34,7 @@ export default function MemberInformation({
             <User className="h-5 w-5 text-primary" aria-hidden />
           </div>
           <div>
-            <h1 className="text-lg font-semibold sm:text-xl">Member Information</h1>
+            <h1 className="text-lg font-semibold sm:text-xl">{t("member_info_title")}</h1>
             <p className="text-sm text-muted-foreground sm:hidden">
               {firstName} {lastName}
             </p>
@@ -52,13 +54,13 @@ export default function MemberInformation({
       <CardContent className="space-y-4 sm:space-y-3">
         <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:gap-x-6">
           <p className="text-sm font-medium text-muted-foreground sm:text-foreground sm:font-semibold">
-            Name
+            {t("name")}
           </p>
           <p className="text-sm sm:text-base sm:pl-0">{firstName} {lastName}</p>
         </div>
         <div className="grid gap-3 sm:grid-cols-[auto_1fr] sm:gap-x-6">
           <p className="text-sm font-medium text-muted-foreground sm:text-foreground sm:font-semibold">
-            Email
+            {t("email")}
           </p>
           <a
             href={`mailto:${email}`}

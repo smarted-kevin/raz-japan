@@ -8,6 +8,7 @@ import { type Id } from "convex/_generated/dataModel";
 import { getToken } from "~/lib/auth-server";
 import { OrderDetails } from "./_components/orderDetails";
 import { PrintButton } from "./_components/printButton";
+import { getTranslations } from "next-intl/server";
 
 export default async function OrderDetailsPage(
   props: { 
@@ -38,6 +39,8 @@ export default async function OrderDetailsPage(
     redirect('/sign-in');
   }
 
+  const t = await getTranslations("dashboard.members");
+
   return (
     <div className="flex flex-col gap-y-4 mx-12 my-6 print:mx-0 print:my-0">
       <div className="flex items-center justify-between print:hidden">
@@ -47,7 +50,7 @@ export default async function OrderDetailsPage(
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="font-bold text-2xl">Order Details</h1>
+          <h1 className="font-bold text-2xl">{t("order_details")}</h1>
         </div>
         <PrintButton />
       </div>

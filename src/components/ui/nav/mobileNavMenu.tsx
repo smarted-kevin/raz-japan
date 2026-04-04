@@ -32,7 +32,7 @@ export function MobileNavMenu() {
 
   const links = [
     { name: t("home"), href: "/" },
-    { name: t("getting_started"), href: "/" },
+    { name: t("getting_started"), href: "/getting-started" },
     { name: t("about"), href: "/" },
     { name: t("contact"), href: "/" },
   ];

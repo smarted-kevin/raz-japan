@@ -10,6 +10,7 @@ import { MemberStudentTable } from "../_components/memberStudentTable";
 import MemberInformation from "./_components/memberInformation";
 import ActivateStudentByCode from "./_components/activateStudentByCode";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
+import { getTranslations } from "next-intl/server";
 
 export default async function MemberPage(
   props: {
@@ -35,6 +36,8 @@ export default async function MemberPage(
     (student) => student.status === "removed"
   );
 
+  const t = await getTranslations("dashboard.members");
+
   return (
     <div className="flex flex-col gap-6">
       <MemberInformation
@@ -50,11 +53,11 @@ export default async function MemberPage(
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
               <GraduationCap className="h-5 w-5 text-primary" aria-hidden />
             </div>
-            <h2 className="text-lg font-semibold">Current Students</h2>
+            <h2 className="text-lg font-semibold">{t("current_students")}</h2>
           </div>
           <Button asChild className="w-full gap-2 sm:w-auto">
             <Link href={`order/${user.id}`}>
-              Add Students
+              {t("add_students")}
               <CirclePlus className="h-4 w-4" />
             </Link>
           </Button>
@@ -62,10 +65,10 @@ export default async function MemberPage(
         <CardContent>
           {currentStudents.length === 0 ? (
             <div className="rounded-lg border border-dashed py-12 text-center">
-              <p className="text-muted-foreground">No students yet.</p>
+              <p className="text-muted-foreground">{t("no_students_yet")}</p>
               <Button variant="outline" className="mt-4" asChild>
                 <Link href={`order/${user.id}`}>
-                  Add your first student
+                  {t("add_first_student")}
                   <CirclePlus className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -82,7 +85,7 @@ export default async function MemberPage(
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
                 <Clock className="h-5 w-5 text-muted-foreground" aria-hidden />
               </div>
-              <h2 className="text-lg font-semibold">Expired Students</h2>
+              <h2 className="text-lg font-semibold">{t("expired_students")}</h2>
             </div>
           </CardHeader>
           <CardContent>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Card, CardContent } from "~/components/ui/card";
 import { dateDisplayFormat } from "~/lib/formatters";
 import { cn } from "~/lib/utils";
@@ -14,6 +15,7 @@ function isExpiryWithin60Days(expiryDate: number | undefined): boolean {
 }
 
 export function MemberStudentCard({ student }: { student: StudentData }) {
+  const t = useTranslations("dashboard.members");
   const showExtendButton =
     student.status === "active" && isExpiryWithin60Days(student.expiry_date);
 
@@ -27,7 +29,7 @@ export function MemberStudentCard({ student }: { student: StudentData }) {
                 {student.username}
               </p>
               <p className="text-xs text-muted-foreground">
-                Password: {student.password}
+                {t("password")}: {student.password}
               </p>
             </div>
             <span
@@ -42,9 +44,9 @@ export function MemberStudentCard({ student }: { student: StudentData }) {
             </span>
           </div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
-            <span className="text-muted-foreground">Classroom</span>
+            <span className="text-muted-foreground">{t("classroom")}</span>
             <span className="truncate">{student.classroom_name ?? "—"}</span>
-            <span className="text-muted-foreground">Expiry</span>
+            <span className="text-muted-foreground">{t("expiry")}</span>
             <span>{dateDisplayFormat(student.expiry_date) ?? "—"}</span>
           </div>
           {showExtendButton && (

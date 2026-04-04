@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -12,6 +13,7 @@ import { MemberStudentRow } from "./memberStudentRow";
 import { MemberStudentCard } from "./memberStudentCard";
 
 export function MemberStudentTable({ students }: { students: StudentData[] }) {
+  const t = useTranslations("dashboard.members");
   return (
     <>
       {/* Mobile: Card layout */}
@@ -26,12 +28,12 @@ export function MemberStudentTable({ students }: { students: StudentData[] }) {
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
-              <TableHead>Student Username</TableHead>
-              <TableHead>Password</TableHead>
-              <TableHead>Classroom</TableHead>
-              <TableHead>Expiry Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>{t("student_username")}</TableHead>
+              <TableHead>{t("password")}</TableHead>
+              <TableHead>{t("classroom")}</TableHead>
+              <TableHead>{t("expiry_date")}</TableHead>
+              <TableHead>{t("status")}</TableHead>
+              <TableHead>{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
