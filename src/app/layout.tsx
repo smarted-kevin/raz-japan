@@ -8,7 +8,13 @@ import { getServerSession } from "~/lib/get-session";
 import type { User } from "convex/auth";
 import { redirect } from "next/navigation";
 
-const PUBLIC_PATHS = ["/scta", "/getting-started", "/sign-in", "/sign-up"];
+const PUBLIC_PATHS = [
+  "/scta",
+  "/getting-started",
+  "/contact",
+  "/sign-in",
+  "/sign-up",
+];
 
 export const metadata: Metadata = {
   title: "Raz Japan",
