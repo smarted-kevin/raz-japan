@@ -197,6 +197,17 @@
     "error_name_max": "Name is too long.",
     "error_message_max": "Message is too long."
   },
+  "Auth": {
+    "back_to_home": "Back to Home",
+    "badge_sign_in": "Sign in",
+    "badge_sign_up": "Create account",
+    "sign_in_title": "Sign in",
+    "sign_in_subtitle": "Welcome back — enter your credentials to access your account.",
+    "sign_up_title": "Create an account",
+    "sign_up_subtitle": "Join Raz-Japan to start your reading journey.",
+    "sign_in_meta_title": "Sign In | Raz-Japan",
+    "sign_up_meta_title": "Sign Up | Raz-Japan"
+  },
   "General": {
     "login_button": "Log In",
     "logout_button": "Log Out",

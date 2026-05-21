@@ -10,9 +10,10 @@ import {
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useState } from "react";
-import { Loader2, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { authClient } from "~/lib/auth-client";
-import { toast } from "sonner";
+import { publicCtaYellowButtonClassName } from "~/lib/public-cta-styles";
+import { cn } from "~/lib/utils";
 
 export default function SignUp() {
   const [firstName, setFirstName] = useState("");
@@ -50,10 +51,10 @@ export default function SignUp() {
   };
 
   return (
-    <Card className="max-w-md">
+    <Card className="w-full max-w-md border-2 border-gray-100 bg-white shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg md:text-xl">Sign Up</CardTitle>
-        <CardDescription className="text-xs md:text-sm">
+        <CardTitle className="text-lg text-gray-900 md:text-xl">Sign Up</CardTitle>
+        <CardDescription className="text-xs text-gray-600 md:text-sm">
           Enter your information to create an account
         </CardDescription>
       </CardHeader>
@@ -61,7 +62,7 @@ export default function SignUp() {
         <div className="grid gap-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="first-name">First name</Label>
+              <Label htmlFor="first-name" className="text-gray-700">First name</Label>
               <Input
                 id="first-name"
                 placeholder="Max"
@@ -73,7 +74,7 @@ export default function SignUp() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="last-name">Last name</Label>
+              <Label htmlFor="last-name" className="text-gray-700">Last name</Label>
               <Input
                 id="last-name"
                 placeholder="Robinson"
@@ -86,11 +87,11 @@ export default function SignUp() {
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-gray-700">Email</Label>
             <Input
               id="email"
               type="email"
-              placeholder="m~example.com"
+              placeholder="m@example.com"
               required
               onChange={(e) => {
                 setEmail(e.target.value);
@@ -99,7 +100,7 @@ export default function SignUp() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password" className="text-gray-700">Password</Label>
             <Input
               id="password"
               type="password"
@@ -110,7 +111,9 @@ export default function SignUp() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">Confirm Password</Label>
+            <Label htmlFor="password_confirmation" className="text-gray-700">
+              Confirm Password
+            </Label>
             <Input
               id="password_confirmation"
               type="password"
@@ -122,7 +125,7 @@ export default function SignUp() {
           </div>
           <Button
             type="submit"
-            className="w-full"
+            className={cn("w-full", publicCtaYellowButtonClassName)}
             disabled={loading}
             onClick={handleSignUp}
           >
@@ -136,13 +139,4 @@ export default function SignUp() {
       </CardContent>
     </Card>
   );
-}
-
-async function convertImageToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }

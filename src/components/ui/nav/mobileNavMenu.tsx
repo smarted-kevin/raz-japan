@@ -11,18 +11,21 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "~/components/ui/sheet";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authClient } from "~/lib/auth-client";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { SignOutButton } from "~/components/ui/auth/signOut";
+import {
+  publicCtaBlueOutlineButtonClassName,
+  publicCtaYellowButtonClassName,
+  publicMobileNavLinkUniformClassName,
+} from "~/lib/public-cta-styles";
 import { cn } from "~/lib/utils";
 
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false);
   const { data: session } = authClient.useSession();
-  const pathname = usePathname();
   const t = useTranslations("Homepage");
 
   const user_id = useQuery(
@@ -33,7 +36,7 @@ export function MobileNavMenu() {
   const links = [
     { name: t("home"), href: "/" },
     { name: t("getting_started"), href: "/getting-started" },
-    { name: t("about"), href: "/" },
+    { name: t("about"), href: "/#about" },
     { name: t("contact"), href: "/contact" },
   ];
 
@@ -45,7 +48,7 @@ export function MobileNavMenu() {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="md:hidden text-slate-600 hover:bg-blue-50 hover:text-blue-700"
           aria-label="Open navigation menu"
         >
           <Menu className="h-6 w-6" />
@@ -61,12 +64,7 @@ export function MobileNavMenu() {
               key={link.name}
               href={link.href}
               onClick={handleLinkClick}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-                pathname === link.href
-                  ? "bg-accent text-accent-foreground"
-                  : "text-foreground"
-              )}
+              className={publicMobileNavLinkUniformClassName}
             >
               {link.name}
             </Link>
@@ -76,17 +74,30 @@ export function MobileNavMenu() {
 
           {!session ? (
             <>
-              <Link href="/sign-up" onClick={handleLinkClick}>
-                <Button variant="default" className="w-full justify-start gap-3">
+              <Button
+                asChild
+                className={cn(
+                  "w-full justify-start gap-3",
+                  publicCtaYellowButtonClassName,
+                )}
+              >
+                <Link href="/sign-up" onClick={handleLinkClick}>
                   <User className="h-4 w-4" />
                   {t("sign_up_button")}
-                </Button>
-              </Link>
-              <Link href="/sign-in" onClick={handleLinkClick}>
-                <Button variant="outline" className="w-full justify-start gap-3">
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className={cn(
+                  "w-full justify-start gap-3",
+                  publicCtaBlueOutlineButtonClassName,
+                )}
+              >
+                <Link href="/sign-in" onClick={handleLinkClick}>
                   {t("login_button")}
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </>
           ) : (
             <>
@@ -99,7 +110,7 @@ export function MobileNavMenu() {
                     : "/dashboard"
                 }
                 onClick={handleLinkClick}
-                className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                className={publicMobileNavLinkUniformClassName}
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Go to Dashboard
@@ -108,7 +119,7 @@ export function MobileNavMenu() {
                 <Link
                   href={`/dashboard/members/${user_id.user_id}/order-history`}
                   onClick={handleLinkClick}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground"
+                  className={publicMobileNavLinkUniformClassName}
                 >
                   <History className="h-4 w-4" />
                   Order History

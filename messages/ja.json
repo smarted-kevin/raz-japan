@@ -197,6 +197,17 @@
     "error_name_max": "お名前が長すぎます。",
     "error_message_max": "お問い合わせ内容が長すぎます。"
   },
+  "Auth": {
+    "back_to_home": "トップへ戻る",
+    "badge_sign_in": "ログイン",
+    "badge_sign_up": "新規登録",
+    "sign_in_title": "ログイン",
+    "sign_in_subtitle": "お帰りなさい。アカウントにアクセスするにはログイン情報を入力してください。",
+    "sign_up_title": "アカウントを作成",
+    "sign_up_subtitle": "Raz-Japanに参加して、読書の旅を始めましょう。",
+    "sign_in_meta_title": "ログイン | Raz-Japan",
+    "sign_up_meta_title": "新規登録 | Raz-Japan"
+  },
   "General": {
     "login_button": "ログイン",
     "logout_button": "ログアウト",

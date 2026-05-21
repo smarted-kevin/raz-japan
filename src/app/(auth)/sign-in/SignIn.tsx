@@ -12,6 +12,8 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useState } from "react";
 import { authClient } from "~/lib/auth-client";
+import { publicCtaBlueGradientButtonClassName } from "~/lib/public-cta-styles";
+import { cn } from "~/lib/utils";
 import { useRouter } from "next/navigation";
 
 
@@ -43,10 +45,10 @@ export default function SignIn() {
   };
 
   return (
-    <Card className="max-w-md">
+    <Card className="w-full max-w-md border-2 border-gray-100 bg-white shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg md:text-xl">Sign In</CardTitle>
-        <CardDescription className="text-xs md:text-sm">
+        <CardTitle className="text-lg text-gray-900 md:text-xl">Sign In</CardTitle>
+        <CardDescription className="text-xs text-gray-600 md:text-sm">
           Enter your email below to login to your account
         </CardDescription>
       </CardHeader>
@@ -59,7 +61,7 @@ export default function SignIn() {
           className="grid gap-4"
         >
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-gray-700">Email</Label>
             <Input
               id="email"
               type="email"
@@ -73,7 +75,7 @@ export default function SignIn() {
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password" className="text-gray-700">Password</Label>
             </div>
             <Input
               id="password"
@@ -85,7 +87,11 @@ export default function SignIn() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-            <Button type="submit" className="w-full" disabled={otpLoading}>
+            <Button
+              type="submit"
+              className={cn("w-full", publicCtaBlueGradientButtonClassName)}
+              disabled={otpLoading}
+            >
               Sign in
             </Button>
         </form>

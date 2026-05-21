@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { Button } from "~/components/ui/button";
+import { cn } from "~/lib/utils";
 
 const localeLabels: Record<(typeof locales)[number], string> = {
   en: "English",
@@ -33,7 +34,7 @@ export function PublicLocaleSwitcher() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-foreground hover:bg-muted"
+          className="h-9 w-9 text-slate-600 hover:bg-blue-50 hover:text-blue-700"
           aria-label="Change language"
           title="Change language"
         >
@@ -48,9 +49,11 @@ export function PublicLocaleSwitcher() {
                 type="submit"
                 name="locale"
                 value={l}
-                className={`w-full text-left px-2 py-1.5 ${
-                  l === curLocale ? "font-semibold bg-muted" : ""
-                }`}
+                className={cn(
+                  "w-full rounded-sm px-2 py-1.5 text-left text-sm text-slate-700 transition-colors hover:bg-blue-50 hover:text-blue-800",
+                  l === curLocale &&
+                    "bg-blue-50 font-semibold text-blue-900 hover:bg-blue-50 hover:text-blue-900",
+                )}
               >
                 {localeLabels[l]}
               </button>

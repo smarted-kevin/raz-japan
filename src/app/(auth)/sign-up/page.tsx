@@ -1,14 +1,28 @@
+import { UserPlus } from "lucide-react";
+import { type Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 import SignUp from "./SignUp";
-import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
+import { PublicAuthPageShell } from "~/components/layout/public-auth-page-shell";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Auth");
+  return {
+    title: t("sign_up_meta_title"),
+  };
+}
 
 export default async function SignUpPage() {
+  const t = await getTranslations("Auth");
 
   return (
-    <>
-      <PublicNavBar/>
-      <div className="flex justify-center items-center my-8 min-w-screen">
-        <SignUp />
-      </div>
-    </>
+    <PublicAuthPageShell
+      title={t("sign_up_title")}
+      subtitle={t("sign_up_subtitle")}
+      badge={t("badge_sign_up")}
+      badgeIcon={UserPlus}
+      backLabel={t("back_to_home")}
+    >
+      <SignUp />
+    </PublicAuthPageShell>
   );
 }
