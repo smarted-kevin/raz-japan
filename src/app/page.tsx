@@ -14,6 +14,7 @@ import {
   Phone,
   Sparkles,
   Star,
+  Tag,
   Trophy,
   UserPlus,
 } from "lucide-react";
@@ -24,8 +25,8 @@ import { Card, CardContent } from "~/components/ui/card";
 import { ConvexImage } from "~/components/ui/convex-image";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
 
-// Banner image from Convex storage
-const BANNER_STORAGE_ID = "kg29gdjrjf06330bwdnjmfm37x7y7exm";
+// Hero banner (Convex file storage); dashboard preview uses a separate asset below
+const HERO_BANNER_STORAGE_ID = "kg2dqsvjx3pmzsn6xf24ga0vcn879sx7";
 const DASHBOARD_STORAGE_ID = "kg2678ax28zp8vm25w9s2nymk57yyyxq";
 
 export default async function HomePage() {
@@ -115,15 +116,6 @@ export default async function HomePage() {
     },
   ];
 
-  const badges = [
-    { name: t("badge_super_saver"), description: t("badge_super_saver_desc") },
-    { name: t("badge_first_book"), description: t("badge_first_book_desc") },
-    { name: t("badge_treasure_hunter"), description: t("badge_treasure_hunter_desc") },
-    { name: t("badge_super_reader"), description: t("badge_super_reader_desc") },
-    { name: t("badge_quiz_whiz"), description: t("badge_quiz_whiz_desc") },
-    { name: t("badge_level_up"), description: t("badge_level_up_desc") },
-  ];
-
   return (
     <main className="overflow-x-hidden">
       <PublicNavBar/>
@@ -151,30 +143,30 @@ export default async function HomePage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
-                <Button asChild size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold shadow-lg shadow-yellow-400/30">
+                <Button asChild size="lg" className="bg-orange-400 hover:bg-orange-500 text-white font-semibold shadow-lg shadow-orange-400/30">
                   <Link href="/getting-started">
                     <BookOpen className="mr-2 h-5 w-5" />
                     {t("get_started_now")}
                   </Link>
                 </Button>
-                <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 bg-transparent">
-                  {t("watch_demo")}
-                </Button>
               </div>
             </div>
 
-            {/* Right Content - Banner Image */}
-            <div className="relative">
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
-                <ConvexImage
-                  storageId={BANNER_STORAGE_ID}
-                  alt={t("banner_alt")}
-                  width={800}
-                  height={600}
-                  className="w-full h-auto"
-                  priority
-                  placeholderClassName="bg-gradient-to-br from-blue-400 to-indigo-500"
-                />
+            {/* Right — family hero from Convex storage (portrait, learning at home) */}
+            <div className="relative flex justify-center lg:justify-end">
+              <div className="relative w-full max-w-[min(100%,340px)] sm:max-w-[380px] lg:max-w-[420px]">
+                <div className="absolute -bottom-8 -left-6 -right-6 top-12 rounded-[2.5rem] bg-gradient-to-tr from-yellow-300/25 via-transparent to-cyan-200/15 blur-2xl pointer-events-none" />
+                <div className="relative overflow-hidden rounded-[1.5rem] shadow-2xl shadow-black/35 ring-[3px] ring-white/25">
+                  <ConvexImage
+                    storageId={HERO_BANNER_STORAGE_ID}
+                    alt={t("banner_alt")}
+                    width={900}
+                    height={1200}
+                    className="w-full h-auto object-cover object-[50%_35%]"
+                    priority
+                    placeholderClassName="bg-gradient-to-br from-blue-400 to-indigo-500"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -224,6 +216,80 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section
+        id="pricing"
+        className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 py-16 text-white md:py-24"
+      >
+        <div className="pointer-events-none absolute inset-0 opacity-30">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+            }}
+          />
+        </div>
+
+        <div className="container relative z-10 mx-auto px-4">
+          <div className="mx-auto mb-12 max-w-3xl text-center">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-blue-100 ring-1 ring-white/20">
+              <Tag className="h-4 w-4" />
+              <span>{t("pricing_amount")}</span>
+              <span className="text-blue-200/90">·</span>
+              <span>{t("pricing_per_student_year")}</span>
+            </div>
+            <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
+              {t("pricing_title")}
+            </h2>
+            <p className="text-pretty text-lg text-blue-100 md:text-xl">
+              {t("pricing_subtitle")}
+            </p>
+          </div>
+
+          <div className="mx-auto max-w-xl">
+            <Card className="border-2 border-white/20 bg-white/95 text-gray-900 shadow-2xl shadow-black/40 backdrop-blur-sm">
+              <CardContent className="space-y-8 p-8 md:p-10">
+                <div className="text-center space-y-3">
+                  <div className="text-5xl font-bold tracking-tight text-gray-900 md:text-6xl">
+                    {t("pricing_amount")}
+                  </div>
+                  <p className="text-lg font-semibold text-gray-700 md:text-xl">
+                    {t("pricing_per_student_year")}
+                  </p>
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {t("pricing_billed_annually")}
+                  </p>
+                </div>
+
+                <ul className="space-y-4 border-t border-gray-100 pt-6">
+                  {[
+                    t("pricing_include_books"),
+                    t("pricing_include_features"),
+                    t("pricing_include_devices"),
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-3">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                      <span className="text-gray-700 leading-relaxed">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Button
+                  asChild
+                  size="lg"
+                  className="w-full bg-orange-400 font-semibold text-white shadow-lg shadow-orange-400/30 hover:bg-orange-500"
+                >
+                  <Link href="/getting-started">
+                    <BookOpen className="mr-2 h-5 w-5" />
+                    {t("get_started_now")}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* Read Anywhere Section */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="container mx-auto px-4">
@@ -265,7 +331,6 @@ export default async function HomePage() {
               <ul className="space-y-4">
                 {[
                   t("sync_feature"),
-                  t("offline_feature"),
                   t("resume_feature"),
                   t("browser_feature"),
                 ].map((item, index) => (
@@ -289,19 +354,6 @@ export default async function HomePage() {
             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
               {t("badges_section_subtitle")}
             </p>
-          </div>
-
-          {/* Badges Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-12">
-            {badges.map((badge, index) => (
-              <div key={index} className="bg-white rounded-xl p-4 text-center shadow-md hover:shadow-lg transition-shadow border border-amber-100">
-                <div className="h-16 w-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                  <Trophy className="h-8 w-8 text-white" />
-                </div>
-                <h4 className="font-semibold text-gray-900 text-sm mb-1">{badge.name}</h4>
-                <p className="text-xs text-gray-500">{badge.description}</p>
-              </div>
-            ))}
           </div>
 
           {/* Motivation Features */}
@@ -415,7 +467,7 @@ export default async function HomePage() {
             <p className="mx-auto mb-6 max-w-2xl text-pretty text-blue-100 leading-relaxed">
               {t("beloved_classroom_tool_desc")}
             </p>
-            <Button asChild size="lg" className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold">
+            <Button asChild size="lg" className="bg-orange-400 hover:bg-orange-500 text-white font-semibold shadow-lg shadow-orange-400/30">
               <Link href="/getting-started">{t("get_started_now")}</Link>
             </Button>
           </div>
@@ -499,6 +551,11 @@ export default async function HomePage() {
                 <li>
                   <Link href="#getting-started" className="text-gray-400 transition-colors hover:text-white">
                     {t("footer_getting_started")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href="#pricing" className="text-gray-400 transition-colors hover:text-white">
+                    {t("footer_pricing")}
                   </Link>
                 </li>
                 <li>
