@@ -16,7 +16,7 @@ export const publicCtaBlueGradientButtonClassName =
 
 /** Desktop navbar — single text style for every route link */
 export const publicNavLinkUniformClassName =
-  "text-sm font-medium text-slate-600 transition-colors hover:text-blue-700";
+  "text-xs font-medium text-slate-600 transition-colors hover:text-blue-700 md:text-[0.8125rem] lg:text-sm";
 
 /** Mobile sheet — matches desktop palette */
 export const publicMobileNavLinkUniformClassName =

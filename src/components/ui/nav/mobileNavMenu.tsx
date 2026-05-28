@@ -22,6 +22,7 @@ import {
   publicMobileNavLinkUniformClassName,
 } from "~/lib/public-cta-styles";
 import { cn } from "~/lib/utils";
+import { PublicLocaleSwitcher } from "./publicLocaleSwitcher";
 
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false);
@@ -69,6 +70,10 @@ export function MobileNavMenu() {
               {link.name}
             </Link>
           ))}
+
+          <div className="flex items-center px-3 py-1">
+            <PublicLocaleSwitcher />
+          </div>
 
           <div className="my-2 border-t" />
 

@@ -26,7 +26,7 @@ export function PublicNavLinks() {
   ];
 
   return (
-    <div className="hidden items-center gap-6 md:flex">
+    <div className="hidden min-w-0 items-center gap-3 md:flex lg:gap-6">
       {links.map((link) => (
         <Link
           key={link.name}
