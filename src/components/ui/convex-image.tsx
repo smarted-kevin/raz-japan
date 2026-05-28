@@ -11,6 +11,9 @@ interface ConvexImageProps {
   className?: string;
   priority?: boolean;
   placeholderClassName?: string;
+  /** When true, parent must be `position: relative` with defined size (e.g. aspect-ratio). */
+  fill?: boolean;
+  sizes?: string;
 }
 
 export function ConvexImage({ 
@@ -20,7 +23,9 @@ export function ConvexImage({
   height, 
   className,
   priority = false,
-  placeholderClassName = "bg-gradient-to-br from-gray-200 to-gray-300"
+  placeholderClassName = "bg-gradient-to-br from-gray-200 to-gray-300",
+  fill = false,
+  sizes,
 }: ConvexImageProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -53,6 +58,13 @@ export function ConvexImage({
   }, [storageId]);
 
   if (!imageUrl) {
+    if (fill) {
+      return (
+        <div
+          className={`absolute inset-0 animate-pulse ${placeholderClassName} ${className ?? ""}`}
+        />
+      );
+    }
     return (
       <div 
         className={`animate-pulse ${placeholderClassName} ${className ?? ""}`}
@@ -65,8 +77,10 @@ export function ConvexImage({
     <Image
       src={imageUrl}
       alt={alt}
-      width={width}
-      height={height}
+      width={fill ? undefined : width}
+      height={fill ? undefined : height}
+      fill={fill}
+      sizes={sizes}
       className={className}
       priority={priority}
       unoptimized

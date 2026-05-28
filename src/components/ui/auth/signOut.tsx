@@ -20,7 +20,7 @@ export function SignOutButton({ collapsed = false }: SignOutButtonProps) {
       <Button 
         variant="ghost"
         size="icon"
-        className="text-white hover:bg-white/20 hover:text-white flex-shrink-0"
+        className="hover:bg-white/20 flex-shrink-0"
         onClick={ async () => 
           await authClient.signOut({
             fetchOptions: {
@@ -33,7 +33,7 @@ export function SignOutButton({ collapsed = false }: SignOutButtonProps) {
         aria-label={t("logout_button")}
         title={t("logout_button")}
       >
-        <LogOut className="h-5 w-5 flex-shrink-0" />
+        <LogOut className="h-5 w-5 flex-shrink-0 fill-red-500 text-red-500" />
       </Button>
     );
   }
