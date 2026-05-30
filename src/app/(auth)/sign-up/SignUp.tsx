@@ -14,7 +14,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useConvex } from "convex/react";
-import { api } from "convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 import { authClient } from "~/lib/auth-client";
 import { publicCtaYellowButtonClassName } from "~/lib/public-cta-styles";
 import { cn } from "~/lib/utils";
@@ -50,7 +50,8 @@ export default function SignUp() {
         onSuccess: async (ctx) => {
           toast.success("Thank you for creating your account!");
           try {
-            const authId = ctx.data?.user?.id as string | undefined;
+            const authId = (ctx.data as { user?: { id?: string } } | null | undefined)
+              ?.user?.id;
             if (authId) {
               const { user_id } = await convex.query(
                 api.queries.users.getUserRoleByAuthId,

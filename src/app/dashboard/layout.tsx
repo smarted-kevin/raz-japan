@@ -2,7 +2,7 @@ import type { User } from "convex/auth";
 import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
 import { fetchQuery } from "convex/nextjs";
-import { api } from "convex/_generated/api";
+import { api } from "@/convex/_generated/api";
 
 export default async function DashboardLayout({
   children,
