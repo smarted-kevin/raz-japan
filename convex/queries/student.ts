@@ -28,7 +28,7 @@ export const getStudentsByClassroomId = query({
   }
 });
 
-export const getAvailableStudent = query({
+export const getAvailableStudent = internalQuery({
   handler: async (ctx) => {
     const student = await ctx.db
       .query("student")

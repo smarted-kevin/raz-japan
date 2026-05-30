@@ -1,7 +1,8 @@
 import { internalMutation, mutation } from "../_generated/server";
 import { ConvexError, v } from "convex/values";
+import { adminMutation } from "../lib/auth";
 
-export const createUser = mutation({
+export const createUser = internalMutation({
   args: {
     auth_id: v.optional(v.string()),
     first_name: v.string(),
@@ -82,7 +83,7 @@ export const updateUserInfo = internalMutation({
  * One-time migration to assign SmartEd org_id to all users with "user" role.
  * Run this from the Convex dashboard after deploying the schema changes.
  */
-export const migrateUsersToSmartEdOrg = mutation({
+export const migrateUsersToSmartEdOrg = internalMutation({
   args: {},
   handler: async (ctx) => {
     // Find the SmartEd organization
@@ -124,7 +125,7 @@ export const migrateUsersToSmartEdOrg = mutation({
 /**
  * Update a user's role and org_id. Useful for promoting users to org_admin.
  */
-export const updateUserRole = mutation({
+export const updateUserRole = adminMutation({
   args: {
     userId: v.id("userTable"),
     role: v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god")),
@@ -134,6 +135,13 @@ export const updateUserRole = mutation({
     const user = await ctx.db.get(args.userId);
     if (!user) {
       throw new ConvexError("User not found");
+    }
+
+    // Only a `god` superuser may grant or revoke the `god` role. This prevents
+    // a regular admin from escalating themselves (or others) to superuser.
+    const grantingOrRevokingGod = args.role === "god" || user.role === "god";
+    if (grantingOrRevokingGod && ctx.user.role !== "god") {
+      throw new ConvexError("Only a god user can change the god role");
     }
 
     await ctx.db.patch(args.userId, {

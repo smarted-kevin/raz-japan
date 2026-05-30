@@ -80,7 +80,7 @@ export async function generateOrderNumber(ctx: MutationCtx): Promise<string> {
   return `RAZ-${nextValue.toString().padStart(4, "0")}`;
 }
 
-export const createFullOrder = mutation({
+export const createFullOrder = internalMutation({
   args: { 
     user_id: v.id("userTable"),
     total_amount: v.number(),
@@ -132,10 +132,21 @@ export const updateWithStripeId = internalMutation({
   }
 });
 
-export const updateStatus = internalMutation({
-  args: { 
+/**
+ * Atomically claim an order for fulfillment based on the Stripe checkout
+ * session id. Because Convex mutations are serializable, this acts as an
+ * idempotency guard: Stripe delivers webhook events at least once (and retries
+ * on non-2xx responses), so a duplicate `checkout.session.completed` for an
+ * already-fulfilled order must not run fulfillment again.
+ *
+ * Returns one of:
+ *  - { status: "not_found" }          -> no order matches the session id
+ *  - { status: "already_fulfilled" }  -> a previous delivery already fulfilled it
+ *  - { status: "claimed", order_id }  -> caller has exclusively claimed it
+ */
+export const claimOrderForFulfillment = internalMutation({
+  args: {
     stripe_id: v.string(),
-    status: v.union(v.literal("created"), v.literal("pending"), v.literal("fulfilled"), v.literal("canceled"))
   },
   handler: async (ctx, args) => {
     const order = await ctx.db
@@ -143,11 +154,18 @@ export const updateStatus = internalMutation({
       .withIndex("by_stripe_order_id", (q) => q.eq("stripe_order_id", args.stripe_id))
       .first();
 
-    if (!order) return "Order not found.";
-    await ctx.db.patch(order._id, { status: args.status });
-    
-    return order._id;
-  }
+    if (!order) {
+      return { status: "not_found" as const };
+    }
+
+    if (order.status === "fulfilled") {
+      return { status: "already_fulfilled" as const, order_id: order._id };
+    }
+
+    await ctx.db.patch(order._id, { status: "fulfilled" });
+
+    return { status: "claimed" as const, order_id: order._id };
+  },
 });
 
 export const updateDateOrderPrice = mutation({

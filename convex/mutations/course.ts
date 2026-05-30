@@ -1,7 +1,7 @@
 import { internalMutation, mutation } from "../_generated/server";
 import { v } from "convex/values";
 
-export const createCourse = mutation({
+export const createCourse = internalMutation({
   args: { 
     course_name: v.string(),
     price: v.number()

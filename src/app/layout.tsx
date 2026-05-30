@@ -7,6 +7,7 @@ import { getLocale } from "next-intl/server";
 import { getServerSession } from "~/lib/get-session";
 import type { User } from "convex/auth";
 import { redirect } from "next/navigation";
+import { Toaster } from "sonner";
 
 const PUBLIC_PATHS = [
   "/scta",
@@ -55,6 +56,7 @@ export default async function RootLayout({
             <ConvexClientProvider>
               {children}
             </ConvexClientProvider>
+            <Toaster richColors position="top-center" />
           </NextIntlClientProvider>
         </body>
       </html>

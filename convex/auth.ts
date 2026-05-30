@@ -1,6 +1,6 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
-import { api, components } from "./_generated/api";
+import { components, internal } from "./_generated/api";
 import type { Id, DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
@@ -62,7 +62,7 @@ export const createAuth = (
         create: {
           after: async (user) => {
             const [first_name, last_name]  = user.name.split(" ");
-            await requireActionCtx(ctx).runMutation(api.mutations.users.createUser, 
+            await requireActionCtx(ctx).runMutation(internal.mutations.users.createUser, 
               {
                 auth_id: user.id,
                 first_name: first_name ?? "",

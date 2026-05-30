@@ -88,7 +88,7 @@ export const checkout = action({
 
      // 2. Create document in "full_order" table with cart data
      const order = await ctx.runMutation(
-      api.mutations.full_order.createFullOrder, 
+      internal.mutations.full_order.createFullOrder, 
       {
         user_id: user.user_id,
         total_amount: total_price,
@@ -160,15 +160,28 @@ export const fulfill = internalAction({
       //1. Confirm webhook return from Stripe
       if (event.type === "checkout.session.completed") {
         const stripeId = (event.data.object as { id: string }).id;
-        //2. Mark order as "fulfilled" in DB
-        const order = await ctx.runMutation(
-          internal.mutations.full_order.updateStatus,
-          {
-            stripe_id: stripeId,
-            status: "fulfilled"
-          }
+
+        //2. Atomically claim the order for fulfillment (idempotency guard).
+        // Stripe delivers events at least once and retries on failure, so a
+        // duplicate delivery for an already-fulfilled order must be a no-op.
+        const claim = await ctx.runMutation(
+          internal.mutations.full_order.claimOrderForFulfillment,
+          { stripe_id: stripeId }
         );
-        //if (!order || order != typeof v.id("full_order)")) return { success: false, error: "Something went wrong." };
+
+        if (claim.status === "not_found") {
+          // Fail loudly: acknowledging this would silently drop the purchase.
+          // Returning an error makes the failure visible and lets Stripe retry.
+          throw new Error(`No order found for Stripe session ${stripeId}`);
+        }
+
+        if (claim.status === "already_fulfilled") {
+          // Order was already fulfilled by a prior delivery. Acknowledge so
+          // Stripe stops retrying, but do not re-run fulfillment.
+          return { success: true };
+        }
+
+        const order = claim.order_id;
 
         //3. Create ordered_student documents for each student
         const cart = await ctx.runQuery(internal.queries.cart.getCartById, 
@@ -176,7 +189,11 @@ export const fulfill = internalAction({
         );
         const ordered_students = [];
 
-        if (!cart || cart == null) return { success: false, error: "Cart not found." };
+        if (!cart || cart == null) {
+          throw new Error(
+            `Cart not found for order ${order} (session ${stripeId}, cart_id ${event.data.object.metadata?.cart_id ?? "missing"})`
+          );
+        }
 
         const cart_renewal = cart.renewal_students ?? [];
         
@@ -188,12 +205,15 @@ export const fulfill = internalAction({
         //4. Run internal mutations to update student info
         if (renewal_students.length > 0) {
           await Promise.all(renewal_students.map(async student => {
-            if((student.student.id == undefined) || (student.course.price == undefined)) return { success: false, error: "Something went wrong." };
+            if((student.student.id == undefined) || (student.course.price == undefined)) {
+              console.warn(`fulfill: skipping renewal student with missing id/price for order ${order} (session ${stripeId})`);
+              return;
+            }
             
             const student_status = student.student.status;
             const order_type = student_status == "removed" ? "reactivation" : "renewal";
             const ordered_student = await ctx.runMutation(
-              api.mutations.student_order.createStudentOrder,
+              internal.mutations.student_order.createStudentOrder,
               { 
                 amount: student.course.price,
                 order_type: order_type,
@@ -206,14 +226,14 @@ export const fulfill = internalAction({
             // Update expiry dates and status for renewal students
             if (student_status == "active") {
               const updated_student = await ctx.runMutation(
-                api.mutations.student.renewStudent,
+                internal.mutations.student.renewStudent,
                 { student_id: student.student.id }
               );
               ordered_students.push(updated_student);
 
             } else if (student_status == "inactive" || student_status == "removed") {
               const updated_student = await ctx.runMutation(
-                api.mutations.student.reactivateStudent,
+                internal.mutations.student.reactivateStudent,
                 { student_id: student.student.id }
               );
               ordered_students.push(updated_student);
@@ -227,12 +247,12 @@ export const fulfill = internalAction({
           for(let i=0; i < cart.new_students; i++) {
             // Get inactive student
             const student = await ctx.runQuery(
-              api.queries.student.getAvailableStudent, {}
+              internal.queries.student.getAvailableStudent, {}
             );
             // Create ordered_student object
             if (student.student.id != undefined && student.course.price != undefined) {
               const new_student_order = await ctx.runMutation(
-                api.mutations.student_order.createStudentOrder,
+                internal.mutations.student_order.createStudentOrder,
                 {
                   student_id: student.student.id,
                   order_id: order as Id<"full_order">,
@@ -246,7 +266,7 @@ export const fulfill = internalAction({
               if (!new_student_order) return { success: false, error: "Something went wrong." };
               // Activate student 
               const activated_student = await ctx.runMutation(
-                api.mutations.student.activateStudent,
+                internal.mutations.student.activateStudent,
                 { 
                   student_id: student.student.id,
                   user_id: cart.user_id
@@ -254,6 +274,8 @@ export const fulfill = internalAction({
               );
 
               ordered_students.push(activated_student);
+            } else {
+              console.warn(`fulfill: no available inactive student for new-student slot ${i + 1}/${cart.new_students} on order ${order} (session ${stripeId})`);
             }
           }
         }
@@ -312,7 +334,7 @@ export const createProduct = action({
   },
   handler: async (ctx, {course_name, price}) => {
 
-    const course = await ctx.runMutation(api.mutations.course.createCourse,
+    const course = await ctx.runMutation(internal.mutations.course.createCourse,
       { 
         course_name: course_name,
         price: price

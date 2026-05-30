@@ -4,7 +4,7 @@ import { v } from "convex/values";
 export const getCartById = internalQuery({
   args: { id: v.id("cart") },
   handler: async (ctx, args) => {
-    const cart = ctx.db.get(args.id);
+    const cart = await ctx.db.get(args.id);
 
     return cart;
   }

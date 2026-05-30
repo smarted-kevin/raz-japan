@@ -23,8 +23,6 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
 import { Label } from "~/components/ui/label";
-import { useMutation } from "convex/react";
-import { api } from "../../../../../../convex/_generated/api";
 
 const userSchema = z.object({
   first_name: z.string(),
@@ -41,8 +39,6 @@ export default function AddUserDialog({
   openState: boolean,
   setOpenState: (open: boolean) => void
 }) {
-
-  const createUser = useMutation(api.mutations.users.createUser);
 
   const [error, setError] = React.useState<string>();
   const [loading, setLoading] = React.useState(false);
@@ -70,22 +66,8 @@ export default function AddUserDialog({
         onRequest: () => {
           setLoading(true);
         },
-        onSuccess: async () => {
+        onSuccess: () => {
           setLoading(false);
-          // try {
-          //   await createUser(
-          //     {
-          //       first_name,
-          //       last_name,
-          //       email,
-          //       role,
-          //       updated_at: Date.now(),
-          //       status: "active"
-          //     }
-          //   )
-          // } catch (e) {
-          //   console.log(e);
-          // }
         },
         onError: async (ctx) => {
           setLoading(false);

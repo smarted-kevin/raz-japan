@@ -11,11 +11,17 @@ import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useConvex } from "convex/react";
+import { api } from "convex/_generated/api";
 import { authClient } from "~/lib/auth-client";
 import { publicCtaYellowButtonClassName } from "~/lib/public-cta-styles";
 import { cn } from "~/lib/utils";
 
 export default function SignUp() {
+  const router = useRouter();
+  const convex = useConvex();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -26,7 +32,12 @@ export default function SignUp() {
 
   
   const handleSignUp = async () => {
-    const { data, error } = await authClient.signUp.email(
+    if (password !== passwordConfirmation) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    await authClient.signUp.email(
       {
         email,
         password,
@@ -36,18 +47,31 @@ export default function SignUp() {
         onRequest: () => {
           setLoading(true);
         },
-        onSuccess: () => {
-          setLoading(false);
+        onSuccess: async (ctx) => {
+          toast.success("Thank you for creating your account!");
+          try {
+            const authId = ctx.data?.user?.id as string | undefined;
+            if (authId) {
+              const { user_id } = await convex.query(
+                api.queries.users.getUserRoleByAuthId,
+                { userId: authId },
+              );
+              router.push(`/dashboard/members/${user_id}`);
+              return;
+            }
+          } catch (err) {
+            console.error("Failed to resolve member id after sign-up", err);
+          }
+          router.push("/dashboard/");
         },
-        onError: async (ctx) => {
+        onError: (ctx) => {
           setLoading(false);
           console.error(ctx.error);
           console.error("response", ctx.response);
-          //toast.error(ctx.error.message);
+          toast.error(ctx.error.message);
         },
       },
     );
-    console.log({ data, error });
   };
 
   return (

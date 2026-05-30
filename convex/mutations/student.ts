@@ -1,4 +1,4 @@
-import { mutation } from "../_generated/server";
+import { internalMutation, mutation } from "../_generated/server";
 import { v } from "convex/values";
 import { generateOrderNumber } from "./full_order";
 
@@ -81,7 +81,7 @@ export const editStudent = mutation({
 });
 
 
-export const activateStudent = mutation({
+export const activateStudent = internalMutation({
   args: { 
     student_id: v.id("student"),
     user_id: v.id("userTable")
@@ -123,7 +123,7 @@ export const activateStudent = mutation({
   }
 })
 
-export const reactivateStudent = mutation({
+export const reactivateStudent = internalMutation({
   args: { student_id: v.id("student") },
   handler: async (ctx, args) => {
     const student = await ctx.db.get(args.student_id);
@@ -149,7 +149,7 @@ export const reactivateStudent = mutation({
   }
 });
 
-export const renewStudent = mutation({
+export const renewStudent = internalMutation({
   args: { student_id: v.id("student") },
   handler: async (ctx, args) => {
     const student = await ctx.db.get(args.student_id);
