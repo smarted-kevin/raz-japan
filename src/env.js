@@ -11,7 +11,8 @@ export const env = createEnv({
     CONVEX_DEPLOYMENT: z.string(),
     STRIPE_SANDBOX_SECRET_KEY: z.string(),
     //STRIPE_WEBHOOK_SECRET: z.string(),
-    SITE_URL: z.string()
+    SITE_URL: z.string(),
+    UPLOADTHING_TOKEN: z.string(),
   },
 
   /**
@@ -23,6 +24,7 @@ export const env = createEnv({
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
     NEXT_PUBLIC_CONVEX_URL: z.string(),
     NEXT_PUBLIC_STRIPE_SANDBOX_PUBLIC_KEY: z.string(),
+    NEXT_PUBLIC_UPLOADTHING_APP_ID: z.string(),
   },
 
   /**
@@ -36,7 +38,9 @@ export const env = createEnv({
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     NEXT_PUBLIC_STRIPE_SANDBOX_PUBLIC_KEY: process.env.NEXT_PUBLIC_STRIPE_SANDBOX_PUBLIC_KEY,
     //STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-    SITE_URL: process.env.SITE_URL
+    SITE_URL: process.env.SITE_URL,
+    UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
+    NEXT_PUBLIC_UPLOADTHING_APP_ID: process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

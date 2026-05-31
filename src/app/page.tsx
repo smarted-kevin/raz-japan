@@ -19,16 +19,13 @@ import {
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { HeroBannerBackground } from "~/components/landing/hero-banner-background";
-import { ConvexImage } from "~/components/ui/convex-image";
+import { LANDING_IMAGES } from "~/lib/landing-images";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
-
-// Hero banner (Convex file storage); dashboard preview uses a separate asset below
-const HERO_BANNER_STORAGE_ID = "kg2dqsvjx3pmzsn6xf24ga0vcn879sx7";
-const DASHBOARD_STORAGE_ID = "kg2678ax28zp8vm25w9s2nymk57yyyxq";
 
 export default async function HomePage() {
   const t = await getTranslations("Landing");
@@ -124,7 +121,7 @@ export default async function HomePage() {
       {/* Hero Section with Banner */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800 max-lg:min-h-[32rem] sm:max-lg:min-h-[36rem]">
         <HeroBannerBackground
-          storageId={HERO_BANNER_STORAGE_ID}
+          src={LANDING_IMAGES.heroBanner}
           alt={t("banner_alt")}
         />
         {/* Background Pattern */}
@@ -166,16 +163,13 @@ export default async function HomePage() {
               <div className="relative w-full max-w-[420px]">
                 <div className="pointer-events-none absolute -bottom-8 -left-6 -right-6 top-12 rounded-[2.5rem] bg-gradient-to-tr from-yellow-300/25 via-transparent to-cyan-200/15 blur-2xl" />
                 <div className="relative aspect-[3/4] overflow-hidden rounded-[1.5rem] shadow-2xl shadow-black/35 ring-[3px] ring-white/25">
-                  <ConvexImage
-                    storageId={HERO_BANNER_STORAGE_ID}
+                  <Image
+                    src={LANDING_IMAGES.heroBanner}
                     alt={t("banner_alt")}
-                    width={900}
-                    height={1200}
                     fill
                     sizes="420px"
                     className="object-cover object-[50%_35%]"
                     priority
-                    placeholderClassName="bg-gradient-to-br from-blue-400 to-indigo-500"
                   />
                 </div>
               </div>
@@ -311,14 +305,13 @@ export default async function HomePage() {
                 <div className="relative">
               {/* Dashboard Preview Card */}
               <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-black/30">
-                <ConvexImage
-                  storageId={DASHBOARD_STORAGE_ID}
+                <Image
+                  src={LANDING_IMAGES.dashboard}
                   alt={t("dashboard_alt")}
                   width={800}
                   height={600}
                   className="w-full h-auto"
                   priority
-                  placeholderClassName="bg-gradient-to-br from-blue-400 to-indigo-500"
                 />
               </div>
             </div>

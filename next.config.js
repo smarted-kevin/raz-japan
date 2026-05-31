@@ -11,15 +11,8 @@ const config = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "**.convex.cloud",
-      },
-      {
-        protocol: "https",
-        hostname: "**.convex.site",
-      },
-      {
-        protocol: "https",
-        hostname: "**.convex.dev",
+        hostname: "**.ufs.sh",
+        pathname: "/f/**",
       },
     ],
   },
