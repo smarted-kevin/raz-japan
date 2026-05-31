@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface HeroBannerBackgroundProps {
   src: string;
@@ -13,17 +13,17 @@ interface HeroBannerBackgroundProps {
 export function HeroBannerBackground({ src, alt }: HeroBannerBackgroundProps) {
   const [loaded, setLoaded] = useState(false);
 
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setLoaded(true);
+    img.src = src;
+    if (img.complete) {
+      setLoaded(true);
+    }
+  }, [src]);
+
   return (
     <>
-      {/* Preload image to detect when CDN asset is ready */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        aria-hidden
-        className="hidden"
-        onLoad={() => setLoaded(true)}
-      />
       <div
         role="img"
         aria-label={alt}
