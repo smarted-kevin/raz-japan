@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import SidebarNav from "./sidebarNav";
@@ -16,6 +17,7 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ role }: SidebarProps) {
+  const t = useTranslations("dashboard.admin.layout");
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [showTitle, setShowTitle] = useState(!isCollapsed);
 
@@ -52,7 +54,7 @@ export default function Sidebar({ role }: SidebarProps) {
         )}
       >
         {showTitle && !isCollapsed && (
-          <h2 className="text-lg font-semibold text-white">Admin Dashboard</h2>
+          <h2 className="text-lg font-semibold text-white">{t("title")}</h2>
         )}
         <Button
           variant="ghost"
@@ -62,7 +64,7 @@ export default function Sidebar({ role }: SidebarProps) {
             "text-white hover:bg-white/20",
             isCollapsed ? "mx-auto" : "ml-auto"
           )}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={isCollapsed ? t("expand_sidebar") : t("collapse_sidebar")}
         >
           {isCollapsed ? (
             <ChevronRight className="h-5 w-5" />

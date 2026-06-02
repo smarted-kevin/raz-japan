@@ -4,6 +4,7 @@ import { fetchQuery } from "convex/nextjs";
 import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
 import type { Id } from "../../../../../convex/_generated/dataModel";
+import { getTranslations } from "next-intl/server";
 
 export default async function ClassroomPage() {
 
@@ -39,10 +40,12 @@ export default async function ClassroomPage() {
     });
   }
 
+  const t = await getTranslations("dashboard.admin.classrooms");
+
   return (
     <>
       <main className="flex min-h-screen flex-col gap-y-6 p-4 sm:p-6 md:p-8 lg:p-12 xl:p-24">
-        <h1 className="font-bold text-2xl">CLASSROOMS</h1>
+        <h1 className="font-bold text-2xl">{t("title")}</h1>
         {classrooms && <ClassroomTable classrooms={classrooms} courses={courses} orgs={orgs} isOrgAdmin={isOrgAdmin} /> }
       </main>
     </>

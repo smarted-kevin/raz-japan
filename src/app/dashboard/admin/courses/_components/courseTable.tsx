@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -19,49 +20,52 @@ import {
 import AddCourseDialog from "./addCourseDialog";
 import { type Course } from "../../_actions/schemas";
 import { formatYen } from "~/lib/formatters";
+import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
 
 export default function CourseTable({ courses }: { courses: Course[] }) {
-  
+  const t = useTranslations("dashboard.admin.courses");
+  const tc = useTranslations("dashboard.admin.common");
+  const statusLabel = useAdminStatusLabel();
+
   const [openState, setOpenState] = React.useState(false);
-  const [status, setStatus] = React.useState("active")
+  const [status, setStatus] = React.useState("active");
 
   return (
     <div className="space-y-4 w-full min-w-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:gap-x-10 w-full justify-between">
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue>{status}</SelectValue>
+            <SelectValue>{statusLabel(status)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">active</SelectItem>
-            <SelectItem value="inactive">inactive</SelectItem>
-            <SelectItem value="removed">removed</SelectItem>
+            <SelectItem value="active">{tc("active")}</SelectItem>
+            <SelectItem value="inactive">{tc("inactive")}</SelectItem>
+            <SelectItem value="removed">{tc("removed")}</SelectItem>
           </SelectContent>
         </Select>
-        <AddCourseDialog
-          openState={openState}
-          setOpenState={setOpenState}
-        />
+        <AddCourseDialog openState={openState} setOpenState={setOpenState} />
       </div>
       <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
-      <Table>
-        <TableHeader className="bg-primary-foreground">
-          <TableRow>
-            <TableHead>Course Name</TableHead>
-            <TableHead>Price</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {courses.map((course) => (
-            (status === course.status) &&
-            <TableRow key={course._id}>
-              <TableCell>{course.course_name}</TableCell>
-              <TableCell>{formatYen(course.price)}</TableCell>
+        <Table>
+          <TableHeader className="bg-primary-foreground">
+            <TableRow>
+              <TableHead>{t("course_name")}</TableHead>
+              <TableHead>{tc("price")}</TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {courses.map(
+              (course) =>
+                status === course.status && (
+                  <TableRow key={course._id}>
+                    <TableCell>{course.course_name}</TableCell>
+                    <TableCell>{formatYen(course.price)}</TableCell>
+                  </TableRow>
+                )
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
-  )
+  );
 }

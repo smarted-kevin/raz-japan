@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import { useTranslations } from "next-intl";
 import {
   TableCell,
   TableRow,
@@ -8,16 +9,20 @@ import {
 import Link from "next/link";
 import DownloadButton from "./downloadButton";
 import type { Classroom } from "../../_actions/schemas";
+import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
 
 interface ClassroomRowProps {
   classroom: Classroom;
 }
 
 const ClassroomRow = memo(function ClassroomRow({ classroom }: ClassroomRowProps) {
+  const tc = useTranslations("dashboard.admin.common");
+  const statusLabel = useAdminStatusLabel();
+
   return (
     <TableRow>
       <TableCell>
-        <DownloadButton 
+        <DownloadButton
           classroomId={classroom.classroom_id}
           classroomName={classroom.classroom_name}
         />
@@ -27,9 +32,13 @@ const ClassroomRow = memo(function ClassroomRow({ classroom }: ClassroomRowProps
           {classroom.classroom_name}
         </Link>
       </TableCell>
-      <TableCell className="capitalize">{classroom.status ?? "N/A"}</TableCell>
-      <TableCell>{classroom.course_name ?? "N/A"}</TableCell>
-      <TableCell>{classroom.organization_name ?? "N/A"}</TableCell>
+      <TableCell>
+        {classroom.status
+          ? statusLabel(classroom.status)
+          : tc("na")}
+      </TableCell>
+      <TableCell>{classroom.course_name ?? tc("na")}</TableCell>
+      <TableCell>{classroom.organization_name ?? tc("na")}</TableCell>
       <TableCell>{classroom.active_students ?? 0}</TableCell>
       <TableCell>{classroom.inactive_students ?? 0}</TableCell>
       <TableCell>{classroom.removed_students ?? 0}</TableCell>

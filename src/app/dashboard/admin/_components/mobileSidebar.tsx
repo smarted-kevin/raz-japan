@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Menu } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import {
@@ -21,6 +22,7 @@ interface MobileSidebarProps {
 }
 
 export default function MobileSidebar({ role }: MobileSidebarProps) {
+  const t = useTranslations("dashboard.admin.layout");
   const [open, setOpen] = useState(false);
 
   return (
@@ -30,14 +32,14 @@ export default function MobileSidebar({ role }: MobileSidebarProps) {
           variant="ghost"
           size="icon"
           className="md:hidden text-white hover:bg-white/20"
-          aria-label="Open menu"
+          aria-label={t("open_menu")}
         >
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-64 p-0 bg-primary">
         <SheetHeader className="border-b border-primary-foreground/10 p-6">
-          <SheetTitle className="text-white">Admin Dashboard</SheetTitle>
+          <SheetTitle className="text-white">{t("title")}</SheetTitle>
         </SheetHeader>
         <div className="flex flex-col h-[calc(100vh-80px)]">
           <div className="border-b border-primary-foreground/10 p-4 flex items-center justify-between gap-3">

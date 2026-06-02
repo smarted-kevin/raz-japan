@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -18,32 +19,37 @@ import {
 } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import type { NewCourseForm} from "../../_actions/schemas";
-import { useAction, useMutation } from "convex/react";
-import { api, internal } from "../../../../../../convex/_generated/api";
+import type { NewCourseForm } from "../../_actions/schemas";
+import { useAction } from "convex/react";
+import { api } from "../../../../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
 import type { Id } from "@/convex/_generated/dataModel";
 
-export default function AddCourseDialog({ 
-  openState, setOpenState }: {
-  openState: boolean,
-  setOpenState: (open: boolean) => void
+export default function AddCourseDialog({
+  openState,
+  setOpenState,
+}: {
+  openState: boolean;
+  setOpenState: (open: boolean) => void;
 }) {
+  const t = useTranslations("dashboard.admin.courses");
+  const tc = useTranslations("dashboard.admin.common");
   const router = useRouter();
-  //const addCourse = useMutation(api.mutations.course.createCourse);
   const addCourse = useAction(api.stripe.createProduct);
 
   const [error, setError] = React.useState<string>();
   const form = useForm<NewCourseForm>({
     defaultValues: {
       course_name: "",
-      price: 0
-    }
+      price: 0,
+    },
   });
 
-
   async function onSubmit(values: NewCourseForm) {
-    const result = await addCourse({ course_name: values.course_name, price: values.price }) as { course_id?: Id<"course">; error?: string };
+    const result = (await addCourse({
+      course_name: values.course_name,
+      price: values.price,
+    })) as { course_id?: Id<"course">; error?: string };
     if (result.error) {
       setError(result.error);
     } else {
@@ -56,28 +62,28 @@ export default function AddCourseDialog({
   return (
     <Dialog open={openState} onOpenChange={setOpenState}>
       <DialogTrigger className="w-min" asChild>
-      <Button>+ Add Course</Button>
+        <Button>{t("add_course")}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle className="font-bold">Add New Course</DialogTitle>
+        <DialogTitle className="font-bold">{t("add_new_course")}</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-y-4">
-            {error && <p className="text-destructive">{error}</p>}
-            <FormField
-              control={form.control}
-              name="course_name"
-              render={({ field }) => (
-                <FormItem>
-                  <div className="flex gap-x-4 items-center">
-                    <FormLabel>Course Name</FormLabel>
-                    <FormControl>
-                      <Input type="text" {...field} />
-                    </FormControl>
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
+              {error && <p className="text-destructive">{error}</p>}
+              <FormField
+                control={form.control}
+                name="course_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex gap-x-4 items-center">
+                      <FormLabel>{t("course_name")}</FormLabel>
+                      <FormControl>
+                        <Input type="text" {...field} />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
               <FormField
                 control={form.control}
@@ -85,7 +91,7 @@ export default function AddCourseDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel>Price</FormLabel>
+                      <FormLabel>{tc("price")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -94,7 +100,7 @@ export default function AddCourseDialog({
                           {...field}
                           onChange={(e) =>
                             field.onChange(parseInt(e.target.value))
-                          } 
+                          }
                         />
                       </FormControl>
                     </div>
@@ -102,11 +108,11 @@ export default function AddCourseDialog({
                   </FormItem>
                 )}
               />
-              <Button type="submit">Submit</Button>
+              <Button type="submit">{tc("submit")}</Button>
             </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

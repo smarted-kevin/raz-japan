@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useTransition, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   TableCell,
   TableRow,
@@ -12,6 +13,7 @@ import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { dateDisplayFormat } from "~/lib/formatters";
 import type { ActivationCodeData } from "./activationCodeTable";
+import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
 
 type Status = "used" | "unused" | "removed";
 
@@ -26,35 +28,39 @@ interface ActivationCodeRowProps {
   isOrgAdmin: boolean;
 }
 
-const ActivationCodeRow = memo(function ActivationCodeRow({ 
-  code, 
-  isOrgAdmin 
+const ActivationCodeRow = memo(function ActivationCodeRow({
+  code,
+  isOrgAdmin,
 }: ActivationCodeRowProps) {
+  const t = useTranslations("dashboard.admin.activation_codes");
+  const tc = useTranslations("dashboard.admin.common");
+  const statusLabel = useAdminStatusLabel();
   const [isPending, startTransition] = useTransition();
-  const removeActivationCode = useMutation(api.mutations.activation_code.removeActivationCode);
+  const removeActivationCode = useMutation(
+    api.mutations.activation_code.removeActivationCode
+  );
   const status = getStatus(code);
 
   const handleRemove = useCallback(() => {
     startTransition(async () => {
-      const result = await removeActivationCode({ activation_code_id: code.id });
+      const result = await removeActivationCode({
+        activation_code_id: code.id,
+      });
       if (result.success) {
-        toast.success("Activation code removed successfully");
+        toast.success(t("removed_success"));
       } else {
         toast.error(result.error);
       }
     });
-  }, [code.id, removeActivationCode]);
+  }, [code.id, removeActivationCode, t]);
 
   return (
     <TableRow>
       <TableCell>
         {status === "unused" && !isOrgAdmin && (
-          <Button 
-            variant="outline" 
-            onClick={handleRemove}
-            disabled={isPending}
-          >
-            <Trash2Icon className="w-4 h-4 mr-2" />Remove
+          <Button variant="outline" onClick={handleRemove} disabled={isPending}>
+            <Trash2Icon className="w-4 h-4 mr-2" />
+            {tc("remove")}
           </Button>
         )}
       </TableCell>
@@ -66,11 +72,11 @@ const ActivationCodeRow = memo(function ActivationCodeRow({
             status === "used"
               ? "bg-green-100 text-green-800"
               : status === "removed"
-              ? "bg-red-100 text-red-800"
-              : "bg-gray-100 text-gray-800"
+                ? "bg-red-100 text-red-800"
+                : "bg-gray-100 text-gray-800"
           }`}
         >
-          {status}
+          {statusLabel(status)}
         </span>
       </TableCell>
       <TableCell>

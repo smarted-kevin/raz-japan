@@ -2,6 +2,7 @@ import { fetchQuery } from "convex/nextjs";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Button } from "~/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { type Id } from "convex/_generated/dataModel";
@@ -40,6 +41,8 @@ export default async function AdminUserDetailPage(props: {
         })
       : [];
 
+  const t = await getTranslations("dashboard.admin.users");
+
   return (
     <div className="flex flex-col gap-y-6 p-4 sm:p-6 md:p-8 lg:p-12 xl:p-24">
       <div className="flex items-center gap-4">
@@ -48,7 +51,7 @@ export default async function AdminUserDetailPage(props: {
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="font-bold text-2xl">User Details</h1>
+        <h1 className="font-bold text-2xl">{t("user_details")}</h1>
       </div>
 
       <UserInfoCard
@@ -69,8 +72,7 @@ export default async function AdminUserDetailPage(props: {
 
       {user.role !== "user" && (
         <p className="text-muted-foreground">
-          Students and orders are shown for regular users only. This user has
-          role: {user.role}.
+          {t("role_only_students", { role: user.role })}
         </p>
       )}
     </div>

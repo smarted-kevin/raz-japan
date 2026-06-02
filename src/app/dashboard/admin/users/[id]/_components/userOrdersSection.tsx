@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -47,6 +48,8 @@ export function UserOrdersSection({
   userId: Id<"userTable">;
   orders: OrderData[];
 }) {
+  const t = useTranslations("dashboard.admin.users");
+  const tc = useTranslations("dashboard.admin.common");
   const displayedOrders = orders.slice(0, ORDERS_LIMIT);
   const hasMore = orders.length > ORDERS_LIMIT;
 
@@ -54,12 +57,12 @@ export function UserOrdersSection({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-base sm:text-lg">
-          Order Summary ({orders.length} {orders.length === 1 ? "order" : "orders"})
+          {t("order_summary", { count: orders.length })}
         </CardTitle>
         {hasMore && (
           <Button variant="outline" size="sm" asChild>
             <Link href={`/dashboard/admin/users/${userId}/orders`}>
-              See all
+              {tc("see_all")}
               <ChevronRight className="h-4 w-4 ml-1" />
             </Link>
           </Button>
@@ -68,17 +71,17 @@ export function UserOrdersSection({
       <CardContent>
         {orders.length === 0 ? (
           <p className="text-muted-foreground text-sm py-4">
-            No orders for this user.
+            {t("no_orders_for_user")}
           </p>
         ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Order Number</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead>{tc("date")}</TableHead>
+                  <TableHead>{tc("order_number")}</TableHead>
+                  <TableHead>{tc("status")}</TableHead>
+                  <TableHead className="text-right">{tc("total")}</TableHead>
                   <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
@@ -99,14 +102,14 @@ export function UserOrdersSection({
                           href={`/dashboard/admin/orders/${order.order_id}`}
                           className="text-primary hover:underline font-medium"
                         >
-                          {order.order_number ?? "N/A"}
+                          {order.order_number ?? tc("na")}
                         </Link>
                       </TableCell>
                       <TableCell>
                         <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs">
                           {order.status
                             ? capitalize(order.status)
-                            : "N/A"}
+                            : tc("na")}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">
@@ -118,7 +121,7 @@ export function UserOrdersSection({
                             href={`/dashboard/admin/orders/${order.order_id}`}
                             className="text-primary"
                           >
-                            View
+                            {tc("view")}
                           </Link>
                         </Button>
                       </TableCell>

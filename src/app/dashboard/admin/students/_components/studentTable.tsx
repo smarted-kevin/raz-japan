@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useMutation } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import {
@@ -17,7 +18,6 @@ import {
 import {
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableHeader,
   TableRow,
@@ -38,103 +38,8 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import StudentRow from "./studentRow";
-import { capitalize } from "~/lib/formatters";
 import { type Classroom, type StudentData } from "../../_actions/schemas";
-
-const columns: ColumnDef<StudentData>[] = [
-  {
-    id: "actions",
-    header: "",
-    cell: () => null, // Handled by StudentRow
-  },
-  {
-    accessorKey: "classroom",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Classroom
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null,
-    filterFn: (row, id, value: string) => {
-      if (value === "all") return true;
-      return row.getValue(id) === value;
-    },
-  },
-  {
-    accessorKey: "username",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Student Username
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null,
-  },
-  {
-    accessorKey: "password",
-    header: "Password",
-    cell: () => null,
-  },
-  {
-    accessorKey: "course",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Course
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null,
-  },
-  {
-    accessorKey: "expiry_date",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Expiry Date
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null,
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Email Address
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null,
-  },
-  {
-    accessorKey: "organization",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Organization
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null,
-  },
-];
+import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
 
 export default function StudentTable({
   students,
@@ -143,14 +48,113 @@ export default function StudentTable({
   students: StudentData[];
   classrooms: Classroom[];
 }) {
+  const t = useTranslations("dashboard.admin.students");
+  const tc = useTranslations("dashboard.admin.common");
+  const statusLabel = useAdminStatusLabel();
+
+  const columns: ColumnDef<StudentData>[] = useMemo(
+    () => [
+      {
+        id: "actions",
+        header: "",
+        cell: () => null,
+      },
+      {
+        accessorKey: "classroom",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("classroom")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+        filterFn: (row, id, value: string) => {
+          if (value === "all") return true;
+          return row.getValue(id) === value;
+        },
+      },
+      {
+        accessorKey: "username",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("username")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+      },
+      {
+        accessorKey: "password",
+        header: tc("password"),
+        cell: () => null,
+      },
+      {
+        accessorKey: "course",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("course")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+      },
+      {
+        accessorKey: "expiry_date",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("expiry_date")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+      },
+      {
+        accessorKey: "email",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("email_address")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+      },
+      {
+        accessorKey: "organization",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("organization")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+      },
+    ],
+    [t, tc]
+  );
+
   const [status, setStatus] = useState("active");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
-  
-  // Single mutation instance
   const removeStudent = useMutation(api.mutations.student.setStudentStatus);
-  
 
   const filteredByStatus = useMemo(
     () => students.filter((student) => student.status === status),
@@ -161,7 +165,7 @@ export default function StudentTable({
     () => new Map(classrooms.map((c) => [c.classroom_name, c])),
     [classrooms]
   );
-  
+
   const tableData = useMemo(
     () =>
       filteredByStatus.map((student) => {
@@ -194,18 +198,18 @@ export default function StudentTable({
 
   const classroomFilter =
     (columnFilters.find((f) => f.id === "classroom")?.value as string) ?? "all";
-    
+
   return (
     <div className="space-y-4">
       <div className="flex gap-4">
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-48">
-            <SelectValue>{capitalize(status)}</SelectValue>
+            <SelectValue>{statusLabel(status)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="removed">Removed</SelectItem>
+            <SelectItem value="active">{tc("active")}</SelectItem>
+            <SelectItem value="inactive">{tc("inactive")}</SelectItem>
+            <SelectItem value="removed">{tc("removed")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -216,12 +220,15 @@ export default function StudentTable({
           }
         >
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filter by classroom" />
+            <SelectValue placeholder={tc("filter_by_classroom")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Classrooms</SelectItem>
+            <SelectItem value="all">{tc("filter_all_classrooms")}</SelectItem>
             {classrooms.map((classroom) => (
-              <SelectItem key={classroom.classroom_id} value={classroom.classroom_name}>
+              <SelectItem
+                key={classroom.classroom_id}
+                value={classroom.classroom_name}
+              >
                 {classroom.classroom_name}
               </SelectItem>
             ))}
@@ -251,7 +258,10 @@ export default function StudentTable({
                 <StudentRow
                   key={row.original.id}
                   student={row.original}
-                  classroom={classroomMap.get(row.original.classroom_name ?? "") ?? undefined}
+                  classroom={
+                    classroomMap.get(row.original.classroom_name ?? "") ??
+                    undefined
+                  }
                   onRemove={removeStudent}
                 />
               ))}
@@ -260,11 +270,13 @@ export default function StudentTable({
 
           <div className="flex items-center justify-between px-2">
             <div className="text-muted-foreground text-sm">
-              {table.getFilteredRowModel().rows.length} total students
+              {t("total_students", {
+                count: table.getFilteredRowModel().rows.length,
+              })}
             </div>
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <span className="text-sm">Rows per page</span>
+                <span className="text-sm">{tc("rows_per_page")}</span>
                 <Select
                   value={String(table.getState().pagination.pageSize)}
                   onValueChange={(value) => table.setPageSize(Number(value))}
@@ -283,8 +295,10 @@ export default function StudentTable({
               </div>
 
               <div className="text-sm">
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
+                {tc("page_of", {
+                  current: table.getState().pagination.pageIndex + 1,
+                  total: table.getPageCount(),
+                })}
               </div>
 
               <div className="flex items-center gap-1">
@@ -325,7 +339,7 @@ export default function StudentTable({
           </div>
         </>
       ) : (
-        <p>NO STUDENTS HERE!</p>
+        <p>{t("no_students")}</p>
       )}
     </div>
   );

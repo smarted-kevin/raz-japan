@@ -2,6 +2,7 @@ import { fetchQuery } from "convex/nextjs";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Button } from "~/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { type Id } from "convex/_generated/dataModel";
@@ -32,6 +33,8 @@ export default async function AdminOrderDetailsPage(props: {
     redirect("/dashboard/admin/orders");
   }
 
+  const t = await getTranslations("dashboard.admin.orders");
+
   return (
     <div className="flex flex-col gap-y-4 print:gap-y-0">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
@@ -41,7 +44,7 @@ export default async function AdminOrderDetailsPage(props: {
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="font-bold text-xl sm:text-2xl">Order Details</h1>
+          <h1 className="font-bold text-xl sm:text-2xl">{t("order_details")}</h1>
         </div>
         <PrintButton />
       </div>

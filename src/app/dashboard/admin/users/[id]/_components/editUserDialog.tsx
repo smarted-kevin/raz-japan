@@ -4,6 +4,7 @@ import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -32,14 +33,12 @@ import { useAction } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 
-const editUserSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email address"),
-  status: z.enum(["active", "inactive"]),
-});
-
-type EditUserForm = z.infer<typeof editUserSchema>;
+type EditUserForm = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  status: "active" | "inactive";
+};
 
 export function EditUserDialog({
   userId,
@@ -54,6 +53,20 @@ export function EditUserDialog({
   initialEmail: string;
   initialStatus: string;
 }) {
+  const t = useTranslations("dashboard.admin.users");
+  const tc = useTranslations("dashboard.admin.common");
+
+  const editUserSchema = React.useMemo(
+    () =>
+      z.object({
+        first_name: z.string().min(1, tc("error_first_name_required")),
+        last_name: z.string().min(1, tc("error_last_name_required")),
+        email: z.string().email(tc("error_invalid_email")),
+        status: z.enum(["active", "inactive"]),
+      }),
+    [tc]
+  );
+
   const [open, setOpen] = React.useState(false);
   const [error, setError] = React.useState<string>();
   const [loading, setLoading] = React.useState(false);
@@ -65,22 +78,23 @@ export function EditUserDialog({
       first_name: initialFirstName,
       last_name: initialLastName,
       email: initialEmail,
-      status: (initialStatus === "active" || initialStatus === "inactive"
-        ? initialStatus
-        : "active"),
+      status:
+        initialStatus === "active" || initialStatus === "inactive"
+          ? initialStatus
+          : "active",
     },
   });
 
-  // Reset form when dialog opens with latest values
   React.useEffect(() => {
     if (open) {
       form.reset({
         first_name: initialFirstName,
         last_name: initialLastName,
         email: initialEmail,
-        status: (initialStatus === "active" || initialStatus === "inactive"
-          ? initialStatus
-          : "active"),
+        status:
+          initialStatus === "active" || initialStatus === "inactive"
+            ? initialStatus
+            : "active",
       });
     }
   }, [open, initialFirstName, initialLastName, initialEmail, initialStatus, form]);
@@ -106,7 +120,7 @@ export function EditUserDialog({
       window.location.reload();
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to update user information"
+        err instanceof Error ? err.message : tc("error_update_failed")
       );
     } finally {
       setLoading(false);
@@ -117,11 +131,11 @@ export function EditUserDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
-          Edit User
+          {t("edit_user")}
         </Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle className="font-bold">Edit User Information</DialogTitle>
+        <DialogTitle className="font-bold">{t("edit_user_information")}</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-y-4">
@@ -134,7 +148,7 @@ export function EditUserDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel className="min-w-[80px]">First Name</FormLabel>
+                      <FormLabel className="min-w-[80px]">{tc("first_name")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
@@ -149,7 +163,7 @@ export function EditUserDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel className="min-w-[80px]">Last Name</FormLabel>
+                      <FormLabel className="min-w-[80px]">{tc("last_name")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
@@ -164,7 +178,7 @@ export function EditUserDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel className="min-w-[80px]">Email</FormLabel>
+                      <FormLabel className="min-w-[80px]">{tc("email")}</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
                       </FormControl>
@@ -179,7 +193,7 @@ export function EditUserDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel className="min-w-[80px]">Status</FormLabel>
+                      <FormLabel className="min-w-[80px]">{tc("status")}</FormLabel>
                       <FormControl>
                         <Select
                           value={field.value}
@@ -189,8 +203,8 @@ export function EditUserDialog({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="inactive">Inactive</SelectItem>
+                            <SelectItem value="active">{tc("active")}</SelectItem>
+                            <SelectItem value="inactive">{tc("inactive")}</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -205,10 +219,10 @@ export function EditUserDialog({
                   variant="outline"
                   onClick={() => setOpen(false)}
                 >
-                  Cancel
+                  {tc("cancel")}
                 </Button>
                 <Button type="submit" disabled={loading}>
-                  {loading ? "Saving..." : "Save Changes"}
+                  {loading ? tc("saving") : tc("save_changes")}
                 </Button>
               </DialogFooter>
             </div>

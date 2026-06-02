@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import {
   useReactTable,
   getCoreRowModel,
@@ -38,82 +39,90 @@ import {
 import Link from "next/link";
 import type { OrdersWithUserAndStudentData } from "../../_actions/schemas";
 import { dateDisplayFormat } from "~/lib/formatters";
-
-const columns: ColumnDef<OrdersWithUserAndStudentData>[] = [
-  {
-    accessorKey: "order_number",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Order Number
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: ({ row }) => (
-      <Link
-        href={`/dashboard/admin/orders/${row.original.order_id}`}
-        className="text-primary hover:underline font-medium"
-      >
-        {row.original.order_number ?? "N/A"}
-      </Link>
-    ),
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        User ID
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-  },
-  {
-    accessorKey: "amount",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Order Total
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-  },
-  {
-    accessorKey: "created_date",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Created Date
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: ({ row }) => dateDisplayFormat(row.original.created_date),
-  },
-  {
-    id: "student_orders",
-    header: "Student Orders",
-    cell: ({ row }) =>
-      row.original.student_orders.map((so) => (
-        <div key={so.id}>
-          {so.username} {so.amount} {so.order_type}
-        </div>
-      )),
-  },
-];
+import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
 
 export default function OrderTable({
   orders,
 }: {
   orders: OrdersWithUserAndStudentData[];
 }) {
+  const t = useTranslations("dashboard.admin.orders");
+  const tc = useTranslations("dashboard.admin.common");
+  const statusLabel = useAdminStatusLabel();
+
+  const columns: ColumnDef<OrdersWithUserAndStudentData>[] = useMemo(
+    () => [
+      {
+        accessorKey: "order_number",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("order_number")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: ({ row }) => (
+          <Link
+            href={`/dashboard/admin/orders/${row.original.order_id}`}
+            className="text-primary hover:underline font-medium"
+          >
+            {row.original.order_number ?? tc("na")}
+          </Link>
+        ),
+      },
+      {
+        accessorKey: "email",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("user_id")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+      },
+      {
+        accessorKey: "amount",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("order_total")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+      },
+      {
+        accessorKey: "created_date",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("created_date")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: ({ row }) => dateDisplayFormat(row.original.created_date),
+      },
+      {
+        id: "student_orders",
+        header: t("student_orders"),
+        cell: ({ row }) =>
+          row.original.student_orders.map((so) => (
+            <div key={so.id}>
+              {so.username} {so.amount} {so.order_type}
+            </div>
+          )),
+      },
+    ],
+    [t, tc]
+  );
+
   const [status, setStatus] = useState("active");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [userFilter, setUserFilter] = useState("");
@@ -137,68 +146,68 @@ export default function OrderTable({
     <div className="space-y-4 w-full min-w-0">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
         <Input
-          placeholder="Filter by user..."
+          placeholder={tc("filter_by_user")}
           value={userFilter}
           onChange={(e) => setUserFilter(e.target.value)}
           className="w-full sm:max-w-sm min-w-0"
         />
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue>{status}</SelectValue>
+            <SelectValue>{statusLabel(status)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">active</SelectItem>
-            <SelectItem value="inactive">inactive</SelectItem>
-            <SelectItem value="removed">removed</SelectItem>
+            <SelectItem value="active">{tc("active")}</SelectItem>
+            <SelectItem value="inactive">{tc("inactive")}</SelectItem>
+            <SelectItem value="removed">{tc("removed")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
-      <Table>
-        <TableHeader className="bg-primary-foreground">
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <TableHead key={header.id}>
-                  {flexRender(
-                    header.column.columnDef.header,
-                    header.getContext()
-                  )}
-                </TableHead>
-              ))}
-            </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
+        <Table>
+          <TableHeader className="bg-primary-foreground">
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {flexRender(
+                      header.column.columnDef.header,
+                      header.getContext()
+                    )}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                No results.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+            ))}
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  {tc("no_results")}
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
         <div className="text-muted-foreground text-sm">
-          {table.getFilteredRowModel().rows.length} total rows
+          {t("total_rows", { count: table.getFilteredRowModel().rows.length })}
         </div>
         <div className="flex flex-wrap items-center gap-3 sm:gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-sm">Rows per page</span>
+            <span className="text-sm">{tc("rows_per_page")}</span>
             <Select
               value={String(table.getState().pagination.pageSize)}
               onValueChange={(value) => table.setPageSize(Number(value))}
@@ -217,8 +226,10 @@ export default function OrderTable({
           </div>
 
           <div className="text-sm">
-            Page {table.getState().pagination.pageIndex + 1} of{" "}
-            {table.getPageCount()}
+            {tc("page_of", {
+              current: table.getState().pagination.pageIndex + 1,
+              total: table.getPageCount(),
+            })}
           </div>
 
           <div className="flex items-center gap-1">

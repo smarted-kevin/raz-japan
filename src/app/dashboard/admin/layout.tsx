@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
+import { getTranslations } from "next-intl/server";
 
 type UserRole = "user" | "admin" | "org_admin" | "god";
 
@@ -26,6 +27,8 @@ export default async function AdminLayout({
     redirect("/sign-in");
   }
 
+  const t = await getTranslations("dashboard.admin.layout");
+
   return (
     <SidebarProvider>
       <div className="flex h-screen overflow-hidden">
@@ -37,7 +40,7 @@ export default async function AdminLayout({
         {/* Mobile Top Bar */}
         <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-primary h-16 flex items-center px-4 border-b border-primary-foreground/10">
           <MobileSidebar role={userRole} />
-          <h2 className="ml-4 text-lg font-semibold text-white">Admin Dashboard</h2>
+          <h2 className="ml-4 text-lg font-semibold text-white">{t("title")}</h2>
         </div>
 
         {/* Main Content Area */}

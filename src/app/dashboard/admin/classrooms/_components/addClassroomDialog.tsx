@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import {
   Select,
   SelectContent,
@@ -25,24 +26,27 @@ import {
 } from "~/components/ui/form";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import type { 
-  NewClassroomForm, 
-  Course, 
-  Organization } 
-from "../../_actions/schemas";
+import type {
+  NewClassroomForm,
+  Course,
+  Organization,
+} from "../../_actions/schemas";
 import { addClassroom } from "../../_actions/classroom";
 import { useRouter } from "next/navigation";
 
-
 export default function AddClassroomDialog({
-  courses, orgs, openState, setOpenState
+  courses,
+  orgs,
+  openState,
+  setOpenState,
 }: {
-  courses: Course[],
-  orgs: Organization[],
-  openState: boolean,
-  setOpenState: (open: boolean) => void
+  courses: Course[];
+  orgs: Organization[];
+  openState: boolean;
+  setOpenState: (open: boolean) => void;
 }) {
-
+  const t = useTranslations("dashboard.admin.classrooms");
+  const tc = useTranslations("dashboard.admin.common");
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const form = useForm<NewClassroomForm>({
@@ -50,8 +54,8 @@ export default function AddClassroomDialog({
       classroom_name: "",
       course_name: courses[0]?.course_name,
       organization_name: orgs[0]?.organization_name,
-      student_count: 36
-    }
+      student_count: 36,
+    },
   });
 
   async function onSubmit(values: NewClassroomForm) {
@@ -59,7 +63,6 @@ export default function AddClassroomDialog({
     if (typeof result === "string") {
       setError(result);
     } else {
-      // Success case - clear error and close dialog
       setError(undefined);
       setOpenState(false);
       router.refresh();
@@ -69,10 +72,10 @@ export default function AddClassroomDialog({
   return (
     <Dialog open={openState} onOpenChange={setOpenState}>
       <DialogTrigger className="w-min" asChild>
-        <Button>+ Add Classroom</Button>
+        <Button>{t("add_classroom")}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle className="font-bold">Add New Classroom</DialogTitle>
+        <DialogTitle className="font-bold">{t("add_new_classroom")}</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-y-4">
@@ -83,7 +86,7 @@ export default function AddClassroomDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel>Classroom Name</FormLabel>
+                      <FormLabel>{t("classroom_name")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
                       </FormControl>
@@ -98,7 +101,7 @@ export default function AddClassroomDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel>Course</FormLabel>
+                      <FormLabel>{tc("course")}</FormLabel>
                       <FormControl>
                         <Select
                           value={field.value}
@@ -127,7 +130,7 @@ export default function AddClassroomDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel>Organization</FormLabel>
+                      <FormLabel>{tc("organization")}</FormLabel>
                       <FormControl>
                         <Select
                           value={field.value}
@@ -159,7 +162,7 @@ export default function AddClassroomDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel># of Students</FormLabel>
+                      <FormLabel>{t("num_students")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -176,11 +179,11 @@ export default function AddClassroomDialog({
                   </FormItem>
                 )}
               />
-              <Button type="submit">Submit</Button>
+              <Button type="submit">{tc("submit")}</Button>
             </div>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

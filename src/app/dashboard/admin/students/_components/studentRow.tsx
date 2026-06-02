@@ -1,6 +1,7 @@
 "use client";
 
-import { memo, useState, useTransition, useMemo } from "react";
+import { memo, useState, useTransition } from "react";
+import { useTranslations } from "next-intl";
 import {
   TableCell,
   TableRow,
@@ -30,7 +31,10 @@ import type { Id } from "@/convex/_generated/dataModel";
 interface StudentRowProps {
   student: StudentData;
   classroom: Classroom | undefined;
-  onRemove: (args: { student_id: Id<"student">; status: "active" | "inactive" | "removed" }) => Promise<unknown>;
+  onRemove: (args: {
+    student_id: Id<"student">;
+    status: "active" | "inactive" | "removed";
+  }) => Promise<unknown>;
 }
 
 const StudentRow = memo(function StudentRow({
@@ -38,25 +42,26 @@ const StudentRow = memo(function StudentRow({
   classroom,
   onRemove,
 }: StudentRowProps) {
+  const t = useTranslations("dashboard.admin.students");
+  const tc = useTranslations("dashboard.admin.common");
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-
 
   return (
     <TableRow>
       <TableCell>
         <div className="flex items-center gap-x-2">
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger title="Edit Student">
+            <DialogTrigger title={t("edit_student")}>
               <SquarePen className="text-blue-600" size={16} />
             </DialogTrigger>
             {open && (
               <DialogContent>
-                <DialogTitle>Edit Student</DialogTitle>
+                <DialogTitle>{t("edit_student")}</DialogTitle>
                 <form>
                   <div className="flex flex-col gap-y-4">
                     <div className="flex items-center gap-x-4">
-                      <Label htmlFor="username">Username</Label>
+                      <Label htmlFor="username">{tc("username")}</Label>
                       <Input
                         name="username"
                         id="username"
@@ -66,7 +71,7 @@ const StudentRow = memo(function StudentRow({
                       />
                     </div>
                     <div className="flex items-center gap-x-4">
-                      <Label htmlFor="classroom_id">Classroom</Label>
+                      <Label htmlFor="classroom_id">{tc("classroom")}</Label>
                       <Select
                         defaultValue={classroom?.classroom_id}
                         name="classroom_id"
@@ -88,7 +93,7 @@ const StudentRow = memo(function StudentRow({
                       </Select>
                     </div>
                     <div className="flex items-center gap-x-4">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password">{tc("password")}</Label>
                       <Input
                         id="password"
                         type="text"
@@ -98,7 +103,7 @@ const StudentRow = memo(function StudentRow({
                       />
                     </div>
                     <Input type="hidden" name="id" value={student.id} />
-                    <Button type="submit">Save Changes</Button>
+                    <Button type="submit">{tc("save_changes")}</Button>
                   </div>
                 </form>
               </DialogContent>
@@ -118,7 +123,7 @@ const StudentRow = memo(function StudentRow({
                 });
               }}
             >
-              Remove
+              {tc("remove")}
             </Button>
           ) : (
             <ActivateDialog id={student.id} />

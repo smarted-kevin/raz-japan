@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useState } from "react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   TableCell,
@@ -22,14 +23,28 @@ import {
 import { Button } from "~/components/ui/button";
 import type { UserWithStudentData } from "../../_actions/schemas";
 import { dateDisplayFormat } from "~/lib/formatters";
+import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
 
 interface UserRowProps {
   user: UserWithStudentData;
 }
 
 const UserRow = memo(function UserRow({ user }: UserRowProps) {
+  const t = useTranslations("dashboard.admin.users");
+  const tc = useTranslations("dashboard.admin.common");
+  const statusLabel = useAdminStatusLabel();
   const [open, setOpen] = useState(false);
-  const fullName = `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || "N/A";
+  const fullName =
+    `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim() || tc("na");
+
+  const roleLabel =
+    user.role === "user"
+      ? tc("role_user")
+      : user.role === "admin"
+        ? tc("role_admin")
+        : user.role === "org_admin"
+          ? tc("role_org_admin")
+          : (user.role ?? tc("na"));
 
   return (
     <TableRow>
@@ -41,34 +56,34 @@ const UserRow = memo(function UserRow({ user }: UserRowProps) {
           {fullName}
         </Link>
       </TableCell>
-      <TableCell>{user.email ?? "N/A"}</TableCell>
-      <TableCell>{user.role ?? "N/A"}</TableCell>
-      <TableCell>{user.status ?? "N/A"}</TableCell>
+      <TableCell>{user.email ?? tc("na")}</TableCell>
+      <TableCell>{roleLabel}</TableCell>
+      <TableCell>{statusLabel(user.status ?? "")}</TableCell>
       <TableCell>
         {user.students.length > 0 ? (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" className="text-xs p-2">
-                View Students
+                {t("view_students")}
               </Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogTitle>Students</DialogTitle>
+              <DialogTitle>{tc("students")}</DialogTitle>
               <DialogHeader>
-                {`${user.students.length} ${user.students.length === 1 ? "Current Student" : "Current Students"}`}
+                {`${user.students.length} ${user.students.length === 1 ? t("current_student") : t("current_students")}`}
               </DialogHeader>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Teacher Username</TableHead>
-                    <TableHead>Student Username</TableHead>
-                    <TableHead>Expiry Date</TableHead>
+                    <TableHead>{t("teacher_username")}</TableHead>
+                    <TableHead>{tc("username")}</TableHead>
+                    <TableHead>{tc("expiry_date")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {user.students.map((s) => (
                     <TableRow key={s.id}>
-                      <TableCell>{s.classroom_name ?? "N/A"}</TableCell>
+                      <TableCell>{s.classroom_name ?? tc("na")}</TableCell>
                       <TableCell>{s.username}</TableCell>
                       <TableCell>{dateDisplayFormat(s.expiry_date)}</TableCell>
                     </TableRow>
@@ -78,7 +93,7 @@ const UserRow = memo(function UserRow({ user }: UserRowProps) {
             </DialogContent>
           </Dialog>
         ) : (
-          "No Current Students"
+          t("no_current_students")
         )}
       </TableCell>
     </TableRow>

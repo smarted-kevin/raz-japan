@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -31,10 +32,13 @@ type OrderData = {
 };
 
 export function UserOrdersTable({ orders }: { orders: OrderData[] }) {
+  const t = useTranslations("dashboard.admin.users");
+  const tc = useTranslations("dashboard.admin.common");
+
   if (orders.length === 0) {
     return (
       <div className="text-center py-12 text-muted-foreground border rounded-lg">
-        No orders found for this user.
+        {t("no_orders_found")}
       </div>
     );
   }
@@ -44,11 +48,11 @@ export function UserOrdersTable({ orders }: { orders: OrderData[] }) {
       <Table>
         <TableHeader className="bg-muted/50">
           <TableRow>
-            <TableHead>Date</TableHead>
-            <TableHead>Order Number</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Students</TableHead>
-            <TableHead className="text-right">Total</TableHead>
+            <TableHead>{tc("date")}</TableHead>
+            <TableHead>{tc("order_number")}</TableHead>
+            <TableHead>{tc("status")}</TableHead>
+            <TableHead>{tc("students")}</TableHead>
+            <TableHead className="text-right">{tc("total")}</TableHead>
             <TableHead></TableHead>
           </TableRow>
         </TableHeader>
@@ -69,12 +73,12 @@ export function UserOrdersTable({ orders }: { orders: OrderData[] }) {
                     href={`/dashboard/admin/orders/${order.order_id}`}
                     className="text-primary hover:underline font-medium"
                   >
-                    {order.order_number ?? "N/A"}
+                    {order.order_number ?? tc("na")}
                   </Link>
                 </TableCell>
                 <TableCell>
                   <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs">
-                    {order.status ? capitalize(order.status) : "N/A"}
+                    {order.status ? capitalize(order.status) : tc("na")}
                   </span>
                 </TableCell>
                 <TableCell>
@@ -102,7 +106,7 @@ export function UserOrdersTable({ orders }: { orders: OrderData[] }) {
                     href={`/dashboard/admin/orders/${order.order_id}`}
                     className="text-primary hover:underline text-sm font-medium"
                   >
-                    View details
+                    {t("view_details")}
                   </Link>
                 </TableCell>
               </TableRow>

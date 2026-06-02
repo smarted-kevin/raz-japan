@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import {
   Table,
   TableBody,
@@ -43,39 +44,47 @@ type AdminOrderData = {
 };
 
 export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
+  const t = useTranslations("dashboard.admin.orders");
+  const tc = useTranslations("dashboard.admin.common");
   const displayTotal = order.student_orders.some((so) => so.activation_id)
     ? 0
     : order.total_amount;
-  const customerName = [order.first_name, order.last_name].filter(Boolean).join(" ") || "—";
+  const customerName =
+    [order.first_name, order.last_name].filter(Boolean).join(" ") || "—";
 
   return (
     <div className="space-y-6 print:space-y-4">
-      {/* Order & Customer Info - responsive grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <Card className="print:shadow-none print:border">
           <CardHeader className="pb-2 sm:pb-4">
-            <CardTitle className="text-base sm:text-lg">Order Information</CardTitle>
+            <CardTitle className="text-base sm:text-lg">
+              {t("order_information")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <span className="text-muted-foreground">Order Number</span>
-              <span className="font-medium">{order.order_number ?? "N/A"}</span>
-              <span className="text-muted-foreground">Date</span>
-              <span className="font-medium">{dateDisplayFormat(order.created_date)}</span>
-              <span className="text-muted-foreground">Status</span>
-              <span className="font-medium">{order.status ? capitalize(order.status) : "—"}</span>
+              <span className="text-muted-foreground">{tc("order_number")}</span>
+              <span className="font-medium">{order.order_number ?? tc("na")}</span>
+              <span className="text-muted-foreground">{tc("date")}</span>
+              <span className="font-medium">
+                {dateDisplayFormat(order.created_date)}
+              </span>
+              <span className="text-muted-foreground">{tc("status")}</span>
+              <span className="font-medium">
+                {order.status ? capitalize(order.status) : "—"}
+              </span>
             </div>
           </CardContent>
         </Card>
         <Card className="print:shadow-none print:border">
           <CardHeader className="pb-2 sm:pb-4">
-            <CardTitle className="text-base sm:text-lg">Customer</CardTitle>
+            <CardTitle className="text-base sm:text-lg">{t("customer")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <span className="text-muted-foreground">Name</span>
+              <span className="text-muted-foreground">{tc("name")}</span>
               <span className="font-medium">{customerName}</span>
-              <span className="text-muted-foreground">Email</span>
+              <span className="text-muted-foreground">{tc("email")}</span>
               <span className="font-medium break-all">{order.email ?? "—"}</span>
             </div>
             <div className="pt-2 print:hidden">
@@ -83,37 +92,38 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
                 href={`/dashboard/admin/users/${order.user_id}`}
                 className="text-sm text-primary hover:underline"
               >
-                View member profile →
+                {t("view_member_profile")}
               </Link>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Students - Table on desktop, cards on mobile */}
       <Card className="print:shadow-none print:border overflow-hidden">
         <CardHeader className="pb-2 sm:pb-4">
           <CardTitle className="text-base sm:text-lg">
-            Students ({order.student_orders.length})
+            {tc("students")} ({order.student_orders.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0 sm:px-6 sm:pb-6">
-          {/* Desktop: Table */}
           <div className="hidden sm:block overflow-x-auto">
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Expiry Date</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead>{tc("username")}</TableHead>
+                  <TableHead>{t("type")}</TableHead>
+                  <TableHead>{tc("expiry_date")}</TableHead>
+                  <TableHead className="text-right">{tc("price")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {order.student_orders.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                      No students in this order.
+                    <TableCell
+                      colSpan={4}
+                      className="text-center text-muted-foreground py-8"
+                    >
+                      {t("no_students_in_order")}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -128,20 +138,21 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
                       <TableCell>
                         {so.expiry_date
                           ? dateDisplayFormat(so.expiry_date)
-                          : "N/A"}
+                          : tc("na")}
                       </TableCell>
-                      <TableCell className="text-right">{formatYen(so.amount)}</TableCell>
+                      <TableCell className="text-right">
+                        {formatYen(so.amount)}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
               </TableBody>
             </Table>
           </div>
-          {/* Mobile: Cards */}
           <div className="sm:hidden divide-y">
             {order.student_orders.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground text-sm px-4">
-                No students in this order.
+                {t("no_students_in_order")}
               </div>
             ) : (
               order.student_orders.map((so) => (
@@ -153,10 +164,13 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
                     <p className="font-medium truncate">{so.username}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {capitalize(so.order_type)}
-                      {so.expiry_date && ` • Expires ${dateDisplayFormat(so.expiry_date)}`}
+                      {so.expiry_date &&
+                        ` • ${t("expires", { date: dateDisplayFormat(so.expiry_date) })}`}
                     </p>
                   </div>
-                  <span className="font-medium text-sm shrink-0">{formatYen(so.amount)}</span>
+                  <span className="font-medium text-sm shrink-0">
+                    {formatYen(so.amount)}
+                  </span>
                 </div>
               ))
             )}
@@ -164,11 +178,10 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
         </CardContent>
       </Card>
 
-      {/* Order Total */}
       <div className="flex justify-end">
         <div className="w-full max-w-md sm:max-w-xs border-t pt-4">
           <div className="flex justify-between items-center text-lg font-semibold">
-            <span>Order Total</span>
+            <span>{tc("order_total")}</span>
             <span>{formatYen(displayTotal)}</span>
           </div>
         </div>

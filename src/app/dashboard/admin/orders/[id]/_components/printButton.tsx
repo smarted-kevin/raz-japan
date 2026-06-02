@@ -1,13 +1,20 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Printer } from "lucide-react";
 import { Button } from "~/components/ui/button";
 
 export function PrintButton() {
+  const tc = useTranslations("dashboard.admin.common");
+
   return (
-    <Button variant="outline" onClick={() => window.print()} className="print:hidden">
+    <Button
+      variant="outline"
+      onClick={() => window.print()}
+      className="print:hidden"
+    >
       <Printer className="h-4 w-4 mr-2 sm:mr-2" />
-      Print
+      {tc("print")}
     </Button>
   );
 }

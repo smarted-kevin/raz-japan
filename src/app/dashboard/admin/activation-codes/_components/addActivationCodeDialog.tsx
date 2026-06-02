@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import { useTranslations } from "next-intl";
 import {
   Select,
   SelectContent,
@@ -46,6 +47,8 @@ export default function AddActivationCodeDialog({
   openState: boolean;
   setOpenState: (open: boolean) => void;
 }) {
+  const t = useTranslations("dashboard.admin.activation_codes");
+  const tc = useTranslations("dashboard.admin.common");
   const [error, setError] = React.useState<string>();
   const form = useForm<NewActivationCodeForm>({
     defaultValues: {
@@ -57,7 +60,7 @@ export default function AddActivationCodeDialog({
 
   async function onSubmit(values: NewActivationCodeForm) {
     if (!values.course_id || !values.organization_id) {
-      setError("Please select both course and organization");
+      setError(t("error_select_course_org"));
       return;
     }
 
@@ -65,21 +68,19 @@ export default function AddActivationCodeDialog({
     if (typeof result === "string") {
       setError(result);
     } else {
-      // Success case - clear error and close dialog
       setError(undefined);
       setOpenState(false);
       form.reset();
-      // No need for router.refresh() - data will update automatically via useQuery
     }
   }
 
   return (
     <Dialog open={openState} onOpenChange={setOpenState}>
       <DialogTrigger className="w-min" asChild>
-        <Button>+ Add Activation Codes</Button>
+        <Button>{t("add_codes")}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle className="font-bold">Add New Activation Codes</DialogTitle>
+        <DialogTitle className="font-bold">{t("add_new_codes")}</DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-y-4">
@@ -90,7 +91,7 @@ export default function AddActivationCodeDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel>Quantity</FormLabel>
+                      <FormLabel>{t("quantity")}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -112,7 +113,7 @@ export default function AddActivationCodeDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel>Course</FormLabel>
+                      <FormLabel>{tc("course")}</FormLabel>
                       <FormControl>
                         <Select
                           value={field.value}
@@ -143,7 +144,7 @@ export default function AddActivationCodeDialog({
                 render={({ field }) => (
                   <FormItem>
                     <div className="flex gap-x-4 items-center">
-                      <FormLabel>Organization</FormLabel>
+                      <FormLabel>{tc("organization")}</FormLabel>
                       <FormControl>
                         <Select
                           value={field.value}
@@ -168,7 +169,7 @@ export default function AddActivationCodeDialog({
                   </FormItem>
                 )}
               />
-              <Button type="submit">Submit</Button>
+              <Button type="submit">{tc("submit")}</Button>
             </div>
           </form>
         </Form>
@@ -176,4 +177,3 @@ export default function AddActivationCodeDialog({
     </Dialog>
   );
 }
-

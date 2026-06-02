@@ -2,6 +2,7 @@ import { fetchQuery } from "convex/nextjs";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 import { Button } from "~/components/ui/button";
 import { api } from "@/convex/_generated/api";
 import { type Id } from "convex/_generated/dataModel";
@@ -36,6 +37,8 @@ export default async function AdminUserOrdersPage(props: {
     user_id: userId,
   });
 
+  const t = await getTranslations("dashboard.admin.users");
+
   return (
     <div className="flex flex-col gap-y-6 p-4 sm:p-6 md:p-8 lg:p-12 xl:p-24">
       <div className="flex items-center gap-4">
@@ -45,7 +48,9 @@ export default async function AdminUserOrdersPage(props: {
           </Link>
         </Button>
         <h1 className="font-bold text-2xl">
-          All Orders - {user.first_name} {user.last_name}
+          {t("all_orders_for", {
+            name: `${user.first_name} ${user.last_name}`,
+          })}
         </h1>
       </div>
 

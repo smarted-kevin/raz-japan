@@ -1,7 +1,7 @@
-// components/DownloadButton.tsx
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "~/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 
@@ -10,29 +10,31 @@ interface DownloadButtonProps {
   classroomName: string;
 }
 
-export default function DownloadButton({ classroomId, classroomName }: DownloadButtonProps) {
+export default function DownloadButton({
+  classroomId,
+  classroomName,
+}: DownloadButtonProps) {
+  const t = useTranslations("dashboard.admin.classrooms");
   const [isDownloading, setIsDownloading] = React.useState(false);
 
   const handleDownload = async () => {
     setIsDownloading(true);
-    
+
     try {
       const response = await fetch(`/api/export/classroom/${classroomId}`);
-      
+
       if (!response.ok) {
-        throw new Error('Export failed');
+        throw new Error("Export failed");
       }
 
-      // Get the filename from the response headers
-      const contentDisposition = response.headers.get('content-disposition');
+      const contentDisposition = response.headers.get("content-disposition");
       const filename = contentDisposition
-        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+        ? contentDisposition.split("filename=")[1]?.replace(/"/g, "")
         : `${classroomName}_export.csv`;
 
-      // Create blob and download
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = filename ?? "";
       document.body.appendChild(link);
@@ -40,9 +42,8 @@ export default function DownloadButton({ classroomId, classroomName }: DownloadB
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Download failed:', error);
-      // You might want to show a toast notification here
-      alert('Download failed. Please try again.');
+      console.error("Download failed:", error);
+      alert(t("download_failed"));
     } finally {
       setIsDownloading(false);
     }

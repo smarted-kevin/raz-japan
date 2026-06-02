@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   useReactTable,
   getCoreRowModel,
@@ -40,6 +41,7 @@ import { api } from "@/convex/_generated/api";
 import type { Id } from "convex/_generated/dataModel";
 import AddActivationCodeDialog from "./addActivationCodeDialog";
 import ActivationCodeRow from "./activationCodeRow";
+import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
 
 export type ActivationCodeData = {
   id: Id<"activation_code">;
@@ -64,91 +66,101 @@ function getStatus(code: ActivationCodeData): Status {
   return "unused";
 }
 
-const columns: ColumnDef<ActivationCodeData>[] = [
-  {
-    id: "actions",
-    header: "",
-    cell: () => null, // Handled by ActivationCodeRow
-  },
-  {
-    accessorKey: "organization_name",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Organization Name
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by ActivationCodeRow
-    filterFn: (row, id, value: string) => {
-      if (value === "all") return true;
-      return row.getValue(id) === value;
-    },
-  },
-  {
-    accessorKey: "activation_code",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Activation Code
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by ActivationCodeRow
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Status
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by ActivationCodeRow
-    accessorFn: (row) => getStatus(row),
-    filterFn: (row, id, value: string) => {
-      if (value === "all") return true;
-      return row.getValue(id) === value;
-    },
-  },
-  {
-    accessorKey: "activated_date",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Activated Date
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by ActivationCodeRow
-    accessorFn: (row) => row.activated_date ?? 0,
-  },
-  {
-    accessorKey: "removed_date",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Removed Date
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by ActivationCodeRow
-    accessorFn: (row) => row.removed_date ?? 0,
-  },
-];
+export default function ActivationCodeTable({
+  orgId,
+  isOrgAdmin,
+}: ActivationCodeTableProps) {
+  const t = useTranslations("dashboard.admin.activation_codes");
+  const tc = useTranslations("dashboard.admin.common");
+  const statusLabel = useAdminStatusLabel();
 
-export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCodeTableProps) {
+  const columns: ColumnDef<ActivationCodeData>[] = useMemo(
+    () => [
+      {
+        id: "actions",
+        header: "",
+        cell: () => null,
+      },
+      {
+        accessorKey: "organization_name",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("organization_name")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+        filterFn: (row, id, value: string) => {
+          if (value === "all") return true;
+          return row.getValue(id) === value;
+        },
+      },
+      {
+        accessorKey: "activation_code",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("activation_code")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("status")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+        accessorFn: (row) => getStatus(row),
+        filterFn: (row, id, value: string) => {
+          if (value === "all") return true;
+          return row.getValue(id) === value;
+        },
+      },
+      {
+        accessorKey: "activated_date",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("activated_date")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+        accessorFn: (row) => row.activated_date ?? 0,
+      },
+      {
+        accessorKey: "removed_date",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {t("removed_date")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+        accessorFn: (row) => row.removed_date ?? 0,
+      },
+    ],
+    [t, tc]
+  );
+
   const [openState, setOpenState] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([
     { id: "status", desc: true },
@@ -158,8 +170,6 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
     { id: "organization_name", value: "all" },
   ]);
 
-  // Use reactive queries that automatically update when data changes
-  // For org_admin, use the organization-filtered query
   const allActivationCodes = useQuery(
     api.queries.activation_code.getAllActivationCodes,
     isOrgAdmin ? "skip" : undefined
@@ -168,25 +178,20 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
     api.queries.activation_code.getActivationCodesByOrganization,
     isOrgAdmin && orgId ? { org_id: orgId } : "skip"
   );
-  
+
   const activationCodes = isOrgAdmin ? orgActivationCodes : allActivationCodes;
   const courses = useQuery(api.queries.course.getAllCourses);
   const orgs = useQuery(api.queries.organization.getAllOrganizations);
 
-  // Memoize unique organizations for filter dropdown (handle undefined case)
-  const uniqueOrgs = useMemo(
-    () => {
-      if (!activationCodes) return [];
-      const orgSet = new Set<string>();
-      activationCodes.forEach((code) => {
-        if (code.organization_name) orgSet.add(code.organization_name);
-      });
-      return Array.from(orgSet).sort();
-    },
-    [activationCodes]
-  );
+  const uniqueOrgs = useMemo(() => {
+    if (!activationCodes) return [];
+    const orgSet = new Set<string>();
+    activationCodes.forEach((code) => {
+      if (code.organization_name) orgSet.add(code.organization_name);
+    });
+    return Array.from(orgSet).sort();
+  }, [activationCodes]);
 
-  // Use empty array as fallback for table data
   const tableData = activationCodes ?? [];
 
   const table = useReactTable({
@@ -204,18 +209,19 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
     },
   });
 
-  // Memoize filter values
   const statusFilter = useMemo(
-    () => (columnFilters.find((f) => f.id === "status")?.value as string) ?? "all",
+    () =>
+      (columnFilters.find((f) => f.id === "status")?.value as string) ?? "all",
     [columnFilters]
   );
 
   const orgFilter = useMemo(
-    () => (columnFilters.find((f) => f.id === "organization_name")?.value as string) ?? "all",
+    () =>
+      (columnFilters.find((f) => f.id === "organization_name")?.value as string) ??
+      "all",
     [columnFilters]
   );
 
-  // Memoize callbacks
   const handleStatusFilterChange = useCallback(
     (value: string) => {
       table.getColumn("status")?.setFilterValue(value);
@@ -230,9 +236,12 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
     [table]
   );
 
-  // Show loading state while data is being fetched (after all hooks)
-  if (activationCodes === undefined || courses === undefined || orgs === undefined) {
-    return <div>Loading...</div>;
+  if (
+    activationCodes === undefined ||
+    courses === undefined ||
+    orgs === undefined
+  ) {
+    return <div>{tc("loading")}</div>;
   }
 
   return (
@@ -241,24 +250,26 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
         <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
           <SelectTrigger className="w-full sm:w-[150px]">
             <SelectValue>
-              {statusFilter === "all" ? "All Status" : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+              {statusFilter === "all"
+                ? tc("filter_all_status")
+                : statusLabel(statusFilter)}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="used">Used</SelectItem>
-            <SelectItem value="unused">Unused</SelectItem>
-            <SelectItem value="removed">Removed</SelectItem>
+            <SelectItem value="all">{tc("all")}</SelectItem>
+            <SelectItem value="used">{tc("used")}</SelectItem>
+            <SelectItem value="unused">{tc("unused")}</SelectItem>
+            <SelectItem value="removed">{tc("removed")}</SelectItem>
           </SelectContent>
         </Select>
 
         {!isOrgAdmin && (
           <Select value={orgFilter} onValueChange={handleOrgFilterChange}>
             <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Filter by organization" />
+              <SelectValue placeholder={tc("filter_by_organization")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Organizations</SelectItem>
+              <SelectItem value="all">{tc("filter_all_organizations")}</SelectItem>
               {uniqueOrgs.map((org) => (
                 <SelectItem key={org} value={org}>
                   {org}
@@ -283,40 +294,42 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
       {table.getRowModel().rows.length > 0 ? (
         <>
           <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-primary-foreground">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <ActivationCodeRow 
-                  key={row.original.id} 
-                  code={row.original}
-                  isOrgAdmin={isOrgAdmin}
-                />
-              ))}
-            </TableBody>
-          </Table>
+            <Table>
+              <TableHeader className="bg-primary-foreground">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <ActivationCodeRow
+                    key={row.original.id}
+                    code={row.original}
+                    isOrgAdmin={isOrgAdmin}
+                  />
+                ))}
+              </TableBody>
+            </Table>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
             <div className="text-muted-foreground text-sm">
-              {table.getFilteredRowModel().rows.length} total activation codes
+              {t("total_codes", {
+                count: table.getFilteredRowModel().rows.length,
+              })}
             </div>
             <div className="flex flex-wrap items-center gap-3 sm:gap-6">
               <div className="flex items-center gap-2">
-                <span className="text-sm">Rows per page</span>
+                <span className="text-sm">{tc("rows_per_page")}</span>
                 <Select
                   value={String(table.getState().pagination.pageSize)}
                   onValueChange={(value) => table.setPageSize(Number(value))}
@@ -335,8 +348,10 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
               </div>
 
               <div className="text-sm">
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
+                {tc("page_of", {
+                  current: table.getState().pagination.pageIndex + 1,
+                  total: table.getPageCount(),
+                })}
               </div>
 
               <div className="flex items-center gap-1">
@@ -378,29 +393,29 @@ export default function ActivationCodeTable({ orgId, isOrgAdmin }: ActivationCod
         </>
       ) : (
         <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
-        <Table>
-          <TableHeader className="bg-primary-foreground">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </TableHead>
-                ))}
+          <Table>
+            <TableHeader className="bg-primary-foreground">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={columns.length} className="text-center">
+                  {t("no_codes")}
+                </TableCell>
               </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            <TableRow>
-              <TableCell colSpan={columns.length} className="text-center">
-                No activation codes found
-              </TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

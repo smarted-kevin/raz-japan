@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import {
   useReactTable,
   getCoreRowModel,
@@ -37,93 +38,104 @@ import {
 import AddUserDialog from "./addUserDialog";
 import UserRow from "./userRow";
 import type { UserWithStudentData } from "../../_actions/schemas";
-import { capitalize } from "~/lib/formatters";
-
-const roleLabels: Record<string, string> = {
-  user: "Users",
-  admin: "Admins",
-  org_admin: "Organization Admins",
-  all: "All",
-};
-
-const columns: ColumnDef<UserWithStudentData>[] = [
-  {
-    accessorKey: "name",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Name
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by UserRow
-    accessorFn: (row) => `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim(),
-  },
-  {
-    accessorKey: "email",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Email
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by UserRow
-  },
-  {
-    accessorKey: "role",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Role
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by UserRow
-    filterFn: (row, id, value: string) => {
-      if (value === "all") return true;
-      return row.getValue(id) === value;
-    },
-  },
-  {
-    accessorKey: "status",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Status
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by UserRow
-    filterFn: (row, id, value: string) => {
-      return row.getValue(id) === value;
-    },
-  },
-  {
-    accessorKey: "students",
-    header: ({ column }) => (
-      <button
-        className="flex items-center gap-1"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Students
-        <ArrowUpDown className="h-4 w-4" />
-      </button>
-    ),
-    cell: () => null, // Handled by UserRow
-    accessorFn: (row) => row.students.length,
-  },
-];
+import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
 
 export default function UserTable({ users }: { users: UserWithStudentData[] }) {
+  const t = useTranslations("dashboard.admin.users");
+  const tc = useTranslations("dashboard.admin.common");
+  const statusLabel = useAdminStatusLabel();
+
+  const roleLabels: Record<string, string> = useMemo(
+    () => ({
+      user: tc("role_users"),
+      admin: tc("role_admins"),
+      org_admin: tc("role_org_admins"),
+      all: tc("all"),
+    }),
+    [tc]
+  );
+
+  const columns: ColumnDef<UserWithStudentData>[] = useMemo(
+    () => [
+      {
+        accessorKey: "name",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("name")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+        accessorFn: (row) =>
+          `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim(),
+      },
+      {
+        accessorKey: "email",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("email")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+      },
+      {
+        accessorKey: "role",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("role")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+        filterFn: (row, id, value: string) => {
+          if (value === "all") return true;
+          return row.getValue(id) === value;
+        },
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("status")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+        filterFn: (row, id, value: string) => {
+          return row.getValue(id) === value;
+        },
+      },
+      {
+        accessorKey: "students",
+        header: ({ column }) => (
+          <button
+            className="flex items-center gap-1"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {tc("students")}
+            <ArrowUpDown className="h-4 w-4" />
+          </button>
+        ),
+        cell: () => null,
+        accessorFn: (row) => row.students.length,
+      },
+    ],
+    [tc]
+  );
+
   const [openState, setOpenState] = useState(false);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([
@@ -131,7 +143,6 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
     { id: "role", value: "all" },
   ]);
 
-  // Memoize table data - let TanStack Table handle all filtering
   const table = useReactTable({
     data: users,
     columns,
@@ -147,18 +158,19 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
     },
   });
 
-  // Memoize filter values
   const roleFilter = useMemo(
-    () => (columnFilters.find((f) => f.id === "role")?.value as string) ?? "all",
+    () =>
+      (columnFilters.find((f) => f.id === "role")?.value as string) ?? "all",
     [columnFilters]
   );
 
   const statusFilter = useMemo(
-    () => (columnFilters.find((f) => f.id === "status")?.value as string) ?? "active",
+    () =>
+      (columnFilters.find((f) => f.id === "status")?.value as string) ??
+      "active",
     [columnFilters]
   );
 
-  // Memoize callbacks
   const handleRoleFilterChange = useCallback(
     (value: string) => {
       table.getColumn("role")?.setFilterValue(value);
@@ -181,21 +193,21 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
             <SelectValue>{roleLabels[roleFilter]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="user">Users</SelectItem>
-            <SelectItem value="admin">Admins</SelectItem>
-            <SelectItem value="org_admin">Organization Admins</SelectItem>
+            <SelectItem value="all">{tc("all")}</SelectItem>
+            <SelectItem value="user">{tc("role_users")}</SelectItem>
+            <SelectItem value="admin">{tc("role_admins")}</SelectItem>
+            <SelectItem value="org_admin">{tc("role_org_admins")}</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
           <SelectTrigger className="w-full sm:w-[150px]">
-            <SelectValue>{capitalize(statusFilter)}</SelectValue>
+            <SelectValue>{statusLabel(statusFilter)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="inactive">Inactive</SelectItem>
-            <SelectItem value="removed">Removed</SelectItem>
+            <SelectItem value="active">{tc("active")}</SelectItem>
+            <SelectItem value="inactive">{tc("inactive")}</SelectItem>
+            <SelectItem value="removed">{tc("removed")}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -207,36 +219,38 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
       {table.getRowModel().rows.length > 0 ? (
         <>
           <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
-          <Table>
-            <TableHeader className="bg-primary-foreground">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead key={header.id}>
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <UserRow key={row.original.id} user={row.original} />
-              ))}
-            </TableBody>
-          </Table>
+            <Table>
+              <TableHeader className="bg-primary-foreground">
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id}>
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <UserRow key={row.original.id} user={row.original} />
+                ))}
+              </TableBody>
+            </Table>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
             <div className="text-muted-foreground text-sm">
-              {table.getFilteredRowModel().rows.length} total users
+              {t("total_users", {
+                count: table.getFilteredRowModel().rows.length,
+              })}
             </div>
             <div className="flex flex-wrap items-center gap-3 sm:gap-6">
               <div className="flex items-center gap-2">
-                <span className="text-sm">Rows per page</span>
+                <span className="text-sm">{tc("rows_per_page")}</span>
                 <Select
                   value={String(table.getState().pagination.pageSize)}
                   onValueChange={(value) => table.setPageSize(Number(value))}
@@ -255,8 +269,10 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
               </div>
 
               <div className="text-sm">
-                Page {table.getState().pagination.pageIndex + 1} of{" "}
-                {table.getPageCount()}
+                {tc("page_of", {
+                  current: table.getState().pagination.pageIndex + 1,
+                  total: table.getPageCount(),
+                })}
               </div>
 
               <div className="flex items-center gap-1">
@@ -297,7 +313,7 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
           </div>
         </>
       ) : (
-        <p>NO USERS HERE!</p>
+        <p>{t("no_users")}</p>
       )}
     </div>
   );
