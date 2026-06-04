@@ -8,13 +8,9 @@ import {
   Headphones,
   Heart,
   Laptop,
-  Mail,
-  MessageSquare,
   PenTool,
-  Phone,
   Sparkles,
   Star,
-  Tag,
   Trophy,
   UserPlus,
 } from "lucide-react";
@@ -237,12 +233,6 @@ export default async function HomePage() {
 
         <div className="container relative z-10 mx-auto px-4">
           <div className="mx-auto mb-12 max-w-3xl text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-medium text-blue-100 ring-1 ring-white/20">
-              <Tag className="h-4 w-4" />
-              <span>{t("pricing_amount")}</span>
-              <span className="text-blue-200/90">·</span>
-              <span>{t("pricing_per_student_year")}</span>
-            </div>
             <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
               {t("pricing_title")}
             </h2>
@@ -319,11 +309,6 @@ export default async function HomePage() {
             </div>
             
             <div className="order-1 lg:order-2 space-y-6">
-              <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-4 py-2 text-sm font-medium text-blue-700">
-                <Globe className="h-4 w-4" />
-                <span>{t("read_anywhere")}</span>
-              </div>
-              
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
                 {t("read_anywhere_title")}
               </h2>
@@ -479,57 +464,21 @@ export default async function HomePage() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="bg-white py-20 md:py-32">
+      <section id="contact" className="border-t border-gray-200 bg-white py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center">
-            <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
-              {t("contact_title")}
-            </h2>
-            <p className="mb-12 text-pretty text-lg text-gray-600">
-              {t("contact_subtitle")}
-            </p>
-          </div>
-
-          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-3">
-            <Card className="border-2 text-center transition-all hover:border-blue-200 hover:shadow-md">
-              <CardContent className="p-6">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100">
-                  <Mail className="h-6 w-6 text-blue-600" />
-                </div>
-                <h3 className="mb-2 font-bold text-gray-900">{t("email_us")}</h3>
-                <p className="mb-4 text-sm text-gray-500">{t("email_response")}</p>
-                <Button variant="outline" size="sm" className="w-full">
-                  support@raz-japan.com
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 text-center transition-all hover:border-purple-200 hover:shadow-md">
-              <CardContent className="p-6">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-purple-100">
-                  <MessageSquare className="h-6 w-6 text-purple-600" />
-                </div>
-                <h3 className="mb-2 font-bold text-gray-900">{t("live_chat")}</h3>
-                <p className="mb-4 text-sm text-gray-500">{t("chat_instantly")}</p>
-                <Button variant="outline" size="sm" className="w-full">
-                  {t("start_chat")}
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 text-center transition-all hover:border-green-200 hover:shadow-md">
-              <CardContent className="p-6">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-100">
-                  <Phone className="h-6 w-6 text-green-600" />
-                </div>
-                <h3 className="mb-2 font-bold text-gray-900">{t("call_us")}</h3>
-                <p className="mb-4 text-sm text-gray-500">{t("call_hours")}</p>
-                <Button variant="outline" size="sm" className="w-full">
-                  +81-3-1234-5678
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="mx-auto max-w-2xl border-2 border-blue-100 bg-gradient-to-br from-blue-50/80 to-indigo-50/50 shadow-md">
+            <CardContent className="p-8 text-center md:p-10">
+              <h2 className="mb-3 text-balance text-2xl font-bold tracking-tight text-gray-900 md:text-4xl">
+                {t("contact_title")}
+              </h2>
+              <p className="mb-6 text-pretty text-gray-600 leading-relaxed">
+                {t("contact_subtitle")}
+              </p>
+              <Button asChild size="lg">
+                <Link href="/contact">{t("contact_us")}</Link>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

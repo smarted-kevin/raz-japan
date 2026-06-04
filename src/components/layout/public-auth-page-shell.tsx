@@ -1,5 +1,4 @@
 import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 import type { ReactNode } from "react";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
@@ -9,8 +8,6 @@ const HERO_PATTERN_BG = `url("data:image/svg+xml,%3Csvg width='60' height='60' v
 type PublicAuthPageShellProps = {
   title: string;
   subtitle: string;
-  badge: string;
-  badgeIcon: LucideIcon;
   backLabel: string;
   children: ReactNode;
 };
@@ -18,8 +15,6 @@ type PublicAuthPageShellProps = {
 export function PublicAuthPageShell({
   title,
   subtitle,
-  badge,
-  badgeIcon: BadgeIcon,
   backLabel,
   children,
 }: PublicAuthPageShellProps) {
@@ -41,10 +36,6 @@ export function PublicAuthPageShell({
             {backLabel}
           </Link>
           <div className="mx-auto max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-white/90">
-              <BadgeIcon className="h-4 w-4" />
-              {badge}
-            </div>
             <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
               {title}
             </h1>

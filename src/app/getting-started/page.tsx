@@ -7,7 +7,6 @@ import {
   Mail,
   Globe,
   BookOpen,
-  Sparkles,
   ChevronRight,
 } from "lucide-react";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
@@ -94,10 +93,6 @@ export default async function GettingStartedPage() {
             {t("back_to_home")}
           </Link>
           <div className="mx-auto max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm font-medium text-white/90">
-              <Sparkles className="h-4 w-4" />
-              {t("badge")}
-            </div>
             <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
               {t("header")}
             </h1>

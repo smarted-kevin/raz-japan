@@ -1,4 +1,3 @@
-import { LogIn } from "lucide-react";
 import { type Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
@@ -45,8 +44,6 @@ export default async function SignInPage() {
     <PublicAuthPageShell
       title={t("sign_in_title")}
       subtitle={t("sign_in_subtitle")}
-      badge={t("badge_sign_in")}
-      badgeIcon={LogIn}
       backLabel={t("back_to_home")}
     >
       <SignIn />

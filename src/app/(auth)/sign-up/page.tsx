@@ -1,4 +1,3 @@
-import { UserPlus } from "lucide-react";
 import { type Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import SignUp from "./SignUp";
@@ -18,8 +17,6 @@ export default async function SignUpPage() {
     <PublicAuthPageShell
       title={t("sign_up_title")}
       subtitle={t("sign_up_subtitle")}
-      badge={t("badge_sign_up")}
-      badgeIcon={UserPlus}
       backLabel={t("back_to_home")}
     >
       <SignUp />
