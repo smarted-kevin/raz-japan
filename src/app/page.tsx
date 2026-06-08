@@ -1,12 +1,9 @@
 import {
   Award,
-  BarChart3,
   BookOpen,
   BookText,
   CheckCircle2,
-  Globe,
   Headphones,
-  Heart,
   Laptop,
   PenTool,
   Sparkles,
@@ -68,21 +65,6 @@ export default async function HomePage() {
       icon: PenTool,
       title: t("feature_quizzes"),
       description: t("feature_quizzes_desc"),
-    },
-    {
-      icon: BarChart3,
-      title: t("feature_progress"),
-      description: t("feature_progress_desc"),
-    },
-    {
-      icon: Globe,
-      title: t("feature_bilingual"),
-      description: t("feature_bilingual_desc"),
-    },
-    {
-      icon: Heart,
-      title: t("feature_personalized"),
-      description: t("feature_personalized_desc"),
     },
   ];
 
