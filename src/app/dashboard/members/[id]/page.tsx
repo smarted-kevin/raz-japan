@@ -46,21 +46,25 @@ export default async function MemberPage(
         lastName={user.last_name ?? ""}
         email={user.email ?? ""}
       />
-      <ActivateStudentByCode userId={user.id} />
+      <div className="w-full max-w-4xl">
+        <Button
+          asChild
+          className="h-[3.15rem] gap-2.5 px-7 text-[0.9rem] has-[>svg]:px-7"
+        >
+          <Link href={`order/${user.id}`}>
+            {t("add_students")}
+            <CirclePlus className="size-[1.35rem]" />
+          </Link>
+        </Button>
+      </div>
       <Card className="w-full max-w-4xl overflow-hidden">
-        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <CardHeader>
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
               <GraduationCap className="h-5 w-5 text-primary" aria-hidden />
             </div>
             <h2 className="text-lg font-semibold">{t("current_students")}</h2>
           </div>
-          <Button asChild className="w-full gap-2 sm:w-auto">
-            <Link href={`order/${user.id}`}>
-              {t("add_students")}
-              <CirclePlus className="h-4 w-4" />
-            </Link>
-          </Button>
         </CardHeader>
         <CardContent>
           {currentStudents.length === 0 ? (
@@ -78,6 +82,7 @@ export default async function MemberPage(
           )}
         </CardContent>
       </Card>
+      <ActivateStudentByCode userId={user.id} />
       {removedStudents.length > 0 && (
         <Card className="w-full max-w-4xl overflow-hidden">
           <CardHeader>
