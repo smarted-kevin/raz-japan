@@ -39,8 +39,15 @@ import AddUserDialog from "./addUserDialog";
 import UserRow from "./userRow";
 import type { UserWithStudentData } from "../../_actions/schemas";
 import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
+import type { Doc } from "convex/_generated/dataModel";
 
-export default function UserTable({ users }: { users: UserWithStudentData[] }) {
+export default function UserTable({
+  users,
+  orgs,
+}: {
+  users: UserWithStudentData[];
+  orgs: Doc<"organization">[];
+}) {
   const t = useTranslations("dashboard.admin.users");
   const tc = useTranslations("dashboard.admin.common");
   const statusLabel = useAdminStatusLabel();
@@ -212,7 +219,11 @@ export default function UserTable({ users }: { users: UserWithStudentData[] }) {
         </Select>
 
         <div className="w-full sm:w-auto sm:ml-auto">
-          <AddUserDialog openState={openState} setOpenState={setOpenState} />
+          <AddUserDialog
+            orgs={orgs}
+            openState={openState}
+            setOpenState={setOpenState}
+          />
         </div>
       </div>
 

@@ -19,14 +19,14 @@ export type NewUserForm = {
   first_name: string,
   last_name: string,
   email: string,
-  role: "user" | "admin"
+  role: "user" | "admin" | "org_admin"
 }
 
 export const userSchema = z.object({
   first_name: z.string(),
   last_name: z.string(), 
   email: z.string(),
-  role: z.enum(["user", "admin"])
+  role: z.enum(["user", "admin", "org_admin"])
 })
 
 export type ClassroomStudentData = {

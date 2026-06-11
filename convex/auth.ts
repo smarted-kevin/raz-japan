@@ -1,13 +1,20 @@
 import { createClient, type GenericCtx } from "@convex-dev/better-auth";
 import { convex } from "@convex-dev/better-auth/plugins";
 import { components, internal } from "./_generated/api";
-import type { Id, DataModel } from "./_generated/dataModel";
+import type { DataModel } from "./_generated/dataModel";
 import { query } from "./_generated/server";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
-import { admin, customSession } from "better-auth/plugins";
+import { admin } from "better-auth/plugins";
 import authSchema from "./betterAuth/schema";
 import { requireActionCtx } from "@convex-dev/better-auth/utils";
 import { type auth } from "./betterAuth/auth";
+
+type CreatedAuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+};
 
 const siteUrl = process.env.SITE_URL!;
 // The component client has methods needed for integrating Convex with Better Auth,
@@ -61,6 +68,8 @@ export const createAuth = (
       user: {
         create: {
           after: async (user) => {
+            const createdUser = user as CreatedAuthUser;
+            const role = createdUser.role as "user" | "admin" | "org_admin" | undefined;
             const [first_name, last_name]  = user.name.split(" ");
             await requireActionCtx(ctx).runMutation(internal.mutations.users.createUser, 
               {
@@ -68,7 +77,7 @@ export const createAuth = (
                 first_name: first_name ?? "",
                 last_name: last_name ?? "",
                 email: user.email,
-                role: user.role as "user" | "admin" | "org_admin",
+                role,
                 updated_at: Date.now(),
                 status: "active",
               }

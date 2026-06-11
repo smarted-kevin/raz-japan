@@ -270,6 +270,7 @@
         "error_last_name_required": "Last name is required",
         "error_invalid_email": "Invalid email address",
         "error_update_failed": "Failed to update user information",
+        "organization_required": "Please select an organization",
         "role_user": "User",
         "role_admin": "Admin",
         "role_org_admin": "Organization Admin",

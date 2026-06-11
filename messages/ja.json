@@ -270,6 +270,7 @@
         "error_last_name_required": "姓は必須です",
         "error_invalid_email": "有効なメールアドレスを入力してください",
         "error_update_failed": "ユーザー情報の更新に失敗しました",
+        "organization_required": "組織を選択してください",
         "role_user": "ユーザー",
         "role_admin": "管理者",
         "role_org_admin": "組織管理者",

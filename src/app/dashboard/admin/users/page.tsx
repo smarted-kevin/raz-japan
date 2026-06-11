@@ -14,14 +14,17 @@ export default async function UsersPage() {
     if (!user || user.role != "admin") redirect("/sign-in");
   }
 
-  const users = await fetchQuery(api.queries.users.getUsersWithStudents);
+  const [users, orgs] = await Promise.all([
+    fetchQuery(api.queries.users.getUsersWithStudents),
+    fetchQuery(api.queries.organization.getAllOrganizations),
+  ]);
   const t = await getTranslations("dashboard.admin.users");
 
   return (
     <>
       <main className="flex min-h-screen flex-col gap-y-6 p-4 sm:p-6 md:p-8 lg:p-12 xl:p-24">
         <h1 className="font-bold text-2xl">{t("title")}</h1>
-        {users && <UserTable users={users} /> }
+        {users && <UserTable users={users} orgs={orgs} /> }
       </main>
     </>
   )
