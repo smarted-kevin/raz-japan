@@ -31,21 +31,21 @@ export default async function AdminLayout({
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen overflow-hidden">
+      <div className="flex h-screen overflow-hidden print:h-auto print:overflow-visible">
         {/* Desktop Sidebar */}
-        <div className="hidden md:block">
+        <div className="hidden md:block print:hidden">
           <Sidebar role={userRole} />
         </div>
 
         {/* Mobile Top Bar */}
-        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-primary h-16 flex items-center px-4 border-b border-primary-foreground/10">
+        <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-primary h-16 flex items-center px-4 border-b border-primary-foreground/10 print:hidden">
           <MobileSidebar role={userRole} />
           <h2 className="ml-4 text-lg font-semibold text-white">{t("title")}</h2>
         </div>
 
         {/* Main Content Area */}
         <SidebarContent>
-          <div className="container mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-6">
+          <div className="container mx-auto w-full px-3 py-4 sm:px-4 sm:py-6 md:px-6 md:py-6 print:p-0">
             {children}
           </div>
         </SidebarContent>

@@ -10,7 +10,8 @@ export function SidebarContent({ children }: { children: React.ReactNode }) {
     <main
       className={cn(
         "flex-1 overflow-y-auto pt-16 md:pt-0 transition-all duration-300",
-        isCollapsed ? "md:pl-16" : "md:pl-64"
+        isCollapsed ? "md:pl-16" : "md:pl-64",
+        "print:pl-0 print:pt-0 print:overflow-visible"
       )}
     >
       {children}

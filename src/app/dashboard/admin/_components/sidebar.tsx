@@ -42,7 +42,7 @@ export default function Sidebar({ role }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-primary flex flex-col transition-all duration-300",
+        "fixed left-0 top-0 z-40 h-screen bg-primary flex flex-col transition-all duration-300 print:hidden",
         isCollapsed ? "w-16" : "w-64"
       )}
     >
