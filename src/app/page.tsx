@@ -14,7 +14,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 import { getTranslations } from "next-intl/server";
-import { Button } from "~/components/ui/button";
+import { buttonVariants } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { HeroBannerBackground } from "~/components/landing/hero-banner-background";
 import { LANDING_IMAGES } from "~/lib/landing-images";
@@ -123,16 +123,17 @@ export default async function HomePage() {
               </p>
 
               <div className="flex justify-end">
-                <Button
-                  asChild
-                  size="default"
-                  className="bg-orange-400 px-5 font-semibold text-white shadow-lg shadow-orange-400/30 hover:bg-orange-500"
+                <Link
+                  href="/getting-started"
+                  className={buttonVariants({
+                    size: "default",
+                    className:
+                      "bg-orange-400 px-5 font-semibold text-white shadow-lg shadow-orange-400/30 hover:bg-orange-500",
+                  })}
                 >
-                  <Link href="/getting-started">
-                    <BookOpen className="mr-2 h-4 w-4" />
-                    {t("get_started_now")}
-                  </Link>
-                </Button>
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  {t("get_started_now")}
+                </Link>
               </div>
             </div>
 
@@ -251,16 +252,17 @@ export default async function HomePage() {
                   ))}
                 </ul>
 
-                <Button
-                  asChild
-                  size="lg"
-                  className="w-full bg-orange-400 font-semibold text-white shadow-lg shadow-orange-400/30 hover:bg-orange-500"
+                <Link
+                  href="/getting-started"
+                  className={buttonVariants({
+                    size: "lg",
+                    className:
+                      "w-full bg-orange-400 font-semibold text-white shadow-lg shadow-orange-400/30 hover:bg-orange-500",
+                  })}
                 >
-                  <Link href="/getting-started">
-                    <BookOpen className="mr-2 h-5 w-5" />
-                    {t("get_started_now")}
-                  </Link>
-                </Button>
+                  <BookOpen className="mr-2 h-5 w-5" />
+                  {t("get_started_now")}
+                </Link>
               </CardContent>
             </Card>
           </div>
@@ -438,9 +440,16 @@ export default async function HomePage() {
             <p className="mx-auto mb-6 max-w-2xl text-pretty text-blue-100 leading-relaxed">
               {t("beloved_classroom_tool_desc")}
             </p>
-            <Button asChild size="lg" className="bg-orange-400 hover:bg-orange-500 text-white font-semibold shadow-lg shadow-orange-400/30">
-              <Link href="/getting-started">{t("get_started_now")}</Link>
-            </Button>
+            <Link
+              href="/getting-started"
+              className={buttonVariants({
+                size: "lg",
+                className:
+                  "bg-orange-400 font-semibold text-white shadow-lg shadow-orange-400/30 hover:bg-orange-500",
+              })}
+            >
+              {t("get_started_now")}
+            </Link>
           </div>
         </div>
       </section>
@@ -456,9 +465,9 @@ export default async function HomePage() {
               <p className="mb-6 text-pretty text-gray-600 leading-relaxed">
                 {t("contact_subtitle")}
               </p>
-              <Button asChild size="lg">
-                <Link href="/contact">{t("contact_us")}</Link>
-              </Button>
+              <Link href="/contact" className={buttonVariants({ size: "lg" })}>
+                {t("contact_us")}
+              </Link>
             </CardContent>
           </Card>
         </div>

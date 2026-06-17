@@ -39,7 +39,7 @@ import AddUserDialog from "./addUserDialog";
 import UserRow from "./userRow";
 import type { UserWithStudentData } from "../../_actions/schemas";
 import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
-import type { Doc } from "convex/_generated/dataModel";
+import type { Doc } from "@/convex/_generated/dataModel";
 
 export default function UserTable({
   users,

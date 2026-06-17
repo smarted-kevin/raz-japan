@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { dateDisplayFormat } from "~/lib/formatters";
 import { isRenewable } from "~/lib/dateCompare";
 import { CircleAlert } from "lucide-react";

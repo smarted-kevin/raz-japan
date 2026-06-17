@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { Button } from "~/components/ui/button";
 import { api } from "@/convex/_generated/api";
-import { type Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { getToken } from "~/lib/auth-server";
 import { UserOrdersTable } from "./_components/userOrdersTable";
 

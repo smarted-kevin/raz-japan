@@ -28,7 +28,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import type { Course } from "../../_actions/schemas";
 import { addActivationCodes, type NewActivationCodeForm } from "../../_actions/activation_code";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 
 type OrganizationWithId = {
   _id: Id<"organization">;

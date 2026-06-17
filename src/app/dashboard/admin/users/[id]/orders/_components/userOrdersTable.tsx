@@ -10,7 +10,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { dateDisplayFormat, formatYen, capitalize } from "~/lib/formatters";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
 
 type StudentOrderData = {

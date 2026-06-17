@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { EditUserDialog } from "./editUserDialog";
 import { useAdminStatusLabel } from "../../../_lib/useAdminStatusLabel";
 

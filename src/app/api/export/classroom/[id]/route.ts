@@ -2,7 +2,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../../../../convex/_generated/api";
-import {type Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { convertToCSV } from "~/lib/csvExport";
 
 

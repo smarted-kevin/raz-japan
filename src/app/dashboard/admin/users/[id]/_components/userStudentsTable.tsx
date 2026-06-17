@@ -16,7 +16,7 @@ import {
   CardTitle,
 } from "~/components/ui/card";
 import { dateDisplayFormat } from "~/lib/formatters";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { useAdminStatusLabel } from "../../../_lib/useAdminStatusLabel";
 
 type StudentData = {

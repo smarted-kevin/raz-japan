@@ -1,3 +1,5 @@
+import "server-only";
+
 import { headers } from "next/headers";
 import { auth } from "@/convex/betterAuth/auth";
 import { cache } from "react";

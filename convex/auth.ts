@@ -16,7 +16,18 @@ type CreatedAuthUser = {
   role?: string;
 };
 
-const siteUrl = process.env.SITE_URL!;
+const getSiteUrl = () => {
+  const configuredUrl = process.env.SITE_URL?.trim();
+  const fallbackUrl = "http://localhost:3000";
+
+  try {
+    return new URL(configuredUrl || fallbackUrl).origin;
+  } catch {
+    return fallbackUrl;
+  }
+};
+
+const siteUrl = getSiteUrl();
 // The component client has methods needed for integrating Convex with Better Auth,
 // as well as helper methods for general use.
 
@@ -47,7 +58,7 @@ export const createAuth = (
       disabled: optionsOnly,
     },
     baseURL: siteUrl,
-    trustedOrigins: [siteUrl],
+    trustedOrigins: Array.from(new Set([siteUrl, "http://localhost:3000"])),
     database: authComponent.adapter(ctx),
     // Configure simple, non-verified email/password to get started
     emailAndPassword: {

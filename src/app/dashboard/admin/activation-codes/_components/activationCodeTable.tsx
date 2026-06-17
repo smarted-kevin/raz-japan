@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import AddActivationCodeDialog from "./addActivationCodeDialog";
 import ActivationCodeRow from "./activationCodeRow";
 import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";

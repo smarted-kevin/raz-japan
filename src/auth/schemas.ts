@@ -1,5 +1,5 @@
 import { type Infer, v } from "convex/values";
-import { type Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export const emailValidator = v.string();
 export const stringValidator = v.string();

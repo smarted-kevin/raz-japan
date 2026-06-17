@@ -14,7 +14,7 @@ import Link from "next/link";
 import { RenewalStudentRow } from "./renewalStudentRow";
 import { redirect, useRouter } from "next/navigation";
 import type { Cart, UserWithStudentData } from "~/app/dashboard/admin/_actions/schemas";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { updateCart } from "~/app/dashboard/admin/_actions/cart";
 import { api } from "@/convex/_generated/api";
 import { useAction, useMutation } from "convex/react";

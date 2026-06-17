@@ -3,7 +3,7 @@ import { CirclePlus, GraduationCap, Clock } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
 import { api } from "../../../../../convex/_generated/api";
-import { type Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
 import { MemberStudentTable } from "../_components/memberStudentTable";

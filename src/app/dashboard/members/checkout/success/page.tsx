@@ -14,7 +14,7 @@ import { notFound } from "next/navigation";
 import Stripe from "stripe";
 import { formatYen } from "~/lib/formatters";
 import { env } from "~/env";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { internal } from "@/convex/_generated/api";
 import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";

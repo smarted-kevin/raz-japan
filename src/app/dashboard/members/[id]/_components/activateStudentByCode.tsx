@@ -14,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 import { KeyRound } from "lucide-react";
 
 export default function ActivateStudentByCode({

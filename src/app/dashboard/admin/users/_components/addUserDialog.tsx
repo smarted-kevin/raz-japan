@@ -32,7 +32,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { authClient } from "~/lib/auth-client";
 import { Label } from "~/components/ui/label";
-import type { Doc, Id } from "convex/_generated/dataModel";
+import type { Doc, Id } from "@/convex/_generated/dataModel";
 import { assignOrgAdminOrganizationForCreatedUser } from "../../_actions/users";
 
 type UserRole = "user" | "admin" | "org_admin";

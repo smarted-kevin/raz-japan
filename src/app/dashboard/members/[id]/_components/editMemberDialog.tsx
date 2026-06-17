@@ -24,7 +24,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { useAction } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
-import type { Id } from "convex/_generated/dataModel";
+import type { Id } from "@/convex/_generated/dataModel";
 
 const memberInfoSchema = z.object({
   first_name: z.string().min(1, "First name is required"),

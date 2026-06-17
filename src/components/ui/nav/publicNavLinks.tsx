@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "~/components/ui/button";
+import { buttonVariants } from "~/components/ui/button";
 import {
   publicCtaBlueOutlineButtonClassName,
   publicCtaYellowButtonClassName,
@@ -39,21 +39,25 @@ export function PublicNavLinks() {
       <PublicLocaleSwitcher />
       { !session &&
         <>
-          <Button
-            size="sm"
-            className={cn("ml-2", publicCtaYellowButtonClassName)}
-            asChild
+          <Link
+            href="/sign-up"
+            className={buttonVariants({
+              size: "sm",
+              className: cn("ml-2", publicCtaYellowButtonClassName),
+            })}
           >
-            <Link href="/sign-up">{t("sign_up_button")}</Link>
-          </Button>
-          <Button
-            size="sm"
-            variant="outline"
-            className={cn("ml-2", publicCtaBlueOutlineButtonClassName)}
-            asChild
+            {t("sign_up_button")}
+          </Link>
+          <Link
+            href="/sign-in"
+            className={buttonVariants({
+              size: "sm",
+              variant: "outline",
+              className: cn("ml-2", publicCtaBlueOutlineButtonClassName),
+            })}
           >
-            <Link href="/sign-in">{t("login_button")}</Link>
-          </Button>
+            {t("login_button")}
+          </Link>
         </> 
       }
       { session &&

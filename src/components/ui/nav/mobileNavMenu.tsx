@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, History, LayoutDashboard, User } from "lucide-react";
-import { Button } from "~/components/ui/button";
+import { Button, buttonVariants } from "~/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -79,30 +79,32 @@ export function MobileNavMenu() {
 
           {!session ? (
             <>
-              <Button
-                asChild
-                className={cn(
-                  "w-full justify-start gap-3",
-                  publicCtaYellowButtonClassName,
-                )}
+              <Link
+                href="/sign-up"
+                onClick={handleLinkClick}
+                className={buttonVariants({
+                  className: cn(
+                    "w-full justify-start gap-3",
+                    publicCtaYellowButtonClassName,
+                  ),
+                })}
               >
-                <Link href="/sign-up" onClick={handleLinkClick}>
-                  <User className="h-4 w-4" />
-                  {t("sign_up_button")}
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className={cn(
-                  "w-full justify-start gap-3",
-                  publicCtaBlueOutlineButtonClassName,
-                )}
+                <User className="h-4 w-4" />
+                {t("sign_up_button")}
+              </Link>
+              <Link
+                href="/sign-in"
+                onClick={handleLinkClick}
+                className={buttonVariants({
+                  variant: "outline",
+                  className: cn(
+                    "w-full justify-start gap-3",
+                    publicCtaBlueOutlineButtonClassName,
+                  ),
+                })}
               >
-                <Link href="/sign-in" onClick={handleLinkClick}>
-                  {t("login_button")}
-                </Link>
-              </Button>
+                {t("login_button")}
+              </Link>
             </>
           ) : (
             <>
