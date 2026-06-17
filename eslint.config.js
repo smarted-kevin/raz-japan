@@ -1,13 +1,11 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
-import tseslint from "typescript-eslint";
+import nextTs from "eslint-config-next/typescript";
 
 export default defineConfig([
   ...nextVitals,
-  ...tseslint.configs.recommendedTypeChecked,
-  ...tseslint.configs.stylisticTypeChecked,
+  ...nextTs,
   {
-    files: ["**/*.ts", "**/*.tsx"],
     rules: {
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
@@ -24,16 +22,6 @@ export default defineConfig([
         "error",
         { checksVoidReturn: { attributes: false } },
       ],
-    },
-  },
-  {
-    linterOptions: {
-      reportUnusedDisableDirectives: true,
-    },
-    languageOptions: {
-      parserOptions: {
-        projectService: true,
-      },
     },
   },
   globalIgnores([

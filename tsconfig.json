@@ -51,6 +51,7 @@
   ],
   "exclude": [
     "node_modules",
-    "messages"
+    "messages",
+    "eslint.config.js"
   ]
 }
