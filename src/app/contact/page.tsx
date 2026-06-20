@@ -3,6 +3,8 @@ import { ArrowLeft, Mail } from "lucide-react";
 import { type Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
+import { publicSiteContainerClassName } from "~/lib/public-layout";
+import { cn } from "~/lib/utils";
 import { Card, CardContent } from "~/components/ui/card";
 import { ContactForm } from "./contact-form";
 
@@ -28,7 +30,12 @@ export default async function ContactPage() {
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
-        <div className="container relative z-10 mx-auto px-4 py-12 md:py-16">
+        <div
+          className={cn(
+            publicSiteContainerClassName,
+            "relative z-10 py-12 md:py-16",
+          )}
+        >
           <Link
             href="/"
             className="mb-8 inline-flex items-center gap-2 text-blue-100 transition-colors hover:text-white"
@@ -64,7 +71,7 @@ export default async function ContactPage() {
       </section>
 
       <section className="bg-gradient-to-b from-gray-50 to-white py-16 md:py-24">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <Card className="mx-auto max-w-2xl border-2 border-gray-100 shadow-sm">
             <CardContent className="p-6 md:p-8">
               <ContactForm />

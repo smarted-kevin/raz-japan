@@ -10,6 +10,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
+import { publicSiteContainerClassName } from "~/lib/public-layout";
+import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 
@@ -84,7 +86,12 @@ export default async function GettingStartedPage() {
             backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
           }}
         />
-        <div className="container relative z-10 mx-auto px-4 py-12 md:py-16">
+        <div
+          className={cn(
+            publicSiteContainerClassName,
+            "relative z-10 py-12 md:py-16",
+          )}
+        >
           <Link
             href="/"
             className="mb-8 inline-flex items-center gap-2 text-blue-100 transition-colors hover:text-white"
@@ -119,7 +126,7 @@ export default async function GettingStartedPage() {
 
       {/* Steps */}
       <section className="bg-gradient-to-b from-gray-50 to-white py-16 md:py-24">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <div className="mx-auto max-w-2xl space-y-6">
             {steps.map((step, index) => {
               const Icon = step.icon;
@@ -157,7 +164,7 @@ export default async function GettingStartedPage() {
 
       {/* CTA Section */}
       <section className="bg-white py-16 md:py-20">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <div className="mx-auto max-w-2xl rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center shadow-xl shadow-blue-500/20 md:p-12">
             <h2 className="mb-4 text-2xl font-bold text-white md:text-3xl">
               {t("cta_title")}

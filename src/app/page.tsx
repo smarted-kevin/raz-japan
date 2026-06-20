@@ -18,6 +18,8 @@ import { buttonVariants } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { HeroBannerBackground } from "~/components/landing/hero-banner-background";
 import { LANDING_IMAGES } from "~/lib/landing-images";
+import { publicSiteContainerClassName } from "~/lib/public-layout";
+import { cn } from "~/lib/utils";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
 
 export default async function HomePage() {
@@ -109,7 +111,12 @@ export default async function HomePage() {
           }} />
         </div>
         
-        <div className="container relative z-10 mx-auto px-4 py-16 md:py-24">
+        <div
+          className={cn(
+            publicSiteContainerClassName,
+            "relative z-10 py-16 md:py-24",
+          )}
+        >
           <div className="grid items-center gap-12 lg:grid-cols-2">
             {/* Left Content */}
             <div className="relative space-y-6 text-white">
@@ -122,16 +129,17 @@ export default async function HomePage() {
                 {t("hero_subtitle")}
               </p>
 
-              <div className="flex justify-end">
+              <div className="flex justify-center lg:justify-start">
                 <Link
                   href="/getting-started"
                   className={buttonVariants({
+                    variant: "ghost",
                     size: "default",
                     className:
-                      "bg-orange-400 px-5 font-semibold text-white shadow-lg shadow-orange-400/30 hover:bg-orange-500",
+                      "scale-[1.2] bg-red-500 px-5 font-semibold text-white shadow-lg shadow-red-500/30 hover:bg-red-600 hover:text-white",
                   })}
                 >
-                  <BookOpen className="mr-2 h-4 w-4" />
+                  <BookOpen className="mr-2 h-[1.2rem] w-[1.2rem]" />
                   {t("get_started_now")}
                 </Link>
               </div>
@@ -166,7 +174,7 @@ export default async function HomePage() {
 
       {/* Key Highlights Section */}
       <section className="py-16 md:py-24 bg-white">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               {t("highlights_title")}
@@ -214,7 +222,7 @@ export default async function HomePage() {
           />
         </div>
 
-        <div className="container relative z-10 mx-auto px-4">
+        <div className={cn(publicSiteContainerClassName, "relative z-10")}>
           <div className="mx-auto mb-12 max-w-3xl text-center">
             <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
               {t("pricing_title")}
@@ -271,7 +279,7 @@ export default async function HomePage() {
 
       {/* Read Anywhere Section */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="order-2 lg:order-1">
               <div className="relative">
@@ -319,7 +327,7 @@ export default async function HomePage() {
       </section>
       {/* Badges & Motivation Section */}
       <section className="py-16 md:py-24 bg-gradient-to-br from-amber-50 to-orange-50">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
               {t("badges_section_title")}
@@ -370,7 +378,7 @@ export default async function HomePage() {
 
       {/* Getting Started Section */}
       <section id="getting-started" className="bg-white py-20 md:py-32">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
               {t("getting_started_title")}
@@ -406,7 +414,7 @@ export default async function HomePage() {
 
       {/* Features Grid Section */}
       <section id="about" className="bg-gray-50 py-20 md:py-32">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-4 text-balance text-3xl font-bold tracking-tight text-gray-900 md:text-5xl">
               {t("about_title")}
@@ -456,7 +464,7 @@ export default async function HomePage() {
 
       {/* Contact Section */}
       <section id="contact" className="border-t border-gray-200 bg-white py-12 md:py-16">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <Card className="mx-auto max-w-2xl border-2 border-blue-100 bg-gradient-to-br from-blue-50/80 to-indigo-50/50 shadow-md">
             <CardContent className="p-8 text-center md:p-10">
               <h2 className="mb-3 text-balance text-2xl font-bold tracking-tight text-gray-900 md:text-4xl">
@@ -475,7 +483,7 @@ export default async function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-gray-200 bg-gray-900 py-12 text-white">
-        <div className="container mx-auto px-4">
+        <div className={publicSiteContainerClassName}>
           <div className="grid gap-8 md:grid-cols-4">
             <div className="md:col-span-2">
               <Link href="/" className="mb-4 flex items-center gap-2">

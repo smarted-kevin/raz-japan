@@ -2,13 +2,20 @@
 
 import Link from "next/link";
 import { BookOpen } from "lucide-react";
+import { publicSiteContainerClassName } from "~/lib/public-layout";
+import { cn } from "~/lib/utils";
 import { PublicNavLinks } from "./publicNavLinks";
 import { MobileNavMenu } from "./mobileNavMenu";
 
 export function PublicNavBar() {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-4">
+      <div
+        className={cn(
+          publicSiteContainerClassName,
+          "flex h-16 items-center justify-between gap-2",
+        )}
+      >
         <Link
           href="/"
           className="group flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-90"

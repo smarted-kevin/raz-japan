@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft } from "lucide-react";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
+import { publicSiteContainerClassName } from "~/lib/public-layout";
+import { cn } from "~/lib/utils";
 
 export const metadata = {
   title: "Specified Commercial Transaction Act | Raz-Japan",
@@ -40,7 +42,7 @@ export default async function SCTAPage() {
     <main className="min-h-screen overflow-x-hidden bg-white">
       <PublicNavBar />
       <section className="py-16 md:py-24 bg-white">
-        <div className="container mx-auto max-w-3xl px-4">
+        <div className={cn(publicSiteContainerClassName, "max-w-3xl")}>
           <Link
             href="/"
             className="mb-8 inline-flex items-center gap-2 text-gray-600 transition-colors hover:text-blue-600"
