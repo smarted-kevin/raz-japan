@@ -22,6 +22,7 @@ export default function SignIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSignIn = async () => {
     await authClient.signIn.email(
@@ -32,13 +33,14 @@ export default function SignIn() {
       {
         onRequest: () => {
           setOtpLoading(true);
+          setError(null);
         },
         onSuccess: () => {
           router.push("/dashboard/");
         },
-        onError: (ctx) => {
+        onError: () => {
           setOtpLoading(false);
-          alert(ctx.error.message);
+          setError("Incorrect username or password");
         },
       },
     );
@@ -53,6 +55,11 @@ export default function SignIn() {
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {error && (
+          <p role="alert" className="mb-4 text-sm text-red-600">
+            {error}
+          </p>
+        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();
