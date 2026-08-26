@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useMutation } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import {
@@ -51,6 +52,7 @@ export default function StudentTable({
   const t = useTranslations("dashboard.admin.students");
   const tc = useTranslations("dashboard.admin.common");
   const statusLabel = useAdminStatusLabel();
+  const router = useRouter();
 
   const columns: ColumnDef<StudentData>[] = useMemo(
     () => [
@@ -150,15 +152,31 @@ export default function StudentTable({
     [t, tc]
   );
 
+  const [studentRows, setStudentRows] = useState(students);
   const [status, setStatus] = useState("active");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const removeStudent = useMutation(api.mutations.student.setStudentStatus);
 
+  const handleRemoveStudent = useCallback(
+    async (args: Parameters<typeof removeStudent>[0]) => {
+      await removeStudent(args);
+      setStudentRows((current) =>
+        current.map((student) =>
+          student.id === args.student_id
+            ? { ...student, status: args.status }
+            : student
+        )
+      );
+      router.refresh();
+    },
+    [removeStudent, router]
+  );
+
   const filteredByStatus = useMemo(
-    () => students.filter((student) => student.status === status),
-    [students, status]
+    () => studentRows.filter((student) => student.status === status),
+    [studentRows, status]
   );
 
   const classroomMap = useMemo(
@@ -262,7 +280,7 @@ export default function StudentTable({
                     classroomMap.get(row.original.classroom_name ?? "") ??
                     undefined
                   }
-                  onRemove={removeStudent}
+                  onRemove={handleRemoveStudent}
                 />
               ))}
             </TableBody>

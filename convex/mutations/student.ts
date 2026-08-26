@@ -185,8 +185,12 @@ export const setStudentStatus = mutation({
     if (!student) {
       return "Student not found";
     }
-    const updatedStudent = await ctx.db.patch(args.student_id, { status: args.status});
-    return updatedStudent;
+    await ctx.db.patch(args.student_id, {
+      status: args.status,
+      updated_on: Date.now(),
+    });
+
+    return await ctx.db.get(args.student_id);
   }
 })
 
