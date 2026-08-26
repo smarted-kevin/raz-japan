@@ -11,6 +11,12 @@ export const createStudent = mutation({
     status: v.union(v.literal("active"), v.literal("inactive"), v.literal("removed")),
   },
   handler: async (ctx, args) => {
+    const classroom = await ctx.db.get(args.classroom_id);
+    if (!classroom) return "Classroom not found.";
+    if (classroom.course_id !== args.course_id) {
+      return "Course does not match classroom.";
+    }
+
     const student = await ctx.db.insert(
       "student",
       {
@@ -36,6 +42,16 @@ export const createStudents = mutation({
     }))
   },
   handler: async (ctx, args) => {
+    for (const student of args.students) {
+      if (!student.classroom_id) continue;
+
+      const classroom = await ctx.db.get(student.classroom_id);
+      if (!classroom) throw new Error("Classroom not found.");
+      if (!student.course_id || classroom.course_id !== student.course_id) {
+        throw new Error("Course does not match classroom.");
+      }
+    }
+
     const createdStudents = await Promise.all(
       args.students.map(student => 
         ctx.db.insert("student", {
@@ -226,17 +242,27 @@ export const activateStudentByActivationCode = mutation({
       return { success: false, error: "Course not found" };
     }
 
-    // Find an inactive student for this course
-    // First try to find a student with matching course_id
+    // Classroom ownership is authoritative for allocating student inventory.
+    // Convex mutations are transactional, so selecting the student and marking
+    // both it and the activation code as used happen atomically.
     const students = await ctx.db
       .query("student")
       .withIndex("by_status", (q) => q.eq("status", "inactive"))
       .collect();
 
-    const availableStudent = students.find((student) => {
-      if (!student.course_id) return false;
-      return student.course_id === activationCode.course;
-    });
+    let availableStudent;
+    for (const student of students) {
+      if (!student.classroom_id) continue;
+
+      const classroom = await ctx.db.get(student.classroom_id);
+      if (
+        classroom?.organization_id === activationCode.organization_id &&
+        classroom.course_id === activationCode.course
+      ) {
+        availableStudent = student;
+        break;
+      }
+    }
 
     if (!availableStudent) {
       return { success: false, error: "No available student found for this course" };
