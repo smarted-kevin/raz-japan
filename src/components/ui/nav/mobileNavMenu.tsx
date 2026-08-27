@@ -13,7 +13,7 @@ import {
 } from "~/components/ui/sheet";
 import { useTranslations } from "next-intl";
 import { authClient } from "~/lib/auth-client";
-import { useQuery } from "convex/react";
+import { useConvexAuth, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { SignOutButton } from "~/components/ui/auth/signOut";
 import {
@@ -27,11 +27,12 @@ import { PublicLocaleSwitcher } from "./publicLocaleSwitcher";
 export function MobileNavMenu() {
   const [open, setOpen] = useState(false);
   const { data: session } = authClient.useSession();
+  const { isAuthenticated } = useConvexAuth();
   const t = useTranslations("Homepage");
 
   const user_id = useQuery(
     api.queries.users.getUserRoleByAuthId,
-    session ? { userId: session.user.id } : "skip"
+    session && isAuthenticated ? { userId: session.user.id } : "skip",
   );
 
   const links = [
@@ -49,7 +50,7 @@ export function MobileNavMenu() {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+          className="text-slate-600 hover:bg-blue-50 hover:text-blue-700 md:hidden"
           aria-label="Open navigation menu"
         >
           <Menu className="h-6 w-6" />
