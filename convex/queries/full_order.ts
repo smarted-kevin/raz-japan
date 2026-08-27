@@ -1,12 +1,20 @@
-import { query } from "../_generated/server";
 import { v } from "convex/values";
 import { type Id } from "../_generated/dataModel";
+import { internalQuery } from "../_generated/server";
+import { adminQuery, authedQuery, requireUserAccess } from "../lib/auth";
 
-export const getAllOrders = query({ 
+export const getAllOrders = adminQuery({
   args: {},
   handler: async (ctx) => {
     const orders = await ctx.db.query("full_order").collect();
-    return orders;
+    if (ctx.user.role !== "org_admin") return orders;
+    const scopedOrders = await Promise.all(orders.map(async (order) => ({
+      order,
+      owner: await ctx.db.get(order.user_id),
+    })));
+    return scopedOrders
+      .filter(({ owner }) => owner?.org_id === ctx.user.org_id)
+      .map(({ order }) => order);
   }
 });
 /*
@@ -16,7 +24,7 @@ export const getAllOrders = query({
  * @param args - The arguments for the query
  * @returns array of orders with user id and email, and array of student order data
  */
-export const getOrdersWithUserAndStudentData = query({
+export const getOrdersWithUserAndStudentData = adminQuery({
   args: { status: v.optional(v.union(v.literal("created"), v.literal("pending"), v.literal("fulfilled"), v.literal("canceled"))),
     order_type: v.optional(v.union(v.literal("new"), v.literal("renewal"), v.literal("reactivation"))),
     student_id: v.optional(v.id("student")),
@@ -40,6 +48,7 @@ export const getOrdersWithUserAndStudentData = query({
       if (!user) {
         return null;
       }
+      if (ctx.user.role === "org_admin" && user.org_id !== ctx.user.org_id) return null;
 
       // Get student orders for this order
       const studentOrders = await ctx.db
@@ -94,10 +103,14 @@ export const getOrdersWithUserAndStudentData = query({
   }
 });
 
-export const getOrderById = query({
+export const getOrderById = authedQuery({
   args: { id: v.id("full_order") },
   handler: async (ctx, args) => {
     const order = await ctx.db.get(args.id);
+    if (order) {
+      const owner = await ctx.db.get(order.user_id);
+      if (owner) requireUserAccess(ctx.user, owner);
+    }
     return order;
   }
 });
@@ -107,13 +120,16 @@ export const getOrderById = query({
  * @param id - The order ID
  * @returns order with student order data including expiry dates and prices
  */
-export const getOrderByIdWithStudentData = query({
+export const getOrderByIdWithStudentData = authedQuery({
   args: { id: v.id("full_order") },
   handler: async (ctx, args) => {
     const order = await ctx.db.get(args.id);
     if (!order) {
       return null;
     }
+    const owner = await ctx.db.get(order.user_id);
+    if (!owner) return null;
+    requireUserAccess(ctx.user, owner);
 
     // Get student orders for this order
     const studentOrders = await ctx.db
@@ -165,7 +181,7 @@ export const getOrderByIdWithStudentData = query({
 /**
  * Get order by ID with user and student data (for admin view)
  */
-export const getOrderByIdWithUserAndStudentData = query({
+export const getOrderByIdWithUserAndStudentData = adminQuery({
   args: { id: v.id("full_order") },
   handler: async (ctx, args) => {
     const order = await ctx.db.get(args.id);
@@ -173,6 +189,7 @@ export const getOrderByIdWithUserAndStudentData = query({
 
     const user = await ctx.db.get(order.user_id);
     if (!user) return null;
+    requireUserAccess(ctx.user, user);
 
     const studentOrders = await ctx.db
       .query("student_order")
@@ -222,13 +239,17 @@ export const getOrderByIdWithUserAndStudentData = query({
   },
 });
 
-export const getOrderByStripeId = query({
+export const getOrderByStripeId = authedQuery({
   args: { stripe_id: v.string() },
   handler: async (ctx, args) => {
     const order = await ctx.db
       .query("full_order")
       .withIndex("by_stripe_order_id", (q) => q.eq("stripe_order_id", args.stripe_id))
       .first();
+    if (order) {
+      const owner = await ctx.db.get(order.user_id);
+      if (owner) requireUserAccess(ctx.user, owner);
+    }
     return order;
   }
 });
@@ -238,9 +259,12 @@ export const getOrderByStripeId = query({
  * @param user_id - The user ID to get orders for
  * @returns array of orders with student order data
  */
-export const getOrdersByUserId = query({
+export const getOrdersByUserId = authedQuery({
   args: { user_id: v.id("userTable") },
   handler: async (ctx, args) => {
+    const owner = await ctx.db.get(args.user_id);
+    if (!owner) return [];
+    requireUserAccess(ctx.user, owner);
     // Get all orders for this user
     const orders = await ctx.db
       .query("full_order")
@@ -295,4 +319,9 @@ export const getOrdersByUserId = query({
     // Sort by created_date descending (most recent first)
     return result.sort((a, b) => b.created_date - a.created_date);
   }
+});
+
+export const getOrderByIdInternal = internalQuery({
+  args: { id: v.id("full_order") },
+  handler: async (ctx, args) => ctx.db.get(args.id),
 });

@@ -16,7 +16,7 @@ export default async function ActivationCodePage() {
   if (!allowedRoles.includes(user.role)) redirect("/sign-in");
 
   // Get user details including org_id for org_admin users
-  const userDetails = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id });
+  const userDetails = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id }, { token });
   const isOrgAdmin = user.role === "org_admin";
   const orgId = isOrgAdmin ? userDetails.org_id : undefined;
 

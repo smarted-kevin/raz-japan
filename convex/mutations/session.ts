@@ -1,7 +1,7 @@
-import { internalMutation, mutation } from "../_generated/server";
+import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
 
-export const createSession = mutation({
+export const createSession = internalMutation({
   args: {
     sessionId: v.string(), 
     userId: v.id("userTable"),
@@ -22,14 +22,14 @@ export const createSession = mutation({
   }
 });
 
-export const deleteSessionById = mutation({
+export const deleteSessionById = internalMutation({
   args: { sessionId: v.id("session") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.sessionId);
   }
 });
 
-export const updateSessionRole = mutation({
+export const updateSessionRole = internalMutation({
   args: { 
     sessionId: v.string(), 
     role: v.union(v.literal("user"), v.literal("admin"), v.literal("god")),
@@ -50,7 +50,7 @@ export const updateSessionRole = mutation({
   }
 });
 
-export const deleteSessionBySessionId = mutation({
+export const deleteSessionBySessionId = internalMutation({
   args: { sessionId: v.string() },
   handler: async (ctx, args) => {
     const session = await ctx.db

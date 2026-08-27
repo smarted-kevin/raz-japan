@@ -132,6 +132,10 @@ export const updateUserRole = adminMutation({
     org_id: v.optional(v.id("organization")),
   },
   handler: async (ctx, args) => {
+    if (ctx.user.role === "org_admin") {
+      throw new ConvexError("Global admin access required to change roles");
+    }
+
     const user = await ctx.db.get(args.userId);
     if (!user) {
       throw new ConvexError("User not found");
@@ -139,9 +143,13 @@ export const updateUserRole = adminMutation({
 
     // Only a `god` superuser may grant or revoke the `god` role. This prevents
     // a regular admin from escalating themselves (or others) to superuser.
-    const grantingOrRevokingGod = args.role === "god" || user.role === "god";
-    if (grantingOrRevokingGod && ctx.user.role !== "god") {
-      throw new ConvexError("Only a god user can change the god role");
+    const changingPrivilegedRole =
+      args.role === "god" ||
+      args.role === "admin" ||
+      user.role === "god" ||
+      user.role === "admin";
+    if (changingPrivilegedRole && ctx.user.role !== "god") {
+      throw new ConvexError("Only a god user can change admin or god roles");
     }
 
     await ctx.db.patch(args.userId, {

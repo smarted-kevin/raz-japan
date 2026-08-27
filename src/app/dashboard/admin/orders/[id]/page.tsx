@@ -26,7 +26,8 @@ export default async function AdminOrderDetailsPage(props: {
   const params = await props.params;
   const order = await fetchQuery(
     api.queries.full_order.getOrderByIdWithUserAndStudentData,
-    { id: params.id as Id<"full_order"> }
+    { id: params.id as Id<"full_order"> },
+    { token },
   );
 
   if (!order) {

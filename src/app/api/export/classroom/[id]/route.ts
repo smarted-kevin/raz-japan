@@ -4,6 +4,7 @@ import { fetchQuery } from "convex/nextjs";
 import { api } from "../../../../../../convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { convertToCSV } from "~/lib/csvExport";
+import { getToken } from "~/lib/auth-server";
 
 
 
@@ -13,11 +14,18 @@ export async function GET(
 }) {
 
   try {
+    const token = await getToken();
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await params;
-    console.log("CLASSROOM_ID: " + id);
     const data = await fetchQuery(api.queries.classroom.classroomExportWithstudents, {
       classroom_id: id as Id<"classroom">,
-    });
+    }, { token });
+    if (!data) {
+      return NextResponse.json({ error: "Classroom not found" }, { status: 404 });
+    }
     // Convert to CSV (using the same utility function)
     const csvContent = convertToCSV({
       classroom_name: data?.classroom_name ?? "",
@@ -28,10 +36,13 @@ export async function GET(
       })) ?? [],
     });
 
+    const safeFilename = data.classroom_name.replace(/[^a-zA-Z0-9_-]/g, "_");
     return new NextResponse(csvContent, {
       headers: {
         'Content-Type': 'text/csv',
-        'Content-Disposition': `attachment; filename="${data?.classroom_name}_export.csv"`,
+        'Content-Disposition': `attachment; filename="${safeFilename}_export.csv"`,
+        'Cache-Control': 'no-store, private',
+        'X-Content-Type-Options': 'nosniff',
       },
     });
   } catch (error) {

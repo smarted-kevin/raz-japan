@@ -1,5 +1,6 @@
-import { internalMutation, mutation } from "../_generated/server";
+import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
+import { adminMutation } from "../lib/auth";
 
 export const createCourse = internalMutation({
   args: { 
@@ -53,7 +54,7 @@ export const updateCourseWithStripe = internalMutation({
   }
 })
 
-export const editCourse = mutation({
+export const editCourse = adminMutation({
   args: {
     id: v.id("course"),
     course_name: v.optional(v.string()),
@@ -61,6 +62,7 @@ export const editCourse = mutation({
     status: v.optional(v.union(v.literal("active"), v.literal("inactive")))
   },
   handler: async (ctx, args) => {
+    if (ctx.user.role === "org_admin") return "Global admin access required.";
     const course = await ctx.db.get(args.id);
     if (!course) return "No course found."
 

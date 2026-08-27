@@ -1,13 +1,14 @@
-import { mutation } from "../_generated/server";
 import { v } from "convex/values";
+import { authedMutation } from "../lib/auth";
 
-export const createCart = mutation({
+export const createCart = authedMutation({
   args: { 
     user_id: v.id("userTable"),
     new_students: v.optional(v.number()),
     renewal_students: v.optional(v.array(v.id("student")))
   },
   handler: async (ctx,args) => {
+    if (args.user_id !== ctx.user._id) return { error: "User access denied." };
     const cart = await ctx.db
       .query("cart")
       .withIndex("by_user_id", (q) => q.eq("user_id", args.user_id))
@@ -32,7 +33,7 @@ export const createCart = mutation({
   }
 });
 
-export const updateCart = mutation({
+export const updateCart = authedMutation({
   args: { 
     cart_id: v.id("cart"),
     user_id: v.id("userTable"),
@@ -40,6 +41,7 @@ export const updateCart = mutation({
     renewal_students: v.optional(v.array(v.id("student")))
   },
   handler: async (ctx, args) => {
+    if (args.user_id !== ctx.user._id) return "User access denied";
     const cart = await ctx.db
       .query("cart")
       .withIndex("by_user_id", (q) => q.eq("user_id", args.user_id))

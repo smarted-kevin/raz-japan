@@ -1,7 +1,7 @@
 import { fetchQuery } from "convex/nextjs";
 import { CirclePlus, GraduationCap, Clock } from "lucide-react";
 import Link from "next/link";
-import { Button } from "~/components/ui/button";
+import { buttonVariants } from "~/components/ui/button";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { redirect } from "next/navigation";
@@ -25,7 +25,7 @@ export default async function MemberPage(
   const params = await props.params;
   const user = await fetchQuery(api.queries.users.getUserWithStudents, {
     id: params.id as Id<"userTable">,
-  });
+  }, { token });
 
   if (!user || user.auth_id != session._id) redirect("/sign-in");
 
@@ -35,6 +35,7 @@ export default async function MemberPage(
   const removedStudents = user.students.filter(
     (student) => student.status === "removed"
   );
+  const renderedAt = Date.now();
 
   const t = await getTranslations("dashboard.members");
 
@@ -47,15 +48,16 @@ export default async function MemberPage(
         email={user.email ?? ""}
       />
       <div className="w-full max-w-4xl">
-        <Button
-          asChild
-          className="h-[3.15rem] gap-2.5 px-7 text-[0.9rem] has-[>svg]:px-7"
+        <Link
+          href={`/dashboard/members/order/${user.id}`}
+          className={buttonVariants({
+            className:
+              "h-[3.15rem] gap-2.5 px-7 text-[0.9rem] has-[>svg]:px-7",
+          })}
         >
-          <Link href={`order/${user.id}`}>
-            {t("add_students")}
-            <CirclePlus className="size-[1.35rem]" />
-          </Link>
-        </Button>
+          {t("add_students")}
+          <CirclePlus className="size-[1.35rem]" />
+        </Link>
       </div>
       <Card className="w-full max-w-4xl overflow-hidden">
         <CardHeader>
@@ -70,15 +72,22 @@ export default async function MemberPage(
           {currentStudents.length === 0 ? (
             <div className="rounded-lg border border-dashed py-12 text-center">
               <p className="text-muted-foreground">{t("no_students_yet")}</p>
-              <Button variant="outline" className="mt-4" asChild>
-                <Link href={`order/${user.id}`}>
-                  {t("add_first_student")}
-                  <CirclePlus className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              <Link
+                href={`/dashboard/members/order/${user.id}`}
+                className={buttonVariants({
+                  variant: "outline",
+                  className: "mt-4",
+                })}
+              >
+                {t("add_first_student")}
+                <CirclePlus className="ml-2 h-4 w-4" />
+              </Link>
             </div>
           ) : (
-            <MemberStudentTable students={currentStudents} />
+            <MemberStudentTable
+              students={currentStudents}
+              renderedAt={renderedAt}
+            />
           )}
         </CardContent>
       </Card>
@@ -94,7 +103,10 @@ export default async function MemberPage(
             </div>
           </CardHeader>
           <CardContent>
-            <MemberStudentTable students={removedStudents} />
+            <MemberStudentTable
+              students={removedStudents}
+              renderedAt={renderedAt}
+            />
           </CardContent>
         </Card>
       )}

@@ -26,6 +26,14 @@ http.route({
   }),
 });
 
-authComponent.registerRoutes(http, createAuth, { cors: true });
+authComponent.registerRoutes(http, createAuth, {
+  cors: {
+    // Better Auth's `trustedOrigins` is the allowlist. No additional origins,
+    // headers, or exposed headers are granted here.
+    allowedOrigins: [],
+    allowedHeaders: [],
+    exposedHeaders: [],
+  },
+});
 
 export default http;

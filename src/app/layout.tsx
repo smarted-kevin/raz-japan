@@ -15,6 +15,8 @@ const PUBLIC_PATHS = [
   "/contact",
   "/sign-in",
   "/sign-up",
+  "/forgot-password",
+  "/reset-password",
 ];
 
 export const metadata: Metadata = {

@@ -1,17 +1,27 @@
-import { internalQuery, query } from "../_generated/server";
+import { internalQuery } from "../_generated/server";
 import { v } from "convex/values";
+import { adminQuery, authedQuery, isAdminRole, requireOrganizationAccess, requireUserAccess } from "../lib/auth";
 
-export const getStudentById = query({
+export const getStudentById = authedQuery({
   args: { id: v.id("student") },
   handler: async (ctx, args) => {
     const student = await ctx.db.get(args.id);
+    if (student?.user_id) {
+      const owner = await ctx.db.get(student.user_id);
+      if (owner) requireUserAccess(ctx.user, owner);
+    } else if (!isAdminRole(ctx.user.role)) {
+      throw new Error("Student access denied");
+    }
     return student;
   }
 });
 
-export const getStudentsByClassroomId = query({
+export const getStudentsByClassroomId = adminQuery({
   args: { classroom_id: v.id("classroom") },
   handler: async (ctx, args) => {
+    const classroom = await ctx.db.get(args.classroom_id);
+    if (!classroom) return [];
+    requireOrganizationAccess(ctx.user, classroom.organization_id);
     const students = await ctx.db
       .query("student")
       .withIndex("by_classroom_id", (q) => q.eq("classroom_id", args.classroom_id))
@@ -55,12 +65,18 @@ export const getAvailableStudent = internalQuery({
   } 
 });
 
-export const getAllStudentsWithClassroomAndUser = query({
+export const getAllStudentsWithClassroomAndUser = adminQuery({
   args: {},
   handler: async (ctx) => {
-    const students = await ctx.db
+    const allStudents = await ctx.db
       .query("student")
       .collect();
+    const students = ctx.user.role === "org_admin"
+      ? (await Promise.all(allStudents.map(async (student) => ({
+          student,
+          classroom: student.classroom_id ? await ctx.db.get(student.classroom_id) : null,
+        })))).filter(({ classroom }) => classroom?.organization_id === ctx.user.org_id).map(({ student }) => student)
+      : allStudents;
 
     return await Promise.all(students.map(async (student) => {
       const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
@@ -80,9 +96,10 @@ export const getAllStudentsWithClassroomAndUser = query({
   }
 });
 
-export const getStudentsByOrganization = query({
+export const getStudentsByOrganization = adminQuery({
   args: { org_id: v.id("organization") },
   handler: async (ctx, args) => {
+    requireOrganizationAccess(ctx.user, args.org_id);
     // First get all classrooms belonging to this organization
     const classrooms = await ctx.db
       .query("classroom")
@@ -117,11 +134,17 @@ export const getStudentsByOrganization = query({
   }
 });
 
-export const getRenewalStudentsWithClassroomAndCourse = query({
+export const getRenewalStudentsWithClassroomAndCourse = authedQuery({
   args: { ids: v.array(v.id("student")) },
   handler: async (ctx, args) => {
     const students = await Promise.all(args.ids.map(async (id) => {
       const student = await ctx.db.get(id);
+      if (student?.user_id) {
+        const owner = await ctx.db.get(student.user_id);
+        if (owner) requireUserAccess(ctx.user, owner);
+      } else if (!isAdminRole(ctx.user.role)) {
+        throw new Error("Student access denied");
+      }
       const classroom = student && student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
       const course = classroom && classroom.course_id ? await ctx.db.get(classroom.course_id) : undefined;
       
@@ -146,10 +169,44 @@ export const getRenewalStudentsWithClassroomAndCourse = query({
   }
 })
 
+export const getRenewalStudentsWithClassroomAndCourseInternal = internalQuery({
+  args: { ids: v.array(v.id("student")) },
+  handler: async (ctx, args) => {
+    return Promise.all(args.ids.map(async (id) => {
+      const student = await ctx.db.get(id);
+      const classroom = student?.classroom_id
+        ? await ctx.db.get(student.classroom_id)
+        : undefined;
+      const course = classroom?.course_id
+        ? await ctx.db.get(classroom.course_id)
+        : undefined;
+
+      return {
+        student: {
+          id: student?._id,
+          username: student?.username,
+          status: student?.status,
+        },
+        classroom: {
+          classroom_name: classroom?.classroom_name,
+        },
+        course: {
+          course_name: course?.course_name,
+          price: course?.price,
+          stripe_price_id: course?.stripe_price_id,
+        },
+      };
+    }));
+  },
+});
+
 //Returns array
-export const getStudentCountInClassroomByStatus = query({
+export const getStudentCountInClassroomByStatus = adminQuery({
   handler: async (ctx) => {
-    const classrooms = await ctx.db.query("classroom").collect();
+    const allClassrooms = await ctx.db.query("classroom").collect();
+    const classrooms = ctx.user.role === "org_admin"
+      ? allClassrooms.filter((classroom) => classroom.organization_id === ctx.user.org_id)
+      : allClassrooms;
 
     const studentCounts = await Promise.all(classrooms.map(async (classroom) => {
       const students = await ctx.db

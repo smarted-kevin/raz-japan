@@ -5,10 +5,13 @@ import type { NewClassroomForm, NewStudentData } from "./schemas";
 import { api } from "../../../../../convex/_generated/api";
 import Words from "./wordList.json";
 import type { Id } from "@/convex/_generated/dataModel";
+import { getToken } from "~/lib/auth-server";
 
 export async function addClassroom(formData: NewClassroomForm) {
+    const token = await getToken();
+    if (!token) return "Not authenticated";
     //check if classroom with entered name already exists
-    const classroom = await fetchQuery(api.queries.classroom.getClassroomByName, { classroom_name: formData.classroom_name });
+    const classroom = await fetchQuery(api.queries.classroom.getClassroomByName, { classroom_name: formData.classroom_name }, { token });
     //if classroom exists throw error
   
     if (classroom !== null) return "Something went wrong."
@@ -19,7 +22,8 @@ export async function addClassroom(formData: NewClassroomForm) {
         classroom_name: formData.classroom_name,
         course_name: formData.course_name,
         organization: formData.organization_name
-      }
+      },
+      { token },
     );
 
     //Return error if new classroom not created
@@ -65,7 +69,7 @@ export async function addClassroom(formData: NewClassroomForm) {
     }
   }
   const createdStudents = await fetchMutation(
-    api.mutations.student.createStudents, { students: students}
+    api.mutations.student.createStudents, { students: students}, { token }
   );
   
   return createdStudents;
@@ -76,10 +80,13 @@ export async function addStudentsToClassroom(
   courseId: string,
   studentCount: number
 ) {
+  const token = await getToken();
+  if (!token) return "Not authenticated";
   // Get existing students in the classroom to check count
   const existingStudents = await fetchQuery(
     api.queries.student.getStudentsByClassroomId,
-    { classroom_id: classroomId }
+    { classroom_id: classroomId },
+    { token },
   );
 
   const currentCount = existingStudents.length;
@@ -150,7 +157,8 @@ export async function addStudentsToClassroom(
 
   const createdStudents = await fetchMutation(
     api.mutations.student.createStudents,
-    { students: students }
+    { students: students },
+    { token },
   );
 
   return createdStudents;

@@ -1,8 +1,9 @@
-import { internalMutation, mutation } from "../_generated/server";
+import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
 import { generateOrderNumber } from "./full_order";
+import { adminMutation, authedMutation, requireOrganizationAccess } from "../lib/auth";
 
-export const createStudent = mutation({
+export const createStudent = adminMutation({
   args: { 
     username: v.string(),
     password: v.string(),
@@ -16,7 +17,7 @@ export const createStudent = mutation({
     if (classroom.course_id !== args.course_id) {
       return "Course does not match classroom.";
     }
-
+    requireOrganizationAccess(ctx.user, classroom.organization_id);
     const student = await ctx.db.insert(
       "student",
       {
@@ -31,7 +32,7 @@ export const createStudent = mutation({
   }
 });
 
-export const createStudents = mutation({
+export const createStudents = adminMutation({
   args: { 
     students: v.array(v.object({
       username: v.string(),
@@ -52,6 +53,12 @@ export const createStudents = mutation({
       }
     }
 
+    const classroomIds = Array.from(new Set(args.students.flatMap((student) => student.classroom_id ? [student.classroom_id] : [])));
+    for (const classroomId of classroomIds) {
+      const classroom = await ctx.db.get(classroomId);
+      if (!classroom) throw new Error("Classroom not found");
+      requireOrganizationAccess(ctx.user, classroom.organization_id);
+    }
     const createdStudents = await Promise.all(
       args.students.map(student => 
         ctx.db.insert("student", {
@@ -67,7 +74,7 @@ export const createStudents = mutation({
   }
 });
 
-export const editStudent = mutation({
+export const editStudent = adminMutation({
   args: {
     student_id: v.id("student"), 
     username: v.optional(v.string()),
@@ -80,6 +87,11 @@ export const editStudent = mutation({
     const student = await ctx.db.get(args.student_id);
 
     if (!student) return "Student not found."
+    const classroomId = args.classroom_id ?? student.classroom_id;
+    if (!classroomId) return "Student has no classroom.";
+    const classroom = await ctx.db.get(classroomId);
+    if (!classroom) return "Classroom not found.";
+    requireOrganizationAccess(ctx.user, classroom.organization_id);
 
     const updated_student = await ctx.db
       .patch(args.student_id, 
@@ -191,7 +203,7 @@ export const renewStudent = internalMutation({
   }
 });
 
-export const setStudentStatus = mutation({
+export const setStudentStatus = adminMutation({
   args: { 
     student_id: v.id("student"),
     status: v.union(v.literal("active"), v.literal("inactive"), v.literal("removed"))
@@ -201,6 +213,10 @@ export const setStudentStatus = mutation({
     if (!student) {
       return "Student not found";
     }
+    if (!student.classroom_id) return "Student has no classroom";
+    const classroom = await ctx.db.get(student.classroom_id);
+    if (!classroom) return "Classroom not found";
+    requireOrganizationAccess(ctx.user, classroom.organization_id);
     await ctx.db.patch(args.student_id, {
       status: args.status,
       updated_on: Date.now(),
@@ -210,12 +226,15 @@ export const setStudentStatus = mutation({
   }
 })
 
-export const activateStudentByActivationCode = mutation({
+export const activateStudentByActivationCode = authedMutation({
   args: {
     activation_code: v.string(),
     user_id: v.id("userTable")
   },
   handler: async (ctx, args) => {
+    if (args.user_id !== ctx.user._id) {
+      return { success: false, error: "User access denied" };
+    }
     // Find activation code
     const activationCode = await ctx.db
       .query("activation_code")
@@ -327,7 +346,7 @@ export const activateStudentByActivationCode = mutation({
   }
 })
 
-export const renewStudentByActivationCode = mutation({
+export const renewStudentByActivationCode = authedMutation({
   args: {
     activation_code: v.string(),
     student_id: v.id("student")
@@ -373,6 +392,9 @@ export const renewStudentByActivationCode = mutation({
     // Check if student has a user assigned
     if (!student.user_id) {
       return { success: false, error: "Student must be assigned to a user" };
+    }
+    if (student.user_id !== ctx.user._id) {
+      return { success: false, error: "Student access denied" };
     }
 
     // Verify user exists

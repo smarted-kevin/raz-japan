@@ -18,7 +18,7 @@ export default async function ClassroomPage() {
   if (!allowedRoles.includes(user.role)) redirect("/sign-in");
 
   // Get user details including org_id for org_admin users
-  const userDetails = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id });
+  const userDetails = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id }, { token });
   const isOrgAdmin = user.role === "org_admin";
   const orgId = userDetails.org_id;
 
@@ -26,18 +26,18 @@ export default async function ClassroomPage() {
   let classrooms;
   const [courses, orgs] = await Promise.all([
     fetchQuery(api.queries.course.getAllCourses),
-    fetchQuery(api.queries.organization.getAllOrganizations)
+    fetchQuery(api.queries.organization.getAllOrganizations, {}, { token })
   ]);
   
   if (isOrgAdmin && orgId) {
     classrooms = await fetchQuery(api.queries.classroom.getClassroomsByOrganization, { 
       org_id: orgId as Id<"organization">, 
       student_counts: true 
-    });
+    }, { token });
   } else {
     classrooms = await fetchQuery(api.queries.classroom.getAllClassroomsWithCourseAndOrgName, { 
       student_counts: true 
-    });
+    }, { token });
   }
 
   const t = await getTranslations("dashboard.admin.classrooms");

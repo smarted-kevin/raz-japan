@@ -14,7 +14,7 @@ export default async function OrderPage() {
   if (!user || !allowedRoles.includes(user.role)) redirect("/sign-in");
 
   //const orders = await fetchQuery(api.queries.full_order.getAllOrders);
-  const orders = await fetchQuery(api.queries.full_order.getOrdersWithUserAndStudentData, {});
+  const orders = await fetchQuery(api.queries.full_order.getOrdersWithUserAndStudentData, {}, { token });
   const t = await getTranslations("dashboard.admin.orders");
   if (!orders) return <div>{t("no_orders")}</div>;
   return (

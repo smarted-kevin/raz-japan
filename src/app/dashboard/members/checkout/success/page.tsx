@@ -52,10 +52,13 @@ export default async function SuccessPage(
   if (!isSuccess) return "Something went wrong.";
 */
   return (
-    <div className="mx-20">
-      <div className="flex flex-col gap-y-4 mb-10">
+    <div className="flex min-h-[60vh] items-center justify-center px-4">
+      <div className="mb-10 flex flex-col items-center gap-y-4 text-center">
         <h2 className="text-3xl font-bold">Success!</h2>
         <h4 className="text-xl">{`Thank you for your order`}</h4>
+        <Button className="w-fit" asChild>
+          <Link href="/dashboard">Go to dashboard</Link>
+        </Button>
       </div>
       {/*
       <div className="flex flex-col gap-y-4">

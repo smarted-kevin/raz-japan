@@ -46,6 +46,7 @@ export function buildContactInquirySchema(messages: {
       .trim()
       .min(1, messages.required)
       .max(CONTACT_MESSAGE_MAX, messages.messageMax),
+    website: z.string().max(200).optional(),
   });
 }
 

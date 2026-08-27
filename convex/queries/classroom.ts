@@ -1,29 +1,35 @@
-import { query } from "../_generated/server";
 import { v } from "convex/values";
+import { adminQuery, requireOrganizationAccess } from "../lib/auth";
 
-export const getAllClassrooms = query( async (ctx) => {
-  const classrooms = await ctx.db
+export const getAllClassrooms = adminQuery( async (ctx) => {
+  const allClassrooms = await ctx.db
     .query("classroom")
     .collect();
 
-    return classrooms;
+    return ctx.user.role === "org_admin"
+      ? allClassrooms.filter((classroom) => classroom.organization_id === ctx.user.org_id)
+      : allClassrooms;
 })
 
-export const getClassroomById = query({
+export const getClassroomById = adminQuery({
   args: { id: v.id("classroom") },
   handler: async (ctx, args) => {
     const classroom = await ctx.db.get(args.id);
     if (!classroom) return null;
+    requireOrganizationAccess(ctx.user, classroom.organization_id);
     return classroom;
   }
 })
 
-export const getAllClassroomsWithCourseAndOrgName = query({
+export const getAllClassroomsWithCourseAndOrgName = adminQuery({
   args: { student_counts: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
-    const classrooms = await ctx.db
+    const allClassrooms = await ctx.db
       .query("classroom")
       .collect();
+    const classrooms = ctx.user.role === "org_admin"
+      ? allClassrooms.filter((classroom) => classroom.organization_id === ctx.user.org_id)
+      : allClassrooms;
 
     return Promise.all(
       classrooms.map(async (classroom) => {
@@ -52,7 +58,7 @@ export const getAllClassroomsWithCourseAndOrgName = query({
   }
 })
 
-export const getClassroomByName = query({
+export const getClassroomByName = adminQuery({
   args: { classroom_name: v.string() },
   handler: async (ctx, args) => {
     const classroom = await ctx.db
@@ -61,11 +67,12 @@ export const getClassroomByName = query({
         (q) => q.eq("classroom_name", args.classroom_name))
       .first();
 
+    if (classroom) requireOrganizationAccess(ctx.user, classroom.organization_id);
     return classroom;
   }
 })
 
-export const getClassroomsByStatus = query({
+export const getClassroomsByStatus = adminQuery({
   args: { status: v.union(v.literal("active"), v.literal("inactive")) },
   handler: async (ctx, args) => {
     const classrooms = await ctx.db
@@ -73,16 +80,19 @@ export const getClassroomsByStatus = query({
       .withIndex("by_classroom_status", (q) => q.eq("status", args.status))
       .collect();
 
-    return classrooms;
+    return ctx.user.role === "org_admin"
+      ? classrooms.filter((classroom) => classroom.organization_id === ctx.user.org_id)
+      : classrooms;
   }
 });
 
-export const classroomExportWithstudents = query({
+export const classroomExportWithstudents = adminQuery({
   args: { classroom_id: v.id("classroom") },
   handler: async (ctx, args) => {
     const classroom = await ctx.db.get(args.classroom_id);
 
     if (!classroom) return null;
+    requireOrganizationAccess(ctx.user, classroom.organization_id);
     
     const students = await ctx.db
       .query("student")
@@ -102,9 +112,10 @@ export const classroomExportWithstudents = query({
   }
 })
 
-export const getClassroomsByOrganization = query({
+export const getClassroomsByOrganization = adminQuery({
   args: { org_id: v.id("organization"), student_counts: v.optional(v.boolean()) },
   handler: async (ctx, args) => {
+    requireOrganizationAccess(ctx.user, args.org_id);
     const classrooms = await ctx.db
       .query("classroom")
       .withIndex("by_organization", (q) => q.eq("organization_id", args.org_id))

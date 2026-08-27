@@ -27,7 +27,7 @@ export default async function AdminUserOrdersPage(props: {
 
   const user = await fetchQuery(api.queries.users.getUserDetailForAdmin, {
     id: userId,
-  });
+  }, { token });
 
   if (!user) {
     redirect("/dashboard/admin/users");
@@ -35,7 +35,7 @@ export default async function AdminUserOrdersPage(props: {
 
   const orders = await fetchQuery(api.queries.full_order.getOrdersByUserId, {
     user_id: userId,
-  });
+  }, { token });
 
   const t = await getTranslations("dashboard.admin.users");
 

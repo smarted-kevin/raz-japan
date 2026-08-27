@@ -9,6 +9,7 @@
  */
 
 import type * as auth from "../auth.js";
+import type * as authEmail from "../authEmail.js";
 import type * as betterAuth__generated_api from "../betterAuth/_generated/api.js";
 import type * as betterAuth__generated_server from "../betterAuth/_generated/server.js";
 import type * as betterAuth_adapter from "../betterAuth/adapter.js";
@@ -20,6 +21,7 @@ import type * as lib_auth from "../lib/auth.js";
 import type * as mutations_activation_code from "../mutations/activation_code.js";
 import type * as mutations_cart from "../mutations/cart.js";
 import type * as mutations_classroom from "../mutations/classroom.js";
+import type * as mutations_contact from "../mutations/contact.js";
 import type * as mutations_course from "../mutations/course.js";
 import type * as mutations_full_order from "../mutations/full_order.js";
 import type * as mutations_organization from "../mutations/organization.js";
@@ -56,6 +58,7 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   auth: typeof auth;
+  authEmail: typeof authEmail;
   "betterAuth/_generated/api": typeof betterAuth__generated_api;
   "betterAuth/_generated/server": typeof betterAuth__generated_server;
   "betterAuth/adapter": typeof betterAuth_adapter;
@@ -67,6 +70,7 @@ declare const fullApi: ApiFromModules<{
   "mutations/activation_code": typeof mutations_activation_code;
   "mutations/cart": typeof mutations_cart;
   "mutations/classroom": typeof mutations_classroom;
+  "mutations/contact": typeof mutations_contact;
   "mutations/course": typeof mutations_course;
   "mutations/full_order": typeof mutations_full_order;
   "mutations/organization": typeof mutations_organization;
@@ -169,6 +173,10 @@ export declare const components: {
                   publicKey: string;
                 };
                 model: "jwks";
+              }
+            | {
+                data: { count: number; key: string; lastRequest: number };
+                model: "rateLimit";
               };
           onCreateHandle?: string;
           select?: Array<string>;
@@ -325,6 +333,31 @@ export declare const components: {
                 where?: Array<{
                   connector?: "AND" | "OR";
                   field: "publicKey" | "privateKey" | "createdAt" | "id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "rateLimit";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "key" | "count" | "lastRequest" | "id";
                   operator?:
                     | "lt"
                     | "lte"
@@ -526,6 +559,31 @@ export declare const components: {
                     | Array<number>
                     | null;
                 }>;
+              }
+            | {
+                model: "rateLimit";
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "key" | "count" | "lastRequest" | "id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
               };
           onDeleteHandle?: string;
         },
@@ -536,7 +594,13 @@ export declare const components: {
         "internal",
         {
           limit?: number;
-          model: "user" | "session" | "account" | "verification" | "jwks";
+          model:
+            | "user"
+            | "session"
+            | "account"
+            | "verification"
+            | "jwks"
+            | "rateLimit";
           offset?: number;
           paginationOpts: {
             cursor: string | null;
@@ -576,7 +640,13 @@ export declare const components: {
         "query",
         "internal",
         {
-          model: "user" | "session" | "account" | "verification" | "jwks";
+          model:
+            | "user"
+            | "session"
+            | "account"
+            | "verification"
+            | "jwks"
+            | "rateLimit";
           select?: Array<string>;
           where?: Array<{
             connector?: "AND" | "OR";
@@ -821,6 +891,32 @@ export declare const components: {
                     | Array<number>
                     | null;
                 }>;
+              }
+            | {
+                model: "rateLimit";
+                update: { count?: number; key?: string; lastRequest?: number };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "key" | "count" | "lastRequest" | "id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
               };
           onUpdateHandle?: string;
           paginationOpts: {
@@ -1033,6 +1129,32 @@ export declare const components: {
                 where?: Array<{
                   connector?: "AND" | "OR";
                   field: "publicKey" | "privateKey" | "createdAt" | "id";
+                  operator?:
+                    | "lt"
+                    | "lte"
+                    | "gt"
+                    | "gte"
+                    | "eq"
+                    | "in"
+                    | "ne"
+                    | "contains"
+                    | "starts_with"
+                    | "ends_with";
+                  value:
+                    | string
+                    | number
+                    | boolean
+                    | Array<string>
+                    | Array<number>
+                    | null;
+                }>;
+              }
+            | {
+                model: "rateLimit";
+                update: { count?: number; key?: string; lastRequest?: number };
+                where?: Array<{
+                  connector?: "AND" | "OR";
+                  field: "key" | "count" | "lastRequest" | "id";
                   operator?:
                     | "lt"
                     | "lte"

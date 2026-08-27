@@ -7,7 +7,6 @@ import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { admin } from "better-auth/plugins";
 import authSchema from "./betterAuth/schema";
 import { requireActionCtx } from "@convex-dev/better-auth/utils";
-import { type auth } from "./betterAuth/auth";
 
 type CreatedAuthUser = {
   id: string;
@@ -21,13 +20,33 @@ const getSiteUrl = () => {
   const fallbackUrl = "http://localhost:3000";
 
   try {
-    return new URL(configuredUrl || fallbackUrl).origin;
+    const url = new URL(configuredUrl || fallbackUrl);
+    const isLocal = url.hostname === "localhost" || url.hostname === "127.0.0.1";
+    if (!isLocal && url.protocol !== "https:") {
+      throw new Error("SITE_URL must use HTTPS outside local development");
+    }
+    return url.origin;
   } catch {
+    if (configuredUrl) throw new Error("SITE_URL must be a valid HTTPS origin");
     return fallbackUrl;
   }
 };
 
 const siteUrl = getSiteUrl();
+const siteOrigin = new URL(siteUrl);
+const trustedOrigins = [siteOrigin.origin];
+
+if (siteOrigin.hostname === "localhost" || siteOrigin.hostname === "127.0.0.1") {
+  trustedOrigins.push("http://localhost:3000", "http://127.0.0.1:3000");
+}
+
+function requireTrustedAuthUrl(url: string): string {
+  const parsed = new URL(url);
+  if (parsed.origin !== siteOrigin.origin) {
+    throw new Error("Refusing to send an authentication link for an untrusted origin");
+  }
+  return parsed.toString();
+}
 // The component client has methods needed for integrating Convex with Better Auth,
 // as well as helper methods for general use.
 
@@ -58,12 +77,35 @@ export const createAuth = (
       disabled: optionsOnly,
     },
     baseURL: siteUrl,
-    trustedOrigins: Array.from(new Set([siteUrl, "http://localhost:3000"])),
+    trustedOrigins: Array.from(new Set(trustedOrigins)),
     database: authComponent.adapter(ctx),
-    // Configure simple, non-verified email/password to get started
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: false,
+      minPasswordLength: 12,
+      maxPasswordLength: 128,
+      sendResetPassword: async ({ user, url }) => {
+        await requireActionCtx(ctx).runAction(internal.authEmail.sendAuthEmail, {
+          kind: "password_reset",
+          email: user.email,
+          name: user.name,
+          url: requireTrustedAuthUrl(url),
+        });
+      },
+      resetPasswordTokenExpiresIn: 30 * 60,
+      revokeSessionsOnPasswordReset: true,
+    },
+    rateLimit: {
+      enabled: true,
+      storage: "database",
+      window: 60,
+      max: 60,
+      customRules: {
+        "/sign-in/email": { window: 60, max: 5 },
+        "/sign-up/email": { window: 60 * 60, max: 5 },
+        "/request-password-reset": { window: 60 * 60, max: 3 },
+        "/forget-password": { window: 60 * 60, max: 3 },
+        "/reset-password": { window: 60 * 60, max: 5 },
+      },
     },
     user: {
       additionalFields: {
@@ -105,8 +147,16 @@ export const createAuth = (
     ],
   } satisfies BetterAuthOptions);
 
-export type User = (typeof auth.$Infer.Session.user) & 
-  { role: "user" | "admin" | "org_admin" | "god" };
+export type User = {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  role: "user" | "admin" | "org_admin" | "god";
+};
 
 // Example function for getting the current user
 // Feel free to edit, omit, etc.
