@@ -15,6 +15,7 @@ import { authClient } from "~/lib/auth-client";
 import { publicCtaBlueGradientButtonClassName } from "~/lib/public-cta-styles";
 import { cn } from "~/lib/utils";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 
 export default function SignIn() {
@@ -29,6 +30,7 @@ export default function SignIn() {
       {
         email,
         password,
+        callbackURL: "/dashboard/",
       },
       {
         onRequest: () => {
@@ -40,7 +42,7 @@ export default function SignIn() {
         },
         onError: () => {
           setOtpLoading(false);
-          setError("Incorrect username or password");
+          setError("Incorrect email or password");
         },
       },
     );
@@ -83,12 +85,15 @@ export default function SignIn() {
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password" className="text-gray-700">Password</Label>
+              <Link href="/forgot-password" className="text-xs text-blue-700 hover:underline">
+                Forgot password?
+              </Link>
             </div>
             <Input
               id="password"
               type="password"
               placeholder="password"
-              autoComplete="password"
+              autoComplete="current-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}

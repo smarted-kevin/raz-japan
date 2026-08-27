@@ -1,7 +1,7 @@
-import { query } from "../_generated/server";
 import { v } from "convex/values";
+import { adminQuery, authedQuery, requireOrganizationAccess } from "../lib/auth";
 
-export const getActivationCodeByCode = query({
+export const getActivationCodeByCode = authedQuery({
   args: { activation_code: v.string() },
   handler: async (ctx, args) => {
     const activationCode = await ctx.db
@@ -30,10 +30,13 @@ export const getActivationCodeByCode = query({
   }
 });
 
-export const getAllActivationCodes = query(async (ctx) => {
-  const activationCodes = await ctx.db
+export const getAllActivationCodes = adminQuery(async (ctx) => {
+  const allActivationCodes = await ctx.db
     .query("activation_code")
     .collect();
+  const activationCodes = ctx.user.role === "org_admin"
+    ? allActivationCodes.filter((code) => code.organization_id === ctx.user.org_id)
+    : allActivationCodes;
 
   return Promise.all(
     activationCodes.map(async (code) => {
@@ -51,9 +54,10 @@ export const getAllActivationCodes = query(async (ctx) => {
   );
 });
 
-export const getActivationCodesByOrganization = query({
+export const getActivationCodesByOrganization = adminQuery({
   args: { org_id: v.id("organization") },
   handler: async (ctx, args) => {
+    requireOrganizationAccess(ctx.user, args.org_id);
     const activationCodes = await ctx.db
       .query("activation_code")
       .collect();

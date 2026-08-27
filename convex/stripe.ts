@@ -21,13 +21,23 @@ export const checkout = action({
   args: { cart_id: v.id("cart") },
   handler: async (ctx, { cart_id }) => {
     
-    console.log("FROM checkout action: " + process.env.STRIPE_SANDBOX_SECRET_KEY);
     const identity = await ctx.auth.getUserIdentity();
     if (!identity) {
       throw new Error("Not authenticated");
     }
 
     const user = await ctx.runQuery(api.queries.users.getStripeUserInfoByAuthId, { userId: identity.subject });
+
+    // Resolve and authorize the cart before making any Stripe API calls or
+    // creating customer/order records. A cart id supplied by the browser is
+    // never trusted as proof of ownership.
+    const cart = await ctx.runQuery(internal.queries.cart.getCartById, { id: cart_id });
+    if (!cart) {
+      throw new Error("Cart not found");
+    }
+    if (cart.user_id !== user.user_id) {
+      throw new Error("Cart access denied");
+    }
     
     //URL and stripe key needed for stripe session
     const domain = process.env.SITE_URL ?? "http://localhost:3000";
@@ -49,11 +59,6 @@ export const checkout = action({
         stripe_id: stripeCustomerId,
       });
     }
-
-    //1. Get cart document by ID
-    const cart = await ctx.runQuery(internal.queries.cart.getCartById, {id: cart_id});
-
-    if (!cart || cart == null) return "Cart not found.";
 
     const renewal_students = cart.renewal_students && 
       cart.renewal_students.length > 0 ? 
@@ -198,7 +203,7 @@ export const fulfill = internalAction({
         const cart_renewal = cart.renewal_students ?? [];
         
         const renewal_students = cart_renewal.length > 0 ? await ctx.runQuery(
-          api.queries.student.getRenewalStudentsWithClassroomAndCourse, 
+          internal.queries.student.getRenewalStudentsWithClassroomAndCourseInternal,
           { ids: cart?.renewal_students as Id<"student">[] }
         ) : [];
 
@@ -283,7 +288,7 @@ export const fulfill = internalAction({
         // Send payment confirmation email
         if (order) {
           const orderDetails = await ctx.runQuery(
-            api.queries.full_order.getOrderById,
+            internal.queries.full_order.getOrderByIdInternal,
             { id: order as Id<"full_order"> }
           );
 
@@ -333,6 +338,17 @@ export const createProduct = action({
     price: v.number()
   },
   handler: async (ctx, {course_name, price}) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+
+    const caller = await ctx.runQuery(api.queries.users.getUserRoleByAuthId, {
+      userId: identity.subject,
+    });
+    if (caller.role !== "admin" && caller.role !== "god") {
+      throw new Error("Unauthorized: Global admin access required");
+    }
 
     const course = await ctx.runMutation(internal.mutations.course.createCourse,
       { 
@@ -340,7 +356,6 @@ export const createProduct = action({
         price: price
       }
     ) as { course_id?: Id<"course">; error?: string };
-    console.log(course);
     if(!course) return "Someting went wrong.";
     
     const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
@@ -351,7 +366,6 @@ export const createProduct = action({
         course_id: course as Id<"course">
       }
     });
-    console.log(stripeProduct);
     if(!stripeProduct) return "No product created.";
 
     const stripePrice = await stripe.prices.create({
@@ -359,7 +373,6 @@ export const createProduct = action({
       unit_amount: price,
       product: stripeProduct.id,
     });
-    console.log("Stripe Price: " + stripePrice.id);
     if(!stripePrice) return "No price created.";
 
     await ctx.runMutation(internal.mutations.course.updateCourseWithStripe, {

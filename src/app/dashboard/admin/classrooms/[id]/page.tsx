@@ -9,16 +9,20 @@ import AddStudentsButton from "./_components/addStudentsButton";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "~/components/ui/button";
+import { getToken } from "~/lib/auth-server";
+import { redirect } from "next/navigation";
 
 export default async function ClassroomPage(props: {
   params: Promise<{ id: Id<"classroom"> }>;
 }) {
+  const token = await getToken();
+  if (!token) redirect("/sign-in");
   const params = await props.params;
   const [classroom, students] = await Promise.all([
-    fetchQuery(api.queries.classroom.getClassroomById, { id: params.id }),
+    fetchQuery(api.queries.classroom.getClassroomById, { id: params.id }, { token }),
     fetchQuery(api.queries.student.getStudentsByClassroomId, {
       classroom_id: params.id,
-    }),
+    }, { token }),
   ]);
 
   const studentsData = students as ClassroomStudentData[];

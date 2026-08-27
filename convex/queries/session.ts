@@ -1,7 +1,7 @@
-import { query } from "../_generated/server";
+import { internalQuery } from "../_generated/server";
 import { v } from "convex/values";
 
-export const getSessionById = query({
+export const getSessionById = internalQuery({
   args: { sessionId: v.string() },
   handler: async (ctx, args) => {
     const session = await ctx.db

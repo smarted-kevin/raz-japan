@@ -80,15 +80,15 @@ export default async function Page() {
   let stats: DashboardStats | null = null;
 
   if (isOrgAdmin) {
-    const userDetails = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id });
+    const userDetails = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id }, { token });
     if (userDetails.org_id) {
       orgStats = await fetchQuery(api.queries.dashboard.getDashboardStatsByOrganization, {
         org_id: userDetails.org_id as Id<"organization">,
-      });
+      }, { token });
     }
   } else {
     const dashboardQuery = (api.queries as unknown as { dashboard: { getDashboardStats: Parameters<typeof fetchQuery>[0] } }).dashboard.getDashboardStats;
-    stats = (await fetchQuery(dashboardQuery, {})) as DashboardStats | null;
+    stats = (await fetchQuery(dashboardQuery, {}, { token })) as DashboardStats | null;
   }
 
   if (!stats && !orgStats) {

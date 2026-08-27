@@ -7,17 +7,26 @@ import { cn } from "~/lib/utils";
 import type { StudentData } from "../../admin/_actions/schemas";
 import { ExtendStudentByCode } from "./extendStudentByCode";
 
-function isExpiryWithin60Days(expiryDate: number | undefined): boolean {
+function isExpiryWithin60Days(
+  expiryDate: number | undefined,
+  renderedAt: number
+): boolean {
   if (!expiryDate) return false;
-  const now = Date.now();
   const sixtyDaysInMs = 60 * 24 * 60 * 60 * 1000;
-  return expiryDate - now <= sixtyDaysInMs;
+  return expiryDate - renderedAt <= sixtyDaysInMs;
 }
 
-export function MemberStudentCard({ student }: { student: StudentData }) {
+export function MemberStudentCard({
+  student,
+  renderedAt,
+}: {
+  student: StudentData;
+  renderedAt: number;
+}) {
   const t = useTranslations("dashboard.members");
   const showExtendButton =
-    student.status === "active" && isExpiryWithin60Days(student.expiry_date);
+    student.status === "active" &&
+    isExpiryWithin60Days(student.expiry_date, renderedAt);
 
   return (
     <Card className="overflow-hidden">

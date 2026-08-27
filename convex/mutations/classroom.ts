@@ -1,7 +1,7 @@
-import { mutation } from "../_generated/server";
 import { v } from "convex/values";
+import { adminMutation, requireOrganizationAccess } from "../lib/auth";
 
-export const createClassroom = mutation({
+export const createClassroom = adminMutation({
   args: { 
     classroom_name: v.string(),
     course_name: v.string(),
@@ -19,6 +19,7 @@ export const createClassroom = mutation({
       .withIndex("by_organization_name", (q) => q.eq("organization_name", args.organization))
       .first();
     if (!org) return "Organization not found."
+    requireOrganizationAccess(ctx.user, org._id);
     
     const new_class = await ctx.db
       .insert(

@@ -11,6 +11,7 @@ type PublicAuthPageShellProps = {
   title: string;
   subtitle: string;
   backLabel: string;
+  backHref?: string;
   children: ReactNode;
 };
 
@@ -18,6 +19,7 @@ export function PublicAuthPageShell({
   title,
   subtitle,
   backLabel,
+  backHref = "/",
   children,
 }: PublicAuthPageShellProps) {
   return (
@@ -36,7 +38,7 @@ export function PublicAuthPageShell({
           )}
         >
           <Link
-            href="/"
+            href={backHref}
             className="mb-8 inline-flex items-center gap-2 text-blue-100 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />

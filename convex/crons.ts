@@ -17,4 +17,10 @@ crons.daily(
   internal.email.sendRenewalNoticeEmails,
 );
 
+crons.interval(
+  "cleanup-contact-rate-limits",
+  { hours: 6 },
+  internal.mutations.contact.cleanupContactRateLimits,
+);
+
 export default crons;

@@ -6,7 +6,7 @@ import { Resend } from "resend";
 import { render } from "@react-email/render";
 import { PaymentConfirmationEmail } from "../src/components/payment-confirmation-email";
 import { RenewalNoticeEmail } from "../src/components/renewal-notice-email";
-import { api, internal } from "./_generated/api";
+import { internal } from "./_generated/api";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -23,7 +23,7 @@ export const sendPaymentConfirmationEmail = internalAction({
   handler: async (ctx, { userId, orderId, totalAmount, stripeOrderId }) => {
     try {
       // Get user information
-      const user = await ctx.runQuery(api.queries.users.getUserById, {
+      const user = await ctx.runQuery(internal.queries.users.getUserByIdInternal, {
         id: userId,
       });
 

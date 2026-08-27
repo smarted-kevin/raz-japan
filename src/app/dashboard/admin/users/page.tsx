@@ -15,8 +15,8 @@ export default async function UsersPage() {
   }
 
   const [users, orgs] = await Promise.all([
-    fetchQuery(api.queries.users.getUsersWithStudents),
-    fetchQuery(api.queries.organization.getAllOrganizations),
+    fetchQuery(api.queries.users.getUsersWithStudents, {}, { token }),
+    fetchQuery(api.queries.organization.getAllOrganizations, {}, { token }),
   ]);
   const t = await getTranslations("dashboard.admin.users");
 

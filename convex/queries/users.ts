@@ -1,13 +1,12 @@
-import { internalQuery, query } from "../_generated/server";
+import { internalQuery } from "../_generated/server";
 import { ConvexError, v } from "convex/values";
-import { getAuthUserId } from "@convex-dev/auth/server";
+import { adminQuery, authedQuery, requireUserAccess } from "../lib/auth";
 
 
-export const userAuthorized = query({
+export const userAuthorized = authedQuery({
   args: { role: v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god")) },
   handler: async (ctx) => {
-    const userId = await getAuthUserId(ctx);
-    return userId ?? "nothing";
+    return ctx.user.auth_id ?? "nothing";
     
   //   const user = await ctx.db.get(userId);
 
@@ -21,15 +20,21 @@ export const userAuthorized = query({
   }
 });
 
-export const getUserById = query({
+export const getUserById = authedQuery({
   args: { id: v.id("userTable") },
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.id);
+    if (user) requireUserAccess(ctx.user, user);
     return user;
   }
 });
 
-export const getUsersByRole = query({
+export const getUserByIdInternal = internalQuery({
+  args: { id: v.id("userTable") },
+  handler: async (ctx, args) => ctx.db.get(args.id),
+});
+
+export const getUsersByRole = adminQuery({
   args: { role: v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god")) },
   handler: async (ctx, args) => {
     const users = await ctx.db
@@ -37,11 +42,13 @@ export const getUsersByRole = query({
       .withIndex("users_by_role", (q) => q.eq("role", args.role))
       .collect();
 
-    return users;
+    return ctx.user.role === "org_admin"
+      ? users.filter((user) => user.org_id === ctx.user.org_id)
+      : users;
   }
 })
 
-export const getUserByEmail = query({
+export const getUserByEmail = adminQuery({
   args: { email: v.string() },
   handler: async (ctx, args) => {
     const user = await ctx.db
@@ -49,6 +56,7 @@ export const getUserByEmail = query({
       .withIndex("by_email", (q) => q.eq("email", args.email))
       .first();
 
+    if (user) requireUserAccess(ctx.user, user);
     return user ? {
       _id: user?._id,
       roles: user?.role,
@@ -56,11 +64,12 @@ export const getUserByEmail = query({
   }
 });
 
-export const getUserWithStudents = query({
+export const getUserWithStudents = authedQuery({
   args: { id: v.id("userTable") },
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.id);
     if (!user) return null;
+    requireUserAccess(ctx.user, user);
 
     const students = await ctx.db
       .query("student")
@@ -98,11 +107,12 @@ export const getUserWithStudents = query({
 /**
  * Get user detail for admin view - includes role, students with classroom/status/expiry, and orders
  */
-export const getUserDetailForAdmin = query({
+export const getUserDetailForAdmin = adminQuery({
   args: { id: v.id("userTable") },
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.id);
     if (!user) return null;
+    requireUserAccess(ctx.user, user);
 
     const students = await ctx.db
       .query("student")
@@ -136,9 +146,12 @@ export const getUserDetailForAdmin = query({
   },
 });
 
-export const getUsersWithStudents = query(async (ctx) => {
+export const getUsersWithStudents = adminQuery(async (ctx) => {
   
-    const users = await ctx.db.query("userTable").collect();
+    const allUsers = await ctx.db.query("userTable").collect();
+    const users = ctx.user.role === "org_admin"
+      ? allUsers.filter((user) => user.org_id === ctx.user.org_id)
+      : allUsers;
 
     const usersWithStudents = await Promise.all(
       users.map(async (user) => {
@@ -177,7 +190,7 @@ export const getUsersWithStudents = query(async (ctx) => {
   }  
 );
 
-export const getUserRoleByAuthId = query({
+export const getUserRoleByAuthId = authedQuery({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
     const user = await ctx.db
@@ -186,6 +199,7 @@ export const getUserRoleByAuthId = query({
       .first();
 
     if (!user) throw new ConvexError("User not found");
+    requireUserAccess(ctx.user, user);
     
     return {
       user_id: user._id,
@@ -197,7 +211,7 @@ export const getUserRoleByAuthId = query({
   }
 });
 
-export const getStripeUserInfoByAuthId = query({
+export const getStripeUserInfoByAuthId = authedQuery({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
     const user = await ctx.db
@@ -206,6 +220,7 @@ export const getStripeUserInfoByAuthId = query({
       .first();
       
     if (!user) throw new ConvexError("User not found");
+    requireUserAccess(ctx.user, user);
 
     return {
       user_id: user._id,
@@ -219,11 +234,12 @@ export const getStripeUserInfoByAuthId = query({
   }
 });
 
-export const getUserWithOrgId = query({
+export const getUserWithOrgId = authedQuery({
   args: { id: v.id("userTable") },
   handler: async (ctx, args) => {
     const user = await ctx.db.get(args.id);
     if (!user) return null;
+    requireUserAccess(ctx.user, user);
 
     return {
       id: user._id,

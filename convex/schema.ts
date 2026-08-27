@@ -147,5 +147,13 @@ export default defineSchema({
     counter_name: v.string(),
     value: v.number(),
   }).index("by_counter_name", ["counter_name"]),
+
+  contact_rate_limit: defineTable({
+    key: v.string(),
+    window_start: v.number(),
+    count: v.number(),
+  })
+    .index("by_key", ["key"])
+    .index("by_window_start", ["window_start"]),
 });
 

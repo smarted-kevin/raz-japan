@@ -6,6 +6,7 @@ import {
 import { ConvexError } from "convex/values";
 import { mutation, query } from "../_generated/server";
 import type { Doc } from "../_generated/dataModel";
+import type { Id } from "../_generated/dataModel";
 import type { QueryCtx } from "../_generated/server";
 
 export type Role = "user" | "admin" | "org_admin" | "god";
@@ -18,6 +19,40 @@ export const ADMIN_ROLES: readonly Role[] = ["admin", "org_admin", "god"];
 
 export function isAdminRole(role: Role): boolean {
   return ADMIN_ROLES.includes(role);
+}
+
+export function canAccessOrganization(
+  user: Doc<"userTable">,
+  organizationId: Id<"organization">,
+): boolean {
+  if (user.role === "god" || user.role === "admin") return true;
+  return user.role === "org_admin" && user.org_id === organizationId;
+}
+
+export function requireOrganizationAccess(
+  user: Doc<"userTable">,
+  organizationId: Id<"organization">,
+): void {
+  if (!canAccessOrganization(user, organizationId)) {
+    throw new ConvexError("Organization access denied");
+  }
+}
+
+export function requireUserAccess(
+  caller: Doc<"userTable">,
+  target: Doc<"userTable">,
+): void {
+  if (caller._id === target._id || caller.role === "god" || caller.role === "admin") {
+    return;
+  }
+  if (
+    caller.role === "org_admin" &&
+    caller.org_id !== undefined &&
+    caller.org_id === target.org_id
+  ) {
+    return;
+  }
+  throw new ConvexError("User access denied");
 }
 
 /**

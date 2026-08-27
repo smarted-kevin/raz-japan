@@ -33,6 +33,7 @@ export default async function SignInPage() {
       const userTableUser = await fetchQuery(
         api.queries.users.getUserRoleByAuthId,
         { userId: user._id },
+        { token },
       );
       if (userTableUser) {
         redirect(`/dashboard/members/${userTableUser.user_id}`);

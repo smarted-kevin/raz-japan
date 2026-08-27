@@ -1,5 +1,6 @@
-import { internalQuery, query } from "../_generated/server";
+import { internalQuery } from "../_generated/server";
 import { v } from "convex/values";
+import { authedQuery } from "../lib/auth";
 
 export const getCartById = internalQuery({
   args: { id: v.id("cart") },
@@ -10,9 +11,10 @@ export const getCartById = internalQuery({
   }
 });
 
-export const userCartExists = query({
+export const userCartExists = authedQuery({
   args: { user_id: v.id("userTable") },
   handler: async (ctx, args) => {
+    if (args.user_id !== ctx.user._id) throw new Error("User access denied");
     const cart = await ctx.db
       .query("cart")
       .withIndex("by_user_id", (q) => q.eq("user_id", args.user_id))
@@ -21,9 +23,10 @@ export const userCartExists = query({
   }
 });
 
-export const getCartByUserId = query({
+export const getCartByUserId = authedQuery({
   args: { id: v.id("userTable") },
   handler: async (ctx, args) => {
+    if (args.id !== ctx.user._id) throw new Error("User access denied");
     const cart = await ctx.db
       .query("cart")
       .withIndex("by_user_id", (q) => q.eq("user_id", args.id))

@@ -1,13 +1,14 @@
-import { mutation } from "../_generated/server";
 import { v } from "convex/values";
+import { adminMutation, requireOrganizationAccess } from "../lib/auth";
 
-export const createActivationCode = mutation({
+export const createActivationCode = adminMutation({
   args: {
     quantity: v.optional(v.number()),
     course_id: v.id("course"),
     organization_id: v.id("organization"),
   },
   handler: async (ctx, args) => {
+    requireOrganizationAccess(ctx.user, args.organization_id);
     const chars = "123456789ABCDEFGHJKMNPQRSTUVWXYZ";
     const quantity = args.quantity ?? 1;
     const activation_codes: string[] = [];
@@ -35,7 +36,7 @@ export const createActivationCode = mutation({
   }
 });
 
-export const removeActivationCode = mutation({
+export const removeActivationCode = adminMutation({
   args: {
     activation_code_id: v.id("activation_code")
   },
@@ -44,6 +45,7 @@ export const removeActivationCode = mutation({
     if (!activationCode) {
       return { success: false, error: "Activation code not found" };
     }
+    requireOrganizationAccess(ctx.user, activationCode.organization_id);
     if (activationCode.removed_date) {
       return { success: false, error: "Activation code has already been removed" };
     }

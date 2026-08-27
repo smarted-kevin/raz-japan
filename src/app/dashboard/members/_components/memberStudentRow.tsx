@@ -6,15 +6,25 @@ import type { StudentData } from "../../admin/_actions/schemas";
 import { ExtendStudentByCode } from "./extendStudentByCode";
 
 // Check if expiry date is within 60 days from now
-function isExpiryWithin60Days(expiryDate: number | undefined): boolean {
+function isExpiryWithin60Days(
+  expiryDate: number | undefined,
+  renderedAt: number
+): boolean {
   if (!expiryDate) return false;
-  const now = Date.now();
   const sixtyDaysInMs = 60 * 24 * 60 * 60 * 1000;
-  return expiryDate - now <= sixtyDaysInMs;
+  return expiryDate - renderedAt <= sixtyDaysInMs;
 }
 
-export function MemberStudentRow({ student }:{student:StudentData}) {
-  const showExtendButton = student.status === "active" && isExpiryWithin60Days(student.expiry_date);
+export function MemberStudentRow({
+  student,
+  renderedAt,
+}: {
+  student: StudentData;
+  renderedAt: number;
+}) {
+  const showExtendButton =
+    student.status === "active" &&
+    isExpiryWithin60Days(student.expiry_date, renderedAt);
 
   return (
     <TableRow>

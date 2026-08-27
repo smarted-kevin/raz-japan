@@ -1,4 +1,4 @@
-import { internalMutation, mutation } from "../_generated/server";
+import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
 import type { MutationCtx } from "../_generated/server";
 
@@ -168,7 +168,7 @@ export const claimOrderForFulfillment = internalMutation({
   },
 });
 
-export const updateDateOrderPrice = mutation({
+export const updateDateOrderPrice = internalMutation({
   args: { order_id: v.id("full_order") },
   handler: async (ctx, args) => {
     const students = await ctx.db

@@ -12,14 +12,24 @@ import type { StudentData } from "../../admin/_actions/schemas";
 import { MemberStudentRow } from "./memberStudentRow";
 import { MemberStudentCard } from "./memberStudentCard";
 
-export function MemberStudentTable({ students }: { students: StudentData[] }) {
+export function MemberStudentTable({
+  students,
+  renderedAt,
+}: {
+  students: StudentData[];
+  renderedAt: number;
+}) {
   const t = useTranslations("dashboard.members");
   return (
     <>
       {/* Mobile: Card layout */}
       <div className="flex flex-col gap-3 md:hidden">
         {students.map((student) => (
-          <MemberStudentCard key={student.id} student={student} />
+          <MemberStudentCard
+            key={student.id}
+            student={student}
+            renderedAt={renderedAt}
+          />
         ))}
       </div>
 
@@ -38,7 +48,11 @@ export function MemberStudentTable({ students }: { students: StudentData[] }) {
           </TableHeader>
           <TableBody>
             {students.map((student) => (
-              <MemberStudentRow key={student.id} student={student} />
+              <MemberStudentRow
+                key={student.id}
+                student={student}
+                renderedAt={renderedAt}
+              />
             ))}
           </TableBody>
         </Table>

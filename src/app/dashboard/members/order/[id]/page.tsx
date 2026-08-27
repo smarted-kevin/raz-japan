@@ -20,13 +20,13 @@ export default async function OrderPage(
   const params = await props.params;
 
   const user = await fetchQuery(
-    api.queries.users.getUserWithStudents, { id: params.id as Id<"userTable"> });
+    api.queries.users.getUserWithStudents, { id: params.id as Id<"userTable"> }, { token });
 
   // Ensure user can only access their own order page
   if (!user || user.auth_id !== session._id) redirect('/sign-in');
 
   const cartExists = await fetchQuery(
-    api.queries.cart.userCartExists, { user_id: params.id as Id<"userTable">})
+    api.queries.cart.userCartExists, { user_id: params.id as Id<"userTable">}, { token })
   
   if (!cartExists) {
     await fetchMutation(
@@ -35,12 +35,13 @@ export default async function OrderPage(
         user_id: params.id as Id<"userTable">,
         new_students: 0,
         renewal_students: []
-      }
+      },
+      { token },
     )
   };
 
   const cart = await fetchQuery(
-    api.queries.cart.getCartByUserId, { id: params.id as Id<"userTable"> });
+    api.queries.cart.getCartByUserId, { id: params.id as Id<"userTable"> }, { token });
 
   return (
     <>

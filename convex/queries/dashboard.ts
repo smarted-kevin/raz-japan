@@ -1,5 +1,5 @@
-import { query } from "../_generated/server";
 import { v } from "convex/values";
+import { adminQuery, requireOrganizationAccess } from "../lib/auth";
 
 /**
  * Gets dashboard statistics for admin page
@@ -9,8 +9,9 @@ import { v } from "convex/values";
  * - Students expiring within the current month
  * - Total number of students by course
  */
-export const getDashboardStats = query({
+export const getDashboardStats = adminQuery({
   handler: async (ctx) => {
+    if (ctx.user.role === "org_admin") throw new Error("Global admin access required");
     // 1. Get number of active users
     const allUsers = await ctx.db.query("userTable").collect();
     const activeUsersCount = allUsers.filter((user) => user.status === "active").length;
@@ -129,9 +130,10 @@ export const getDashboardStats = query({
  * - Students expiring within the current month
  * - Total number of students by classroom
  */
-export const getDashboardStatsByOrganization = query({
+export const getDashboardStatsByOrganization = adminQuery({
   args: { org_id: v.id("organization") },
   handler: async (ctx, args) => {
+    requireOrganizationAccess(ctx.user, args.org_id);
     // Get organization info
     const organization = await ctx.db.get(args.org_id);
     

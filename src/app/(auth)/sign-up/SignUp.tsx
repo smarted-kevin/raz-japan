@@ -13,15 +13,12 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useConvex } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { authClient } from "~/lib/auth-client";
 import { publicCtaYellowButtonClassName } from "~/lib/public-cta-styles";
 import { cn } from "~/lib/utils";
 
 export default function SignUp() {
   const router = useRouter();
-  const convex = useConvex();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -42,27 +39,14 @@ export default function SignUp() {
         email,
         password,
         name: `${firstName} ${lastName}`,
+        callbackURL: "/dashboard/",
       },
       {
         onRequest: () => {
           setLoading(true);
         },
-        onSuccess: async (ctx) => {
-          toast.success("Thank you for creating your account!");
-          try {
-            const authId = (ctx.data as { user?: { id?: string } } | null | undefined)
-              ?.user?.id;
-            if (authId) {
-              const { user_id } = await convex.query(
-                api.queries.users.getUserRoleByAuthId,
-                { userId: authId },
-              );
-              router.push(`/dashboard/members/${user_id}`);
-              return;
-            }
-          } catch (err) {
-            console.error("Failed to resolve member id after sign-up", err);
-          }
+        onSuccess: () => {
+          toast.success("Account created successfully.");
           router.push("/dashboard/");
         },
         onError: (ctx) => {
@@ -129,6 +113,9 @@ export default function SignUp() {
             <Input
               id="password"
               type="password"
+              minLength={12}
+              maxLength={128}
+              required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"
@@ -142,6 +129,9 @@ export default function SignUp() {
             <Input
               id="password_confirmation"
               type="password"
+              minLength={12}
+              maxLength={128}
+              required
               value={passwordConfirmation}
               onChange={(e) => setPasswordConfirmation(e.target.value)}
               autoComplete="new-password"

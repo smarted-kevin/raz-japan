@@ -64,6 +64,7 @@ export function ContactForm({ className }: { className?: string }) {
       name: "",
       email: "",
       message: "",
+      website: "",
     },
   });
 
@@ -90,6 +91,7 @@ export function ContactForm({ className }: { className?: string }) {
       name: "",
       email: "",
       message: "",
+      website: "",
     });
   }
 
@@ -97,6 +99,14 @@ export function ContactForm({ className }: { className?: string }) {
     <div className={cn("space-y-4", className)}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <input
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden="true"
+            className="absolute -left-[10000px] h-px w-px overflow-hidden"
+            {...form.register("website")}
+          />
           <FormField
             control={form.control}
             name="topic"

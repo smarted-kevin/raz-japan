@@ -3,6 +3,7 @@
 import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { api } from "../../../../../convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+import { getToken } from "~/lib/auth-server";
 
 export async function updateCart({
   user_id, 
@@ -15,7 +16,9 @@ export async function updateCart({
   new_students: number | undefined,
   renewal_students: Id<"student">[] | undefined
 }) {
-  const cart = await fetchQuery(api.queries.cart.getCartByUserId, { id: user_id });
+  const token = await getToken();
+  if (!token) return "Not authenticated";
+  const cart = await fetchQuery(api.queries.cart.getCartByUserId, { id: user_id }, { token });
 
 
   if (!cart) return "Cart not found."
@@ -28,7 +31,8 @@ export async function updateCart({
       user_id: user_id,
       new_students: new_students ?? cart.new_students,
       renewal_students: renewal_students ?? cart.renewal_students
-    }
+    },
+    { token },
   )
   
   return updated_cart;
