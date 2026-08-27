@@ -303,18 +303,19 @@ export const fulfill = internalAction({
                     "internal",
                     {
                       userId: Id<"userTable">;
-                      orderId: string;
+                      orderNumber: string;
                       totalAmount: number;
-                      stripeOrderId?: string;
                     }
                   >;
                 };
               }).email.sendPaymentConfirmationEmail;
+              if (!orderDetails.order_number) {
+                throw new Error(`Order ${orderDetails._id} is missing its RAZ order number`);
+              }
               await ctx.runAction(emailAction, {
                 userId: orderDetails.user_id,
-                orderId: String(orderDetails._id),
+                orderNumber: orderDetails.order_number,
                 totalAmount: orderDetails.total_amount,
-                stripeOrderId: stripeId,
               });
             } catch (emailError) {
               // Log error but don't fail the webhook
