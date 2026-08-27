@@ -16,11 +16,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const sendPaymentConfirmationEmail = internalAction({
   args: {
     userId: v.id("userTable"),
-    orderId: v.string(),
+    orderNumber: v.string(),
     totalAmount: v.number(),
-    stripeOrderId: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, orderId, totalAmount, stripeOrderId }) => {
+  handler: async (ctx, { userId, orderNumber, totalAmount }) => {
     try {
       // Get user information
       const user = await ctx.runQuery(internal.queries.users.getUserByIdInternal, {
@@ -43,7 +42,7 @@ export const sendPaymentConfirmationEmail = internalAction({
       const emailHtml = await render(
         PaymentConfirmationEmail({
           firstName: user.first_name ?? "Valued Customer",
-          orderId: stripeOrderId ?? String(orderId),
+          orderId: orderNumber,
           totalAmount: totalAmount,
           currency: "JPY",
           orderDate: orderDate,
