@@ -36,7 +36,7 @@ export default async function SignInPage() {
         { token },
       );
       if (userTableUser) {
-        redirect(`/dashboard/members/${userTableUser.user_id}`);
+        redirect("/dashboard/members");
       }
     }
   }

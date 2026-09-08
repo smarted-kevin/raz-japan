@@ -19,7 +19,7 @@ export default async function DashboardPage() {
     if (user && user.role == "user") {
       const userTableUser = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id }, { token });
       if (userTableUser) {
-        redirect(`${process.env.SITE_URL ?? "http://localhost:3000"}/dashboard/members/${userTableUser.user_id}`);
+        redirect("/dashboard/members");
       }
     }
   }

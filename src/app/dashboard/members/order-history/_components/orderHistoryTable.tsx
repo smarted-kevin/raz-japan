@@ -31,7 +31,7 @@ type OrderData = {
   student_orders: StudentOrderData[];
 };
 
-export function OrderHistoryTable({ orders, userId }: { orders: OrderData[]; userId: Id<"userTable"> }) {
+export function OrderHistoryTable({ orders }: { orders: OrderData[] }) {
   const t = useTranslations("dashboard.members");
 
   if (orders.length === 0) {
@@ -60,7 +60,7 @@ export function OrderHistoryTable({ orders, userId }: { orders: OrderData[]; use
             </TableCell>
             <TableCell>
               <Link
-                href={`/dashboard/members/${userId}/order-history/${order.order_id}`}
+                href={`/dashboard/members/order-history/${order.order_id}`}
                 className="text-primary hover:underline font-medium"
               >
                 {order.order_number ?? "N/A"}

@@ -113,7 +113,7 @@ export function MobileNavMenu() {
                 href={
                   user_id
                     ? user_id.role === "user"
-                      ? `/dashboard/members/${user_id.user_id}`
+                      ? "/dashboard/members"
                       : "/dashboard/admin"
                     : "/dashboard"
                 }
@@ -125,7 +125,7 @@ export function MobileNavMenu() {
               </Link>
               {user_id?.role === "user" && (
                 <Link
-                  href={`/dashboard/members/${user_id.user_id}/order-history`}
+                  href={"/dashboard/members/order-history"}
                   onClick={handleLinkClick}
                   className={publicMobileNavLinkUniformClassName}
                 >

@@ -1,52 +1,5 @@
-import { fetchQuery } from "convex/nextjs";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { buttonVariants } from "~/components/ui/button";
-import { api } from "@/convex/_generated/api";
-import type { Id } from "@/convex/_generated/dataModel";
-import { getToken } from "~/lib/auth-server";
-import { OrderHistoryTable } from "./_components/orderHistoryTable";
-import { getTranslations } from "next-intl/server";
 
-export default async function OrderHistoryPage(
-  props: { 
-    params: Promise<{ id: string }>
-  }
-) {
-  const token = await getToken();
-  const session = await fetchQuery(api.auth.getCurrentUser, {}, { token });
-
-  if (!session) redirect('/sign-in');
-
-  const params = await props.params;
-  const user = await fetchQuery(api.queries.users.getUserById, { id: params.id as Id<"userTable"> }, { token });
-
-  if (!user || (user.auth_id != session._id)) redirect('/sign-in');
-
-  const orders = await fetchQuery(
-    api.queries.full_order.getOrdersByUserId, 
-    { user_id: params.id as Id<"userTable"> },
-    { token },
-  );
-
-  const t = await getTranslations("dashboard.members");
-
-  return (
-    <div className="flex flex-col gap-y-4 mx-12 my-6">
-      <div className="flex items-center gap-4">
-        <Link
-          href={`/dashboard/members/${params.id}`}
-          className={buttonVariants({ variant: "outline", size: "icon" })}
-          aria-label={t("member_info_title")}
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Link>
-        <h1 className="font-bold text-2xl">{t("order_history")}</h1>
-      </div>
-      <div className="p-6 border-2 rounded-lg">
-        <OrderHistoryTable orders={orders} userId={params.id as Id<"userTable">} />
-      </div>
-    </div>
-  );
+export default function LegacyOrderHistoryPage() {
+  redirect("/dashboard/members/order-history");
 }

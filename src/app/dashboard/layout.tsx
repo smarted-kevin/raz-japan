@@ -14,7 +14,7 @@ export default async function DashboardLayout({
 
   // if (user && user.role == "user") { 
   //   const userTableUser = await fetchQuery(api.queries.users.getUserRoleByAuthId, {userId: user._id});
-  //   return redirect(`/dashboard/members/${userTableUser.user_id}`);
+  //   return redirect("/dashboard/members");
   // }
 
   // if (user && (user.role == "admin" || user.role == "god")) { 

@@ -152,7 +152,7 @@ export const checkout = action({
       mode: "payment",
       currency: "JPY",
       success_url: domain + "/dashboard/members/checkout/success",
-      cancel_url: domain + "/dashboard/members/" + user.user_id,
+      cancel_url: domain + "/dashboard/members",
       metadata: {
         cart_id: cart_id,
         user: user.user_id,

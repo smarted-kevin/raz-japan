@@ -1,4 +1,3 @@
-import type { Id } from "@/convex/_generated/dataModel";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,9 +33,7 @@ export default function UserDropdown({ user }: { user: string }) {
           onSelect={() => {
             if (user_id && user_id.role == "user") {
               redirect(
-                siteUrl +
-                  "/dashboard/members/" +
-                  (user_id?.user_id as Id<"userTable">),
+                siteUrl + "/dashboard/members",
               );
             } else if (
               user_id &&
@@ -54,10 +51,7 @@ export default function UserDropdown({ user }: { user: string }) {
           <DropdownMenuItem
             onSelect={() => {
               redirect(
-                siteUrl +
-                  "/dashboard/members/" +
-                  (user_id?.user_id as Id<"userTable">) +
-                  "/order-history",
+                siteUrl + "/dashboard/members/order-history",
               );
             }}
           >

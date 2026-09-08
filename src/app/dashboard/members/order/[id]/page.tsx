@@ -1,55 +1,5 @@
-import { type Cart } from "~/app/dashboard/admin/_actions/schemas";
-import { MemberOrder } from "../_components/memberOrder";
-import type { Id } from "@/convex/_generated/dataModel";
-import { api } from "@/convex/_generated/api";
-import { fetchMutation, fetchQuery } from "convex/nextjs";
 import { redirect } from "next/navigation";
-import { getToken } from "~/lib/auth-server";
 
-
-export default async function OrderPage(
-  props: {
-    params: Promise<{ id: string }>
-  }
-) {
-  const token = await getToken();
-  const session = await fetchQuery(api.auth.getCurrentUser, {}, { token });
-
-  if (!session) redirect('/sign-in');
-
-  const params = await props.params;
-
-  const user = await fetchQuery(
-    api.queries.users.getUserWithStudents, { id: params.id as Id<"userTable"> }, { token });
-
-  // Ensure user can only access their own order page
-  if (!user || user.auth_id !== session._id) redirect('/sign-in');
-
-  const cartExists = await fetchQuery(
-    api.queries.cart.userCartExists, { user_id: params.id as Id<"userTable">}, { token })
-  
-  if (!cartExists) {
-    await fetchMutation(
-      api.mutations.cart.createCart, 
-      {
-        user_id: params.id as Id<"userTable">,
-        new_students: 0,
-        renewal_students: []
-      },
-      { token },
-    )
-  };
-
-  const cart = await fetchQuery(
-    api.queries.cart.getCartByUserId, { id: params.id as Id<"userTable"> }, { token });
-
-  // Capture once on the server so every row hydrates with the same eligibility.
-  // eslint-disable-next-line react-hooks/purity
-  const renderedAt = Date.now();
-
-  return (
-    <>
-      <MemberOrder user={user} cart={cart as Cart} renderedAt={renderedAt} />
-    </>
-  )
+export default function LegacyOrderPage() {
+  redirect("/dashboard/members/order");
 }

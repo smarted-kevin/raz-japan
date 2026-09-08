@@ -151,7 +151,7 @@ export function MemberOrder({
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 pb-8 sm:px-6">
       <Link
-        href={`/dashboard/members/${user.id}`}
+        href={"/dashboard/members"}
         className="text-primary w-fit text-sm underline underline-offset-4"
       >
         {t("back")}

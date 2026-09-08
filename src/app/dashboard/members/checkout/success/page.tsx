@@ -103,7 +103,7 @@ export default async function SuccessPage(
         </div>
         <Button className="w-2/3 min-w-min mx-auto mt-4" asChild>
           <Link 
-            href={`/dashboard/members/${user?._id}`}
+            href={"/dashboard/members"}
           >
           See All your student information on your Member page
           </Link>
