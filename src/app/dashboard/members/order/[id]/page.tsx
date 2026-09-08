@@ -43,9 +43,13 @@ export default async function OrderPage(
   const cart = await fetchQuery(
     api.queries.cart.getCartByUserId, { id: params.id as Id<"userTable"> }, { token });
 
+  // Capture once on the server so every row hydrates with the same eligibility.
+  // eslint-disable-next-line react-hooks/purity
+  const renderedAt = Date.now();
+
   return (
     <>
-      <MemberOrder user={user} cart={cart as Cart} />
+      <MemberOrder user={user} cart={cart as Cart} renderedAt={renderedAt} />
     </>
   )
 }

@@ -68,7 +68,7 @@ export const authComponent = createClient<DataModel, typeof authSchema>(
 
 export const createAuth = (
   ctx: GenericCtx<DataModel>,
-  { optionsOnly } = { optionsOnly: false }
+  { optionsOnly = false, publicMetadata = false } = {}
 ) => 
   betterAuth({
     // disable logging when createAuth is called just to generate options.
@@ -95,7 +95,9 @@ export const createAuth = (
       revokeSessionsOnPasswordReset: true,
     },
     rateLimit: {
-      enabled: true,
+      // Only exact public metadata GET routes in http.ts opt out. Convex
+      // fetches these during token validation, often concurrently.
+      enabled: !publicMetadata,
       storage: "database",
       window: 60,
       max: 60,

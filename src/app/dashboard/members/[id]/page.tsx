@@ -11,6 +11,7 @@ import MemberInformation from "./_components/memberInformation";
 import ActivateStudentByCode from "./_components/activateStudentByCode";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { getTranslations } from "next-intl/server";
+import { isRenewable } from "~/lib/dateCompare";
 
 export default async function MemberPage(
   props: {
@@ -35,6 +36,8 @@ export default async function MemberPage(
   const removedStudents = user.students.filter(
     (student) => student.status === "removed"
   );
+  // Capture one request-time timestamp in this server component for all client rows.
+  // eslint-disable-next-line react-hooks/purity
   const renderedAt = Date.now();
 
   const t = await getTranslations("dashboard.members");
@@ -55,7 +58,7 @@ export default async function MemberPage(
               "h-[3.15rem] gap-2.5 px-7 text-[0.9rem] has-[>svg]:px-7",
           })}
         >
-          {t("add_students")}
+          {t(user.students.some((student) => isRenewable(60, student.expiry_date, renderedAt)) ? "add_or_renew_students" : "add_students")}
           <CirclePlus className="size-[1.35rem]" />
         </Link>
       </div>

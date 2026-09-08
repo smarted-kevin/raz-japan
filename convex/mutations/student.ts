@@ -162,6 +162,7 @@ export const reactivateStudent = internalMutation({
     await ctx.db.patch(
       args.student_id,
       { 
+        "status": "active",
         "expiry_date": new Date(start_date.setFullYear(start_date.getFullYear()+1)).getTime(),
         "updated_on": Date.now()
       }
@@ -183,7 +184,7 @@ export const renewStudent = internalMutation({
     const student = await ctx.db.get(args.student_id);
     if (!student || typeof student.expiry_date != "number" ) return "Something went wrong.";
 
-    const start_date = new Date(student.expiry_date);
+    const start_date = new Date(Math.max(student.expiry_date, Date.now()));
 
     await ctx.db.patch(
       args.student_id,

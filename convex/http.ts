@@ -26,6 +26,22 @@ http.route({
   }),
 });
 
+// Exact GET routes take precedence over the Better Auth /api/auth/ prefix.
+// Public verification metadata must not contend on a database rate-limit row.
+// Keep all account/session endpoints on the normal rate-limited handler below.
+for (const path of [
+  "/api/auth/convex/jwks",
+  "/api/auth/convex/.well-known/openid-configuration",
+]) {
+  http.route({
+    path,
+    method: "GET",
+    handler: httpAction(async (ctx, request) => {
+      return createAuth(ctx, { publicMetadata: true }).handler(request);
+    }),
+  });
+}
+
 authComponent.registerRoutes(http, createAuth, {
   cors: {
     // Better Auth's `trustedOrigins` is the allowlist. No additional origins,

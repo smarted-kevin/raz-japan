@@ -10,6 +10,41 @@ import type { FunctionReference } from "convex/server";
 
 type CheckoutSession = Stripe.Checkout.Session;
 
+// Read the same Stripe prices used by checkout; never create a session for a preview.
+export const getOrderPricing = action({
+  args: { student_ids: v.array(v.id("student")) },
+  handler: async (ctx, args): Promise<{
+    newStudent: number;
+    renewals: { id: Id<"student">; amount: number }[];
+    currency: string;
+  }> => {
+    if (!(await ctx.auth.getUserIdentity())) throw new Error("Not authenticated");
+    const students = await ctx.runQuery(api.queries.student.getRenewalStudentsWithClassroomAndCourse, {
+      ids: [...new Set(args.student_ids)],
+    });
+    const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
+    const product = await stripe.products.retrieve("prod_SXpH8diltRufBp");
+    const newPriceId = typeof product.default_price === "string" ? product.default_price : product.default_price?.id;
+    if (!newPriceId) throw new Error("Price unavailable");
+    const priceIds = [...new Set([newPriceId, ...students.map(student => {
+      if (!student.course.price || !student.course.stripe_price_id) throw new Error("Price unavailable");
+      return student.course.stripe_price_id;
+    })])];
+    const prices = await Promise.all(priceIds.map(id => stripe.prices.retrieve(id)));
+    const amount = (id: string) => {
+      const price = prices.find(item => item.id === id);
+      // This store charges JPY, whose Stripe amounts are already whole yen.
+      if (!price || price.currency !== "jpy" || price.unit_amount === null) throw new Error("Price unavailable");
+      return price.unit_amount;
+    };
+    return {
+      newStudent: amount(newPriceId),
+      renewals: students.map(student => ({ id: student.student.id!, amount: amount(student.course.stripe_price_id!) })),
+      currency: "JPY",
+    };
+  },
+});
+
 /*
 checkout action does the following:
 1. Get cart object from convex
