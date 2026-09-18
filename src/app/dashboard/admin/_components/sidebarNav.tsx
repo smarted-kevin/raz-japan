@@ -38,7 +38,7 @@ export default function SidebarNav({ role, onLinkClick, collapsed = false }: Sid
   
   const allLinks = [
     { name: t("home"), href: "/dashboard/admin", roles: ["admin", "org_admin", "god"], icon: "home" },
-    { name: t("users"), href: "/dashboard/admin/users", roles: ["admin", "god"], icon: "users" },
+    { name: t("users"), href: "/dashboard/admin/users", roles: ["admin", "org_admin", "god"], icon: "users" },
     { name: t("students"), href: "/dashboard/admin/students", roles: ["admin", "org_admin", "god"], icon: "students" },
     { name: t("classrooms"), href: "/dashboard/admin/classrooms", roles: ["admin", "org_admin", "god"], icon: "classrooms" },
     { name: t("courses"), href: "/dashboard/admin/courses", roles: ["admin", "god"], icon: "courses" },

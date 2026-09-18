@@ -17,7 +17,7 @@ export default function NavLinks({ role }: NavLinksProps) {
   
   const allLinks = [
     { name: t("home"), href: "/dashboard/admin", roles: ["admin", "org_admin", "god"] },
-    { name: t("users"), href: "/dashboard/admin/users", roles: ["admin", "god"] },
+    { name: t("users"), href: "/dashboard/admin/users", roles: ["admin", "org_admin", "god"] },
     { name: t("students"), href: "/dashboard/admin/students", roles: ["admin", "org_admin", "god"] },
     { name: t("classrooms"), href: "/dashboard/admin/classrooms", roles: ["admin", "org_admin", "god"] },
     { name: t("courses"), href: "/dashboard/admin/courses", roles: ["admin", "god"] },

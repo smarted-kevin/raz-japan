@@ -9,10 +9,9 @@ export default async function UsersPage() {
 
   const token = await getToken();
   if (!token) redirect("/sign-in");
-  if (token) {
-    const user = await fetchQuery(api.auth.getCurrentUser, {}, {token});
-    if (!user || user.role != "admin") redirect("/sign-in");
-  }
+  const user = await fetchQuery(api.auth.getCurrentUser, {}, { token });
+  const allowedRoles = ["admin", "org_admin", "god"];
+  if (!user || !allowedRoles.includes(user.role)) redirect("/sign-in");
 
   const [users, orgs] = await Promise.all([
     fetchQuery(api.queries.users.getUsersWithStudents, {}, { token }),
