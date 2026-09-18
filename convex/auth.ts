@@ -7,6 +7,7 @@ import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { admin } from "better-auth/plugins";
 import authSchema from "./betterAuth/schema";
 import { requireActionCtx } from "@convex-dev/better-auth/utils";
+import { createAuthAdminGuard } from "./lib/auth-admin-guard";
 
 type CreatedAuthUser = {
   id: string;
@@ -79,6 +80,10 @@ export const createAuth = (
     baseURL: siteUrl,
     trustedOrigins: Array.from(new Set(trustedOrigins)),
     database: authComponent.adapter(ctx),
+    hooks: {
+      before: createAuthAdminGuard(() =>
+        ctx.runQuery(internal.queries.users.getGodAuthIdsInternal, {})),
+    },
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 12,

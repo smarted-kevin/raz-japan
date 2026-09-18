@@ -1,6 +1,6 @@
 import { internalQuery } from "../_generated/server";
 import { ConvexError, v } from "convex/values";
-import { adminQuery, authedQuery, requireUserAccess } from "../lib/auth";
+import { adminQuery, authedQuery, canAccessUser, requireUserAccess } from "../lib/auth";
 
 
 export const userAuthorized = authedQuery({
@@ -34,6 +34,17 @@ export const getUserByIdInternal = internalQuery({
   handler: async (ctx, args) => ctx.db.get(args.id),
 });
 
+// Better Auth has its own role field; protect accounts promoted in userTable too.
+export const getGodAuthIdsInternal = internalQuery({
+  args: {},
+  handler: async (ctx): Promise<string[]> => {
+    const users = await ctx.db.query("userTable")
+      .withIndex("users_by_role", (q) => q.eq("role", "god"))
+      .collect();
+    return users.flatMap((user) => user.auth_id ? [user.auth_id] : []);
+  },
+});
+
 export const getUsersByRole = adminQuery({
   args: { role: v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god")) },
   handler: async (ctx, args) => {
@@ -42,9 +53,7 @@ export const getUsersByRole = adminQuery({
       .withIndex("users_by_role", (q) => q.eq("role", args.role))
       .collect();
 
-    return ctx.user.role === "org_admin"
-      ? users.filter((user) => user.org_id === ctx.user.org_id)
-      : users;
+    return users.filter((user) => canAccessUser(ctx.user, user));
   }
 })
 
@@ -149,9 +158,7 @@ export const getUserDetailForAdmin = adminQuery({
 export const getUsersWithStudents = adminQuery(async (ctx) => {
   
     const allUsers = await ctx.db.query("userTable").collect();
-    const users = ctx.user.role === "org_admin"
-      ? allUsers.filter((user) => user.org_id === ctx.user.org_id)
-      : allUsers;
+    const users = allUsers.filter((user) => canAccessUser(ctx.user, user));
 
     const usersWithStudents = await Promise.all(
       users.map(async (user) => {

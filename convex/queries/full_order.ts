@@ -1,19 +1,18 @@
 import { v } from "convex/values";
 import { type Id } from "../_generated/dataModel";
 import { internalQuery } from "../_generated/server";
-import { adminQuery, authedQuery, requireUserAccess } from "../lib/auth";
+import { adminQuery, authedQuery, canAccessUser, requireUserAccess } from "../lib/auth";
 
 export const getAllOrders = adminQuery({
   args: {},
   handler: async (ctx) => {
     const orders = await ctx.db.query("full_order").collect();
-    if (ctx.user.role !== "org_admin") return orders;
     const scopedOrders = await Promise.all(orders.map(async (order) => ({
       order,
       owner: await ctx.db.get(order.user_id),
     })));
     return scopedOrders
-      .filter(({ owner }) => owner?.org_id === ctx.user.org_id)
+      .filter(({ owner }) => owner && canAccessUser(ctx.user, owner))
       .map(({ order }) => order);
   }
 });
@@ -48,7 +47,7 @@ export const getOrdersWithUserAndStudentData = adminQuery({
       if (!user) {
         return null;
       }
-      if (ctx.user.role === "org_admin" && user.org_id !== ctx.user.org_id) return null;
+      if (!canAccessUser(ctx.user, user)) return null;
 
       // Get student orders for this order
       const studentOrders = await ctx.db

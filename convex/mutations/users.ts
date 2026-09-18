@@ -1,6 +1,6 @@
 import { internalMutation } from "../_generated/server";
 import { ConvexError, v } from "convex/values";
-import { adminMutation } from "../lib/auth";
+import { adminMutation, requireUserAccess } from "../lib/auth";
 
 export const createUser = internalMutation({
   args: {
@@ -140,6 +140,7 @@ export const updateUserRole = adminMutation({
     if (!user) {
       throw new ConvexError("User not found");
     }
+    requireUserAccess(ctx.user, user);
 
     // Only a `god` superuser may grant or revoke the `god` role. This prevents
     // a regular admin from escalating themselves (or others) to superuser.

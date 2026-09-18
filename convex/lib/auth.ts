@@ -38,21 +38,32 @@ export function requireOrganizationAccess(
   }
 }
 
-export function requireUserAccess(
+export function canAccessUser(
   caller: Doc<"userTable">,
   target: Doc<"userTable">,
-): void {
+): boolean {
+  // Superuser accounts are only visible to other superusers.
+  if (target.role === "god" && caller.role !== "god") return false;
   if (caller._id === target._id || caller.role === "god" || caller.role === "admin") {
-    return;
+    return true;
   }
   if (
     caller.role === "org_admin" &&
     caller.org_id !== undefined &&
     caller.org_id === target.org_id
   ) {
-    return;
+    return true;
   }
-  throw new ConvexError("User access denied");
+  return false;
+}
+
+export function requireUserAccess(
+  caller: Doc<"userTable">,
+  target: Doc<"userTable">,
+): void {
+  if (!canAccessUser(caller, target)) {
+    throw new ConvexError("User access denied");
+  }
 }
 
 /**

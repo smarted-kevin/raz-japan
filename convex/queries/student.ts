@@ -1,6 +1,6 @@
 import { internalQuery } from "../_generated/server";
 import { v } from "convex/values";
-import { adminQuery, authedQuery, isAdminRole, requireOrganizationAccess, requireUserAccess } from "../lib/auth";
+import { adminQuery, authedQuery, canAccessUser, isAdminRole, requireOrganizationAccess, requireUserAccess } from "../lib/auth";
 
 export const getStudentById = authedQuery({
   args: { id: v.id("student") },
@@ -86,8 +86,8 @@ export const getAllStudentsWithClassroomAndUser = adminQuery({
         id: student._id, 
         username: student.username,
         password: student.password,
-        user_id: student.user_id,
-        user_email: user?.email ?? undefined,
+        user_id: user && canAccessUser(ctx.user, user) ? student.user_id : undefined,
+        user_email: user && canAccessUser(ctx.user, user) ? user.email : undefined,
         expiry_date: student.expiry_date,
         status: student.status,
         classroom_name: classroom?.classroom_name,
@@ -124,8 +124,8 @@ export const getStudentsByOrganization = adminQuery({
         id: student._id,
         username: student.username,
         password: student.password,
-        user_id: student.user_id,
-        user_email: user?.email ?? undefined,
+        user_id: user && canAccessUser(ctx.user, user) ? student.user_id : undefined,
+        user_email: user && canAccessUser(ctx.user, user) ? user.email : undefined,
         expiry_date: student.expiry_date,
         status: student.status,
         classroom_name: classroom?.classroom_name,
