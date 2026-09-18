@@ -134,7 +134,7 @@ test('order lists omit god owners and student lists redact their user informatio
   }
 });
 
-const { createAuthAdminGuard } = load('../convex/lib/auth-admin-guard.ts', {
+const { createAuthAdminGuard } = load('../convex/lib/authAdminGuard.ts', {
   'better-auth/api': {
     APIError: class extends Error { constructor(code) { super(code); } },
     createAuthMiddleware: register,

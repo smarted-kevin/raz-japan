@@ -14,6 +14,7 @@ import type * as crons from "../crons.js";
 import type * as email from "../email.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_authAdminGuard from "../lib/authAdminGuard.js";
 import type * as mutations_activation_code from "../mutations/activation_code.js";
 import type * as mutations_cart from "../mutations/cart.js";
 import type * as mutations_classroom from "../mutations/classroom.js";
@@ -51,6 +52,7 @@ declare const fullApi: ApiFromModules<{
   email: typeof email;
   http: typeof http;
   "lib/auth": typeof lib_auth;
+  "lib/authAdminGuard": typeof lib_authAdminGuard;
   "mutations/activation_code": typeof mutations_activation_code;
   "mutations/cart": typeof mutations_cart;
   "mutations/classroom": typeof mutations_classroom;

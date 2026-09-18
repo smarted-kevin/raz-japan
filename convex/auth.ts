@@ -7,7 +7,7 @@ import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { admin } from "better-auth/plugins";
 import authSchema from "./betterAuth/schema";
 import { requireActionCtx } from "@convex-dev/better-auth/utils";
-import { createAuthAdminGuard } from "./lib/auth-admin-guard";
+import { createAuthAdminGuard } from "./lib/authAdminGuard";
 
 type CreatedAuthUser = {
   id: string;
