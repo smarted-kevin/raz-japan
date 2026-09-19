@@ -61,7 +61,7 @@ export default function ActivateStudentByCode({
   };
 
   return (
-    <Card className="w-full max-w-3xl overflow-hidden">
+    <Card className="w-full max-w-4xl overflow-hidden">
       <CardHeader>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
