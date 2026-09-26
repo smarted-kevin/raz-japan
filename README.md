@@ -3,6 +3,10 @@
 ## Security deployment requirements
 
 - Set `SITE_URL` to the production HTTPS origin in both the Next.js and Convex environments.
+- Set `MEMBER_SIGNUP_ENABLED` in both the Next.js and Convex environments. It
+  defaults to `false` and public member registration remains blocked unless it
+  is explicitly set to `true` in both environments. Redeploy both services
+  after changing it.
 - Set the same randomly generated `CONTACT_RATE_LIMIT_SECRET` (at least 32 random bytes) in the Next.js and Convex environments. The public contact endpoint fails closed when it is missing.
 - Configure `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and `CONTACT_INQUIRY_TO_EMAIL` for transactional and contact email delivery.
 - After enabling email verification, existing accounts that have not yet verified will receive a verification link on their next sign-in attempt.
@@ -26,7 +30,6 @@
 
 *UI/UX*
 [ ] -add translations for edit dialogs and other dialog components in admin dashboard
-
 
 
 

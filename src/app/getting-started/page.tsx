@@ -14,6 +14,7 @@ import { publicSiteContainerClassName } from "~/lib/public-layout";
 import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
+import { isMemberSignupEnabled } from "~/lib/member-signup";
 
 export const metadata = {
   title: "Getting Started | Raz-Japan",
@@ -23,17 +24,20 @@ export const metadata = {
 
 export default async function GettingStartedPage() {
   const t = await getTranslations("GettingStarted");
+  const memberSignupEnabled = isMemberSignupEnabled();
 
   const steps = [
     {
       icon: UserPlus,
-      title: t("step_1_title"),
+      title: t(
+        memberSignupEnabled ? "step_1_title" : "sign_up_closed_step_title",
+      ),
       content: (
         <Link
           href="/sign-up"
           className="inline-flex items-center gap-2 font-semibold text-blue-600 transition-colors hover:text-blue-700"
         >
-          {t("step_1_link")}
+          {t(memberSignupEnabled ? "step_1_link" : "sign_up_closed_step_link")}
           <ChevronRight className="h-4 w-4" />
         </Link>
       ),
@@ -103,17 +107,15 @@ export default async function GettingStartedPage() {
             <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
               {t("header")}
             </h1>
-            <p className="mt-4 text-lg text-blue-100">
-              {t("subtitle")}
-            </p>
+            <p className="mt-4 text-lg text-blue-100">{t("subtitle")}</p>
           </div>
         </div>
-        <div className="absolute -bottom-1 left-0 right-0">
+        <div className="absolute right-0 -bottom-1 left-0">
           <svg
             viewBox="0 0 1440 120"
             fill="none"
             xmlns="http://www.w3.org/2000/svg"
-            className="w-full block"
+            className="block w-full"
             preserveAspectRatio="none"
           >
             <path
@@ -149,7 +151,7 @@ export default async function GettingStartedPage() {
                         <h2 className="mb-3 text-lg font-bold text-gray-900 md:text-xl">
                           {step.title}
                         </h2>
-                        <div className="text-gray-600 leading-relaxed [&>a]:inline-flex">
+                        <div className="leading-relaxed text-gray-600 [&>a]:inline-flex">
                           {step.content}
                         </div>
                       </div>
@@ -167,10 +169,16 @@ export default async function GettingStartedPage() {
         <div className={publicSiteContainerClassName}>
           <div className="mx-auto max-w-2xl rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center shadow-xl shadow-blue-500/20 md:p-12">
             <h2 className="mb-4 text-2xl font-bold text-white md:text-3xl">
-              {t("cta_title")}
+              {t(
+                memberSignupEnabled ? "cta_title" : "sign_up_closed_cta_title",
+              )}
             </h2>
             <p className="mb-8 text-blue-100">
-              {t("cta_subtitle")}
+              {t(
+                memberSignupEnabled
+                  ? "cta_subtitle"
+                  : "sign_up_closed_cta_subtitle",
+              )}
             </p>
             <Button
               asChild
@@ -178,7 +186,11 @@ export default async function GettingStartedPage() {
               className="bg-yellow-400 font-semibold text-gray-900 shadow-lg shadow-yellow-400/30 transition-all hover:bg-yellow-500"
             >
               <Link href="/sign-up" className="inline-flex items-center gap-2">
-                {t("cta_button")}
+                {t(
+                  memberSignupEnabled
+                    ? "cta_button"
+                    : "sign_up_closed_cta_button",
+                )}
                 <ChevronRight className="h-5 w-5" />
               </Link>
             </Button>
