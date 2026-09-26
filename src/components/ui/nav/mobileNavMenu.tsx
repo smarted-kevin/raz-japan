@@ -24,7 +24,11 @@ import {
 import { cn } from "~/lib/utils";
 import { PublicLocaleSwitcher } from "./publicLocaleSwitcher";
 
-export function MobileNavMenu() {
+type MobileNavMenuProps = {
+  memberSignupEnabled: boolean;
+};
+
+export function MobileNavMenu({ memberSignupEnabled }: MobileNavMenuProps) {
   const [open, setOpen] = useState(false);
   const { data: session } = authClient.useSession();
   const { isAuthenticated } = useConvexAuth();
@@ -91,7 +95,11 @@ export function MobileNavMenu() {
                 })}
               >
                 <User className="h-4 w-4" />
-                {t("sign_up_button")}
+                {t(
+                  memberSignupEnabled
+                    ? "sign_up_button"
+                    : "member_signup_coming_soon",
+                )}
               </Link>
               <Link
                 href="/sign-in"

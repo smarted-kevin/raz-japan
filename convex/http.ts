@@ -1,9 +1,12 @@
-import { httpRouter } from 'convex/server';
-import { authComponent, createAuth } from './auth';
-import { httpAction } from './_generated/server';
-import { internal } from './_generated/api';
+import { httpRouter } from "convex/server";
+import { authComponent, createAuth } from "./auth";
+import { httpAction } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 const http = httpRouter();
+
+const MEMBER_SIGNUP_DISABLED_MESSAGE =
+  "Member signups are not currently available.";
 
 http.route({
   path: "/stripe/webhook",
@@ -41,6 +44,27 @@ for (const path of [
     }),
   });
 }
+
+// Keep the public registration endpoint closed unless it has been explicitly
+// enabled in the Convex deployment environment. This is enforced here rather
+// than only in the Next.js UI so direct API requests cannot create accounts.
+http.route({
+  path: "/api/auth/sign-up/email",
+  method: "POST",
+  handler: httpAction(async (ctx, request) => {
+    if (process.env.MEMBER_SIGNUP_ENABLED !== "true") {
+      return Response.json(
+        {
+          code: "MEMBER_SIGNUP_DISABLED",
+          message: MEMBER_SIGNUP_DISABLED_MESSAGE,
+        },
+        { status: 403 },
+      );
+    }
+
+    return createAuth(ctx).handler(request);
+  }),
+});
 
 authComponent.registerRoutes(http, createAuth, {
   cors: {

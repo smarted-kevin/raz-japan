@@ -6,6 +6,7 @@
     "login_button": "Log In",
     "logout_button": "Log Out",
     "sign_up_button": "Sign Up",
+    "member_signup_coming_soon": "Coming Soon",
     "about": "About Raz-Japan",
     "getting_started": "Getting Started",
     "contact": "Contact Us"
@@ -160,7 +161,12 @@
     "step_5_content": "Your child is ready to explore our library of books!",
     "cta_title": "Ready to Get Started?",
     "cta_subtitle": "Create your free account in under a minute and unlock thousands of books for your child.",
-    "cta_button": "Create Your Account"
+    "cta_button": "Create Your Account",
+    "sign_up_closed_step_title": "Member signup is coming soon",
+    "sign_up_closed_step_link": "View signup availability",
+    "sign_up_closed_cta_title": "Member signup is coming soon",
+    "sign_up_closed_cta_subtitle": "We are preparing Raz-Japan for new members. Check back soon or contact us for more information.",
+    "sign_up_closed_cta_button": "Learn More"
   },
   "Contact": {
     "meta_title": "Contact Us | Raz-Japan",
@@ -197,7 +203,14 @@
     "sign_up_title": "Create an account",
     "sign_up_subtitle": "Join Raz-Japan to start your reading journey.",
     "sign_in_meta_title": "Sign In | Raz-Japan",
-    "sign_up_meta_title": "Sign Up | Raz-Japan"
+    "sign_up_meta_title": "Sign Up | Raz-Japan",
+    "sign_up_closed_meta_title": "Member Signup Coming Soon | Raz-Japan",
+    "sign_up_closed_title": "Member signup is coming soon",
+    "sign_up_closed_subtitle": "We are not accepting new member registrations just yet.",
+    "sign_up_closed_card_title": "Thank you for your interest",
+    "sign_up_closed_card_description": "We are preparing Raz-Japan for new members. Please check back soon, or contact us if you would like more information. Existing members can still sign in.",
+    "sign_up_closed_contact": "Contact Us",
+    "sign_up_closed_sign_in": "Existing Member Sign In"
   },
   "General": {
     "login_button": "Log In",

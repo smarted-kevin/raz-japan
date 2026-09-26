@@ -6,6 +6,7 @@
     "login_button": "ログイン",
     "logout_button": "ログアウト",
     "sign_up_button": "新規登録",
+    "member_signup_coming_soon": "近日受付開始",
     "about": "Raz-Japanについて",
     "getting_started": "初め方",
     "contact": "お問合せ"
@@ -160,7 +161,12 @@
     "step_5_content": "お子様は何千冊もの本を探索する準備ができています！",
     "cta_title": "準備はできましたか？",
     "cta_subtitle": "1分で無料アカウントを作成し、お子様に何千冊もの本へのアクセスをプレゼントしましょう。",
-    "cta_button": "アカウントを作成"
+    "cta_button": "アカウントを作成",
+    "sign_up_closed_step_title": "新規会員登録は近日開始予定です",
+    "sign_up_closed_step_link": "受付状況を確認",
+    "sign_up_closed_cta_title": "新規会員登録は近日開始予定です",
+    "sign_up_closed_cta_subtitle": "現在、新規会員の受け入れ準備を進めています。今しばらくお待ちいただくか、詳しくはお問い合わせください。",
+    "sign_up_closed_cta_button": "詳しく見る"
   },
   "Contact": {
     "meta_title": "お問い合わせ | Raz-Japan",
@@ -197,7 +203,14 @@
     "sign_up_title": "アカウントを作成",
     "sign_up_subtitle": "Raz-Japanに参加して、読書の旅を始めましょう。",
     "sign_in_meta_title": "ログイン | Raz-Japan",
-    "sign_up_meta_title": "新規登録 | Raz-Japan"
+    "sign_up_meta_title": "新規登録 | Raz-Japan",
+    "sign_up_closed_meta_title": "新規会員登録 近日開始 | Raz-Japan",
+    "sign_up_closed_title": "新規会員登録は近日開始予定です",
+    "sign_up_closed_subtitle": "現在、新規会員登録の受付開始に向けて準備を進めています。",
+    "sign_up_closed_card_title": "ご関心をお寄せいただきありがとうございます",
+    "sign_up_closed_card_description": "Raz-Japanでは現在、新規会員の受け入れ準備を進めています。受付開始まで今しばらくお待ちください。詳しくはお問い合わせください。すでに会員の方は引き続きログインできます。",
+    "sign_up_closed_contact": "お問い合わせ",
+    "sign_up_closed_sign_in": "会員ログイン"
   },
   "General": {
     "login_button": "ログイン",

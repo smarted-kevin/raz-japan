@@ -13,8 +13,11 @@ import { authClient } from "~/lib/auth-client";
 import UserDropdown from "./userDropdown";
 import { PublicLocaleSwitcher } from "./publicLocaleSwitcher";
 
-export function PublicNavLinks() {
+type PublicNavLinksProps = {
+  memberSignupEnabled: boolean;
+};
 
+export function PublicNavLinks({ memberSignupEnabled }: PublicNavLinksProps) {
   const { data: session } = authClient.useSession();
 
   const t = useTranslations("Homepage");
@@ -22,7 +25,7 @@ export function PublicNavLinks() {
     { name: t("home"), href: "/" },
     { name: t("getting_started"), href: "/getting-started" },
     { name: t("about"), href: "/#about" },
-    { name: t("contact"), href: "/contact" }
+    { name: t("contact"), href: "/contact" },
   ];
 
   return (
@@ -37,7 +40,7 @@ export function PublicNavLinks() {
         </Link>
       ))}
       <PublicLocaleSwitcher />
-      { !session &&
+      {!session && (
         <>
           <Link
             href="/sign-up"
@@ -46,7 +49,11 @@ export function PublicNavLinks() {
               className: cn("ml-2", publicCtaYellowButtonClassName),
             })}
           >
-            {t("sign_up_button")}
+            {t(
+              memberSignupEnabled
+                ? "sign_up_button"
+                : "member_signup_coming_soon",
+            )}
           </Link>
           <Link
             href="/sign-in"
@@ -58,12 +65,9 @@ export function PublicNavLinks() {
           >
             {t("login_button")}
           </Link>
-        </> 
-      }
-      { session &&
-        <UserDropdown user={session.user.id}/>
-      }
+        </>
+      )}
+      {session && <UserDropdown user={session.user.id} />}
     </div>
-
   );
 }
