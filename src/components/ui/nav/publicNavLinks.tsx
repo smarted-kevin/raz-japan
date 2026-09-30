@@ -15,9 +15,13 @@ import { PublicLocaleSwitcher } from "./publicLocaleSwitcher";
 
 type PublicNavLinksProps = {
   memberSignupEnabled: boolean;
+  branded?: boolean;
 };
 
-export function PublicNavLinks({ memberSignupEnabled }: PublicNavLinksProps) {
+export function PublicNavLinks({
+  memberSignupEnabled,
+  branded = false,
+}: PublicNavLinksProps) {
   const { data: session } = authClient.useSession();
 
   const t = useTranslations("Homepage");
@@ -34,19 +38,28 @@ export function PublicNavLinks({ memberSignupEnabled }: PublicNavLinksProps) {
         <Link
           key={link.name}
           href={link.href}
-          className={publicNavLinkUniformClassName}
+          className={cn(
+            publicNavLinkUniformClassName,
+            branded && "hover:text-[#a92379]",
+          )}
         >
           {link.name}
         </Link>
       ))}
-      <PublicLocaleSwitcher />
+      <PublicLocaleSwitcher branded={branded} />
       {!session && (
         <>
           <Link
             href="/sign-up"
             className={buttonVariants({
               size: "sm",
-              className: cn("ml-2", publicCtaYellowButtonClassName),
+              variant: branded ? "ghost" : "default",
+              className: cn(
+                "ml-2",
+                branded
+                  ? "bg-[#c83192] font-semibold text-white shadow-lg shadow-[#c83192]/25 hover:bg-[#a92379]"
+                  : publicCtaYellowButtonClassName,
+              ),
             })}
           >
             {t(
@@ -60,7 +73,12 @@ export function PublicNavLinks({ memberSignupEnabled }: PublicNavLinksProps) {
             className={buttonVariants({
               size: "sm",
               variant: "outline",
-              className: cn("ml-2", publicCtaBlueOutlineButtonClassName),
+              className: cn(
+                "ml-2",
+                branded
+                  ? "border-2 border-[#c83192] bg-white text-[#a92379] shadow-xs hover:bg-[#fbe8f4] hover:text-[#861b61]"
+                  : publicCtaBlueOutlineButtonClassName,
+              ),
             })}
           >
             {t("login_button")}

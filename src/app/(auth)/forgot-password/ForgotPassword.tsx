@@ -28,7 +28,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <Card className="w-full max-w-md border-2 border-gray-100 bg-white shadow-sm">
+    <Card className="w-full max-w-md border-2 border-[#f1bddc] bg-white shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg">Password reset</CardTitle>
       </CardHeader>
@@ -38,7 +38,7 @@ export default function ForgotPassword() {
             <p role="status">
               If an account exists for that address, a reset link has been sent.
             </p>
-            <Link href="/sign-in" className="text-blue-700 hover:underline">
+            <Link href="/sign-in" className="text-primary hover:underline">
               Return to sign in
             </Link>
           </div>

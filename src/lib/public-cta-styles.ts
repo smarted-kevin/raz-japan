@@ -2,22 +2,22 @@
  * Public marketing site button styles — aligns with landing / getting-started CTAs.
  */
 
-/** Yellow “Get started” style — sign up, primary marketing actions */
+/** Primary magenta — sign up and primary marketing actions */
 export const publicCtaYellowButtonClassName =
-  "bg-yellow-400 font-semibold text-gray-900 shadow-lg shadow-yellow-400/30 transition-all hover:bg-yellow-500";
+  "bg-[#c83192] font-semibold text-white shadow-lg shadow-[#c83192]/25 transition-all hover:bg-[#a92379] hover:text-white";
 
-/** Blue outline — log in / secondary on light backgrounds */
+/** Magenta outline — log in / secondary on light backgrounds */
 export const publicCtaBlueOutlineButtonClassName =
-  "border-2 border-blue-600 bg-background text-blue-700 shadow-xs transition-all hover:bg-blue-50 hover:text-blue-800 dark:bg-transparent";
+  "border-2 border-[#c83192] bg-background text-[#a92379] shadow-xs transition-all hover:bg-[#fbe8f4] hover:text-[#861b61] dark:bg-transparent";
 
-/** Blue gradient — form submits on white cards, strong primary */
+/** Magenta gradient — form submits on white cards, strong primary */
 export const publicCtaBlueGradientButtonClassName =
-  "bg-gradient-to-r from-blue-600 to-indigo-700 font-semibold text-white shadow-md shadow-blue-500/20 transition-all hover:from-blue-700 hover:to-indigo-800 disabled:opacity-50";
+  "bg-gradient-to-r from-[#c83192] to-[#8f1f69] font-semibold text-white shadow-md shadow-[#c83192]/20 transition-all hover:from-[#a92379] hover:to-[#651348] disabled:opacity-50";
 
 /** Desktop navbar — single text style for every route link */
 export const publicNavLinkUniformClassName =
-  "text-xs font-medium text-slate-600 transition-colors hover:text-blue-700 md:text-[0.8125rem] lg:text-sm";
+  "text-xs font-medium text-slate-600 transition-colors hover:text-[#a92379] md:text-[0.8125rem] lg:text-sm";
 
 /** Mobile sheet — matches desktop palette */
 export const publicMobileNavLinkUniformClassName =
-  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-blue-50/70 hover:text-blue-800";
+  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-[#fbe8f4]/70 hover:text-[#861b61]";

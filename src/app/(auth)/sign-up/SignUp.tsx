@@ -27,7 +27,6 @@ export default function SignUp() {
 
   const [loading, setLoading] = useState(false);
 
-  
   const handleSignUp = async () => {
     if (password !== passwordConfirmation) {
       toast.error("Passwords do not match.");
@@ -60,9 +59,11 @@ export default function SignUp() {
   };
 
   return (
-    <Card className="w-full max-w-md border-2 border-gray-100 bg-white shadow-sm">
+    <Card className="w-full max-w-md border-2 border-[#f1bddc] bg-white shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg text-gray-900 md:text-xl">Sign Up</CardTitle>
+        <CardTitle className="text-lg text-gray-900 md:text-xl">
+          Sign Up
+        </CardTitle>
         <CardDescription className="text-xs text-gray-600 md:text-sm">
           Enter your information to create an account
         </CardDescription>
@@ -71,7 +72,9 @@ export default function SignUp() {
         <div className="grid gap-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="first-name" className="text-gray-700">First name</Label>
+              <Label htmlFor="first-name" className="text-gray-700">
+                First name
+              </Label>
               <Input
                 id="first-name"
                 placeholder="Max"
@@ -83,7 +86,9 @@ export default function SignUp() {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="last-name" className="text-gray-700">Last name</Label>
+              <Label htmlFor="last-name" className="text-gray-700">
+                Last name
+              </Label>
               <Input
                 id="last-name"
                 placeholder="Robinson"
@@ -96,7 +101,9 @@ export default function SignUp() {
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email" className="text-gray-700">Email</Label>
+            <Label htmlFor="email" className="text-gray-700">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -109,7 +116,9 @@ export default function SignUp() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password" className="text-gray-700">Password</Label>
+            <Label htmlFor="password" className="text-gray-700">
+              Password
+            </Label>
             <Input
               id="password"
               type="password"

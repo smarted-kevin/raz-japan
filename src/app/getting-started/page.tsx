@@ -35,7 +35,7 @@ export default async function GettingStartedPage() {
       content: (
         <Link
           href="/sign-up"
-          className="inline-flex items-center gap-2 font-semibold text-blue-600 transition-colors hover:text-blue-700"
+          className="inline-flex items-center gap-2 font-semibold text-[#c83192] transition-colors hover:text-[#a92379]"
         >
           {t(memberSignupEnabled ? "step_1_link" : "sign_up_closed_step_link")}
           <ChevronRight className="h-4 w-4" />
@@ -62,7 +62,7 @@ export default async function GettingStartedPage() {
             href="https://kidsa-z.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 font-semibold text-blue-600 transition-colors hover:text-blue-700"
+            className="inline-flex items-center gap-1.5 font-semibold text-[#c83192] transition-colors hover:text-[#a92379]"
           >
             kidsa-z.com
             <span className="text-xs">↗</span>
@@ -79,11 +79,11 @@ export default async function GettingStartedPage() {
   ];
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white">
-      <PublicNavBar />
+    <main className="raz-brand min-h-screen overflow-x-hidden bg-white">
+      <PublicNavBar branded />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#c83192] via-[#a92379] to-[#651348]">
         <div
           className="absolute inset-0 opacity-10"
           style={{
@@ -98,7 +98,7 @@ export default async function GettingStartedPage() {
         >
           <Link
             href="/"
-            className="mb-8 inline-flex items-center gap-2 text-blue-100 transition-colors hover:text-white"
+            className="mb-8 inline-flex items-center gap-2 text-[#fde8f5] transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             {t("back_to_home")}
@@ -107,7 +107,7 @@ export default async function GettingStartedPage() {
             <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
               {t("header")}
             </h1>
-            <p className="mt-4 text-lg text-blue-100">{t("subtitle")}</p>
+            <p className="mt-4 text-lg text-[#fde8f5]">{t("subtitle")}</p>
           </div>
         </div>
         <div className="absolute right-0 -bottom-1 left-0">
@@ -127,7 +127,7 @@ export default async function GettingStartedPage() {
       </section>
 
       {/* Steps */}
-      <section className="bg-gradient-to-b from-gray-50 to-white py-16 md:py-24">
+      <section className="bg-gradient-to-b from-[#fff8fc] to-white py-16 md:py-24">
         <div className={publicSiteContainerClassName}>
           <div className="mx-auto max-w-2xl space-y-6">
             {steps.map((step, index) => {
@@ -135,7 +135,7 @@ export default async function GettingStartedPage() {
               return (
                 <Card
                   key={index}
-                  className="overflow-hidden border-2 border-gray-100 bg-white shadow-sm transition-all duration-300 hover:border-blue-200 hover:shadow-lg"
+                  className="overflow-hidden border-2 border-[#f4d5e8] bg-white shadow-sm transition-all duration-300 hover:border-[#edacd5] hover:shadow-lg"
                 >
                   <CardContent className="p-6 md:p-7">
                     <div className="flex items-start gap-4">
@@ -167,13 +167,13 @@ export default async function GettingStartedPage() {
       {/* CTA Section */}
       <section className="bg-white py-16 md:py-20">
         <div className={publicSiteContainerClassName}>
-          <div className="mx-auto max-w-2xl rounded-3xl bg-gradient-to-r from-blue-600 to-indigo-700 p-8 text-center shadow-xl shadow-blue-500/20 md:p-12">
+          <div className="mx-auto max-w-2xl rounded-3xl bg-gradient-to-r from-[#c83192] to-[#8f1f69] p-8 text-center shadow-xl shadow-[#c83192]/20 md:p-12">
             <h2 className="mb-4 text-2xl font-bold text-white md:text-3xl">
               {t(
                 memberSignupEnabled ? "cta_title" : "sign_up_closed_cta_title",
               )}
             </h2>
-            <p className="mb-8 text-blue-100">
+            <p className="mb-8 text-[#f9d8ec]">
               {t(
                 memberSignupEnabled
                   ? "cta_subtitle"
@@ -183,7 +183,8 @@ export default async function GettingStartedPage() {
             <Button
               asChild
               size="lg"
-              className="bg-yellow-400 font-semibold text-gray-900 shadow-lg shadow-yellow-400/30 transition-all hover:bg-yellow-500"
+              variant="ghost"
+              className="bg-white font-semibold text-[#8f1f69] shadow-lg shadow-[#651348]/25 transition-all hover:bg-[#fbe8f4] hover:text-[#651348]"
             >
               <Link href="/sign-up" className="inline-flex items-center gap-2">
                 {t(

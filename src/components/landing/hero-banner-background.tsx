@@ -34,7 +34,7 @@ export function HeroBannerBackground({ src, alt }: HeroBannerBackgroundProps) {
       />
       {/* Keep headline readable over the photo */}
       <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-blue-950/65 via-blue-900/50 to-indigo-900/40 lg:hidden"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#651348]/50 via-[#92206c]/35 to-[#c83192]/20 lg:hidden"
         aria-hidden
       />
     </>

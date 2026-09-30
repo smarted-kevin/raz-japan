@@ -1,13 +1,16 @@
 import { ConvexClientProvider } from "~/app/ConvexClientProvider";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
 import { redirect } from "next/navigation";
 import { getToken } from "~/lib/auth-server";
 import { fetchQuery } from "convex/nextjs";
 import { api } from "@/convex/_generated/api";
 
-export default async function MemberLayout({ children }: { children: React.ReactNode } ) {
+export default async function MemberLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const token = await getToken();
   if (!token) redirect("/sign-in");
 
@@ -19,16 +22,16 @@ export default async function MemberLayout({ children }: { children: React.React
     redirect("/dashboard/admin");
   }
 
-  const locale = await getLocale();
-
-  return ( 
+  return (
     <NextIntlClientProvider>
       <ConvexClientProvider>
-        <PublicNavBar/>
-        <div className="container mx-auto min-w-0 px-4 pt-6 pb-8 sm:px-6">
-      {children}
-    </div>
+        <div className="raz-brand min-h-screen bg-gradient-to-b from-[#fff8fc] to-white">
+          <PublicNavBar branded />
+          <div className="container mx-auto min-w-0 px-4 pt-6 pb-8 sm:px-6">
+            {children}
+          </div>
+        </div>
       </ConvexClientProvider>
     </NextIntlClientProvider>
-  )
+  );
 }

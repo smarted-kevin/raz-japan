@@ -23,14 +23,27 @@ export default async function SCTAPage() {
     { labelKey: "email", contentKeys: ["email_detail"] },
     { labelKey: "url", contentKeys: ["url_detail"] },
     { labelKey: "ordering_method", contentKeys: ["ordering_method_detail"] },
-    { labelKey: "payment", contentKeys: ["payment_detail_1", "payment_detail_2", "payment_detail_3", "payment_detail_4"] },
+    {
+      labelKey: "payment",
+      contentKeys: [
+        "payment_detail_1",
+        "payment_detail_2",
+        "payment_detail_3",
+        "payment_detail_4",
+      ],
+    },
     {
       labelKey: "delivery",
       contentKeys: ["delivery_school", "delivery_guest"],
     },
     {
       labelKey: "other_costs",
-      contentKeys: ["other_costs_1", "other_costs_2", "other_costs_school", "other_costs_guest"],
+      contentKeys: [
+        "other_costs_1",
+        "other_costs_2",
+        "other_costs_school",
+        "other_costs_guest",
+      ],
     },
     {
       labelKey: "returns",
@@ -39,20 +52,20 @@ export default async function SCTAPage() {
   ];
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white">
-      <PublicNavBar />
-      <section className="py-16 md:py-24 bg-white">
+    <main className="raz-brand min-h-screen overflow-x-hidden bg-white">
+      <PublicNavBar branded />
+      <section className="bg-white py-16 md:py-24">
         <div className={cn(publicSiteContainerClassName, "max-w-3xl")}>
           <Link
             href="/"
-            className="mb-8 inline-flex items-center gap-2 text-gray-600 transition-colors hover:text-blue-600"
+            className="mb-8 inline-flex items-center gap-2 text-gray-600 transition-colors hover:text-[#c83192]"
           >
             <ArrowLeft className="h-4 w-4" />
             {t("back_to_home")}
           </Link>
 
-          <div className="overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-sm hover:border-blue-200 transition-colors">
-            <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-5">
+          <div className="overflow-hidden rounded-2xl border-2 border-gray-200 bg-white shadow-sm transition-colors hover:border-[#edacd5]">
+            <div className="border-b border-[#f1bddc] bg-gradient-to-r from-[#fff2f9] to-[#fbe8f4] px-6 py-5">
               <h1 className="text-xl font-bold text-gray-900 md:text-2xl">
                 {t("title")}
               </h1>

@@ -26,9 +26,13 @@ import { PublicLocaleSwitcher } from "./publicLocaleSwitcher";
 
 type MobileNavMenuProps = {
   memberSignupEnabled: boolean;
+  branded?: boolean;
 };
 
-export function MobileNavMenu({ memberSignupEnabled }: MobileNavMenuProps) {
+export function MobileNavMenu({
+  memberSignupEnabled,
+  branded = false,
+}: MobileNavMenuProps) {
   const [open, setOpen] = useState(false);
   const { data: session } = authClient.useSession();
   const { isAuthenticated } = useConvexAuth();
@@ -54,7 +58,12 @@ export function MobileNavMenu({ memberSignupEnabled }: MobileNavMenuProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="text-slate-600 hover:bg-blue-50 hover:text-blue-700 md:hidden"
+          className={cn(
+            "text-slate-600 md:hidden",
+            branded
+              ? "hover:bg-[#fbe8f4] hover:text-[#a92379]"
+              : "hover:bg-blue-50 hover:text-blue-700",
+          )}
           aria-label="Open navigation menu"
         >
           <Menu className="h-6 w-6" />
@@ -70,14 +79,17 @@ export function MobileNavMenu({ memberSignupEnabled }: MobileNavMenuProps) {
               key={link.name}
               href={link.href}
               onClick={handleLinkClick}
-              className={publicMobileNavLinkUniformClassName}
+              className={cn(
+                publicMobileNavLinkUniformClassName,
+                branded && "hover:bg-[#fbe8f4]/70 hover:text-[#861b61]",
+              )}
             >
               {link.name}
             </Link>
           ))}
 
           <div className="flex items-center px-3 py-1">
-            <PublicLocaleSwitcher />
+            <PublicLocaleSwitcher branded={branded} />
           </div>
 
           <div className="my-2 border-t" />
@@ -88,9 +100,12 @@ export function MobileNavMenu({ memberSignupEnabled }: MobileNavMenuProps) {
                 href="/sign-up"
                 onClick={handleLinkClick}
                 className={buttonVariants({
+                  variant: branded ? "ghost" : "default",
                   className: cn(
                     "w-full justify-start gap-3",
-                    publicCtaYellowButtonClassName,
+                    branded
+                      ? "bg-[#c83192] font-semibold text-white shadow-lg shadow-[#c83192]/25 hover:bg-[#a92379]"
+                      : publicCtaYellowButtonClassName,
                   ),
                 })}
               >
@@ -108,7 +123,9 @@ export function MobileNavMenu({ memberSignupEnabled }: MobileNavMenuProps) {
                   variant: "outline",
                   className: cn(
                     "w-full justify-start gap-3",
-                    publicCtaBlueOutlineButtonClassName,
+                    branded
+                      ? "border-2 border-[#c83192] bg-white text-[#a92379] shadow-xs hover:bg-[#fbe8f4] hover:text-[#861b61]"
+                      : publicCtaBlueOutlineButtonClassName,
                   ),
                 })}
               >
@@ -126,7 +143,10 @@ export function MobileNavMenu({ memberSignupEnabled }: MobileNavMenuProps) {
                     : "/dashboard"
                 }
                 onClick={handleLinkClick}
-                className={publicMobileNavLinkUniformClassName}
+                className={cn(
+                  publicMobileNavLinkUniformClassName,
+                  branded && "hover:bg-[#fbe8f4]/70 hover:text-[#861b61]",
+                )}
               >
                 <LayoutDashboard className="h-4 w-4" />
                 Go to Dashboard
@@ -135,7 +155,10 @@ export function MobileNavMenu({ memberSignupEnabled }: MobileNavMenuProps) {
                 <Link
                   href={"/dashboard/members/order-history"}
                   onClick={handleLinkClick}
-                  className={publicMobileNavLinkUniformClassName}
+                  className={cn(
+                    publicMobileNavLinkUniformClassName,
+                    branded && "hover:bg-[#fbe8f4]/70 hover:text-[#861b61]",
+                  )}
                 >
                   <History className="h-4 w-4" />
                   Order History

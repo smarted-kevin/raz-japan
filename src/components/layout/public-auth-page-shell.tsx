@@ -23,10 +23,10 @@ export function PublicAuthPageShell({
   children,
 }: PublicAuthPageShellProps) {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-white">
-      <PublicNavBar />
+    <main className="raz-brand min-h-screen overflow-x-hidden bg-white">
+      <PublicNavBar branded />
 
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-800">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#c83192] via-[#a92379] to-[#651348]">
         <div
           className="absolute inset-0 opacity-10"
           style={{ backgroundImage: HERO_PATTERN_BG }}
@@ -39,7 +39,7 @@ export function PublicAuthPageShell({
         >
           <Link
             href={backHref}
-            className="mb-8 inline-flex items-center gap-2 text-blue-100 transition-colors hover:text-white"
+            className="mb-8 inline-flex items-center gap-2 text-[#fde8f5] transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             {backLabel}
@@ -48,10 +48,10 @@ export function PublicAuthPageShell({
             <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl lg:text-5xl">
               {title}
             </h1>
-            <p className="mt-4 text-lg text-blue-100">{subtitle}</p>
+            <p className="mt-4 text-lg text-[#fde8f5]">{subtitle}</p>
           </div>
         </div>
-        <div className="absolute -bottom-1 left-0 right-0">
+        <div className="absolute right-0 -bottom-1 left-0">
           <svg
             viewBox="0 0 1440 120"
             fill="none"
@@ -67,7 +67,7 @@ export function PublicAuthPageShell({
         </div>
       </section>
 
-      <section className="bg-gradient-to-b from-gray-50 to-white py-16 md:py-24">
+      <section className="bg-gradient-to-b from-[#fff8fc] to-white py-16 md:py-24">
         <div
           className={cn(publicSiteContainerClassName, "flex justify-center")}
         >

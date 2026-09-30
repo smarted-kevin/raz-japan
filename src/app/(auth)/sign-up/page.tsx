@@ -40,9 +40,9 @@ export default async function SignUpPage() {
       {memberSignupEnabled ? (
         <SignUp />
       ) : (
-        <Card className="w-full max-w-lg border-2 border-blue-100 bg-white text-center shadow-sm">
+        <Card className="w-full max-w-lg border-2 border-[#f1bddc] bg-white text-center shadow-sm">
           <CardHeader className="items-center">
-            <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-blue-50 text-blue-700">
+            <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-full bg-[#fbe8f4] text-[#c83192]">
               <Clock3 className="h-7 w-7" aria-hidden />
             </div>
             <CardTitle className="text-xl text-gray-900 md:text-2xl">

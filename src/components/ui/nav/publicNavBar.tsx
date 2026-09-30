@@ -6,7 +6,11 @@ import { PublicNavLinks } from "./publicNavLinks";
 import { MobileNavMenu } from "./mobileNavMenu";
 import { isMemberSignupEnabled } from "~/lib/member-signup";
 
-export function PublicNavBar() {
+type PublicNavBarProps = {
+  branded?: boolean;
+};
+
+export function PublicNavBar({ branded = false }: PublicNavBarProps) {
   const memberSignupEnabled = isMemberSignupEnabled();
 
   return (
@@ -21,20 +25,40 @@ export function PublicNavBar() {
           href="/"
           className="group flex shrink-0 items-center gap-2.5 transition-opacity hover:opacity-90"
         >
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 shadow-md ring-1 shadow-blue-600/25 ring-blue-500/20 transition-shadow group-hover:shadow-lg group-hover:shadow-blue-600/30">
+          <div
+            className={cn(
+              "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br shadow-md ring-1 transition-shadow group-hover:shadow-lg",
+              branded
+                ? "from-[#c83192] to-[#8f1f69] shadow-[#c83192]/25 ring-[#c83192]/20 group-hover:shadow-[#c83192]/30"
+                : "from-blue-600 to-indigo-700 shadow-blue-600/25 ring-blue-500/20 group-hover:shadow-blue-600/30",
+            )}
+          >
             <BookOpen
               className="h-6 w-6 text-white"
               aria-hidden
               strokeWidth={2}
             />
           </div>
-          <span className="bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-700 bg-clip-text text-xl font-bold tracking-tight whitespace-nowrap text-transparent">
+          <span
+            className={cn(
+              "bg-gradient-to-r bg-clip-text text-xl font-bold tracking-tight whitespace-nowrap text-transparent",
+              branded
+                ? "from-[#651348] via-[#92206c] to-[#c83192]"
+                : "from-blue-950 via-blue-900 to-indigo-700",
+            )}
+          >
             Raz-Japan
           </span>
         </Link>
         <div className="flex min-w-0 items-center gap-2">
-          <PublicNavLinks memberSignupEnabled={memberSignupEnabled} />
-          <MobileNavMenu memberSignupEnabled={memberSignupEnabled} />
+          <PublicNavLinks
+            memberSignupEnabled={memberSignupEnabled}
+            branded={branded}
+          />
+          <MobileNavMenu
+            memberSignupEnabled={memberSignupEnabled}
+            branded={branded}
+          />
         </div>
       </div>
     </nav>

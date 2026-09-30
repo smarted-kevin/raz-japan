@@ -17,7 +17,6 @@ import { cn } from "~/lib/utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-
 export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -49,9 +48,11 @@ export default function SignIn() {
   };
 
   return (
-    <Card className="w-full max-w-md border-2 border-gray-100 bg-white shadow-sm">
+    <Card className="w-full max-w-md border-2 border-[#f1bddc] bg-white shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg text-gray-900 md:text-xl">Sign In</CardTitle>
+        <CardTitle className="text-lg text-gray-900 md:text-xl">
+          Sign In
+        </CardTitle>
         <CardDescription className="text-xs text-gray-600 md:text-sm">
           Enter your email below to login to your account
         </CardDescription>
@@ -70,7 +71,9 @@ export default function SignIn() {
           className="grid gap-4"
         >
           <div className="grid gap-2">
-            <Label htmlFor="email" className="text-gray-700">Email</Label>
+            <Label htmlFor="email" className="text-gray-700">
+              Email
+            </Label>
             <Input
               id="email"
               type="email"
@@ -84,8 +87,13 @@ export default function SignIn() {
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="text-gray-700">Password</Label>
-              <Link href="/forgot-password" className="text-xs text-blue-700 hover:underline">
+              <Label htmlFor="password" className="text-gray-700">
+                Password
+              </Label>
+              <Link
+                href="/forgot-password"
+                className="text-primary text-xs hover:underline"
+              >
                 Forgot password?
               </Link>
             </div>
@@ -99,16 +107,15 @@ export default function SignIn() {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-            <Button
-              type="submit"
-              className={cn("w-full", publicCtaBlueGradientButtonClassName)}
-              disabled={otpLoading}
-            >
-              Sign in
-            </Button>
+          <Button
+            type="submit"
+            className={cn("w-full", publicCtaBlueGradientButtonClassName)}
+            disabled={otpLoading}
+          >
+            Sign in
+          </Button>
         </form>
       </CardContent>
     </Card>
   );
-
 }

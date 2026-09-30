@@ -36,7 +36,10 @@ export default function ResetPassword({
     }
 
     setLoading(true);
-    const result = await authClient.resetPassword({ newPassword: password, token });
+    const result = await authClient.resetPassword({
+      newPassword: password,
+      token,
+    });
     setLoading(false);
 
     if (result.error) {
@@ -47,20 +50,28 @@ export default function ResetPassword({
   }
 
   return (
-    <Card className="w-full max-w-md border-2 border-gray-100 bg-white shadow-sm">
+    <Card className="w-full max-w-md border-2 border-[#f1bddc] bg-white shadow-sm">
       <CardHeader>
         <CardTitle className="text-lg">New password</CardTitle>
       </CardHeader>
       <CardContent>
         {invalid ? (
           <p className="text-sm text-red-700" role="alert">
-            This reset link is invalid or has expired. Request a new link from the{" "}
-            <Link href="/forgot-password" className="underline">forgot-password page</Link>.
+            This reset link is invalid or has expired. Request a new link from
+            the{" "}
+            <Link href="/forgot-password" className="underline">
+              forgot-password page
+            </Link>
+            .
           </p>
         ) : complete ? (
           <p className="text-sm" role="status">
-            Your password has been changed and other sessions were revoked. You can now{" "}
-            <Link href="/sign-in" className="text-blue-700 underline">sign in</Link>.
+            Your password has been changed and other sessions were revoked. You
+            can now{" "}
+            <Link href="/sign-in" className="text-primary underline">
+              sign in
+            </Link>
+            .
           </p>
         ) : (
           <form onSubmit={handleSubmit} className="grid gap-4">
@@ -90,7 +101,11 @@ export default function ResetPassword({
                 onChange={(event) => setConfirmation(event.target.value)}
               />
             </div>
-            {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
+            {error && (
+              <p role="alert" className="text-sm text-red-700">
+                {error}
+              </p>
+            )}
             <Button type="submit" disabled={loading}>
               {loading ? "Updating…" : "Update password"}
             </Button>
