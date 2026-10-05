@@ -59,7 +59,7 @@ export function MobileNavMenu({
           variant="ghost"
           size="icon"
           className={cn(
-            "text-slate-600 md:hidden",
+            "text-slate-600 min-[1001px]:hidden",
             branded
               ? "hover:bg-[#fbe8f4] hover:text-[#a92379]"
               : "hover:bg-blue-50 hover:text-blue-700",

@@ -33,7 +33,7 @@ export function PublicNavLinks({
   ];
 
   return (
-    <div className="hidden min-w-0 items-center gap-3 md:flex lg:gap-6">
+    <div className="hidden min-w-0 items-center gap-3 min-[1001px]:flex lg:gap-6">
       {links.map((link) => (
         <Link
           key={link.name}

@@ -9,7 +9,9 @@
     "member_signup_coming_soon": "Coming Soon",
     "about": "About Raz-Japan",
     "getting_started": "Getting Started",
-    "contact": "Contact Us"
+    "contact": "Contact Us",
+    "individual_customers_website": "Raz-Plus Japan Official Website for Individual Customers",
+    "for_schools": "For Schools"
   },
   "Landing": {
     "hero_title": "Where Every Child Becomes a",
@@ -30,7 +32,8 @@
     "badges_description": "Fun achievements that motivate kids to keep reading",
     "pricing_title": "Simple, transparent pricing",
     "pricing_subtitle": "One annual subscription per student on your account—full access to the entire Raz-Japan library and features.",
-    "pricing_amount": "¥4,500",
+    "pricing_amount": "¥4,950",
+    "pricing_tax_included": "(tax included)",
     "pricing_per_student_year": "per year, per student",
     "pricing_billed_annually": "Billed annually. Add or manage students anytime from your account.",
     "pricing_include_books": "3,000+ leveled books in English and Japanese",

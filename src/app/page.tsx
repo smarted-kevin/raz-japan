@@ -260,8 +260,13 @@ export default async function HomePage() {
             <Card className="border-2 border-[#edacd5] bg-white/95 text-gray-900 shadow-2xl shadow-[#8f1f69]/15 backdrop-blur-sm">
               <CardContent className="space-y-8 p-8 md:p-10">
                 <div className="space-y-3 text-center">
-                  <div className="text-5xl font-bold tracking-tight text-gray-900 md:text-6xl">
-                    {t("pricing_amount")}
+                  <div className="flex flex-wrap items-baseline justify-center gap-x-2 gap-y-1 text-gray-900">
+                    <span className="text-5xl font-bold tracking-tight md:text-6xl">
+                      {t("pricing_amount")}
+                    </span>
+                    <span className="text-sm whitespace-nowrap text-gray-600 md:text-base">
+                      {t("pricing_tax_included")}
+                    </span>
                   </div>
                   <p className="text-lg font-semibold text-gray-700 md:text-xl">
                     {t("pricing_per_student_year")}

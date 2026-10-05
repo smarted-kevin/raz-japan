@@ -9,7 +9,9 @@
     "member_signup_coming_soon": "近日受付開始",
     "about": "Raz-Japanについて",
     "getting_started": "初め方",
-    "contact": "お問合せ"
+    "contact": "お問合せ",
+    "individual_customers_website": "Raz-Plus Japan 個人向け公式販売サイト",
+    "for_schools": "学校向け"
   },
   "Landing": {
     "hero_title": "すべての子どもが",
@@ -30,7 +32,8 @@
     "badges_description": "読書への意欲を高める楽しい実績",
     "pricing_title": "シンプルで分かりやすい料金",
     "pricing_subtitle": "アカウントにお子様を追加するごとに、年間のご利用料金です。ライブラリと機能はすべてご利用いただけます。",
-    "pricing_amount": "¥4,500",
+    "pricing_amount": "¥4,950",
+    "pricing_tax_included": "(税込)",
     "pricing_per_student_year": "お子様1名あたり／年間",
     "pricing_billed_annually": "年額請求です。お子様の追加や管理はいつでもアカウントから行えます。",
     "pricing_include_books": "英語・日本語のレベル別読書 3,000冊以上",
