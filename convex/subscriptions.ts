@@ -4,10 +4,304 @@ import type Stripe from "stripe";
 import { v } from "convex/values";
 import { action, internalAction } from "./_generated/server";
 import type { ActionCtx } from "./_generated/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
-import { renewalStopAt } from "./lib/billing";
+import { renewalStopAt, nextMonthlyBoundary } from "./lib/billing";
 import { stripeClient, ensureCustomer } from "./lib/stripeBilling";
+
+async function batchSession(
+  ctx: ActionCtx,
+  stripe: Stripe,
+  batch: Doc<"monthly_checkout_batch">,
+) {
+  const payer = await ctx.runQuery(internal.queries.users.getUserByIdInternal, {
+    id: batch.user_id,
+  });
+  if (!payer) throw new Error("Payer missing");
+  const customer = await ensureCustomer(ctx, stripe, payer);
+  let session: Stripe.Checkout.Session | undefined;
+  if (batch.stripe_session_id)
+    session = await stripe.checkout.sessions.retrieve(batch.stripe_session_id);
+  else {
+    for await (const candidate of stripe.checkout.sessions.list({
+      customer,
+      limit: 100,
+    })) {
+      if (candidate.metadata?.monthly_batch_id === batch._id) {
+        session = candidate;
+        break;
+      }
+    }
+    if (!session && batch.expires_at <= Date.now()) return null;
+    if (!session) {
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+      for (const s of batch.selections) {
+        const price = await stripe.prices.retrieve(s.stripe_price_id);
+        if (
+          !price.active ||
+          price.currency !== "jpy" ||
+          price.unit_amount !== s.price ||
+          price.recurring?.interval !== "month" ||
+          price.recurring.interval_count !== 1
+        )
+          throw new Error("Monthly Stripe price mismatch");
+        lineItems.push({
+          price_data: {
+            currency: "jpy",
+            unit_amount: s.price,
+            product:
+              typeof price.product === "string"
+                ? price.product
+                : price.product.id,
+          },
+          quantity: 1,
+        });
+      }
+      session = await stripe.checkout.sessions.create(
+        {
+          customer,
+          mode: "payment",
+          payment_method_types: ["card"],
+          line_items: lineItems,
+          payment_intent_data: {
+            setup_future_usage: "off_session",
+            metadata: { monthly_batch_id: batch._id },
+          },
+          metadata: { monthly_batch_id: batch._id },
+          expires_at: Math.floor(batch.expires_at / 1000),
+          success_url: `${siteUrl()}/dashboard/members/checkout/success?batch=${batch._id}`,
+          cancel_url: `${siteUrl()}/dashboard/members/subscriptions/add?canceled=${batch._id}`,
+        },
+        { idempotencyKey: `monthly-batch:${batch._id}` },
+      );
+    }
+  }
+  if (
+    session.metadata?.monthly_batch_id !== batch._id ||
+    stripeId(session.customer) !== customer ||
+    session.mode !== "payment"
+  )
+    throw new Error("Batch ownership mismatch");
+  if (batch.status !== "expired" || session.status !== "expired")
+    await ctx.runMutation(internal.billingStore.saveBatchSession, {
+      id: batch._id,
+      session_id: session.id,
+      customer_id: customer,
+    });
+  return session;
+}
+
+export const createMonthlyBatchCheckout = action({
+  args: {
+    selections: v.array(
+      v.object({ student_id: v.id("student"), course_id: v.id("course") }),
+    ),
+  },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{ url: string; batch_id: Id<"monthly_checkout_batch"> }> => {
+    const batch = await ctx.runMutation(
+      internal.billingStore.reserveBatch,
+      args,
+    );
+    try {
+      const session = await batchSession(ctx, stripeClient(), batch);
+      if (!session || session.status !== "open" || !session.url)
+        throw new Error("Checkout is no longer open");
+      return { url: session.url, batch_id: batch._id };
+    } catch (error) {
+      await ctx.runMutation(internal.billingStore.updateBatchRecovery, {
+        id: batch._id,
+        error: "Checkout requires retry or reconciliation",
+      });
+      throw error;
+    }
+  },
+});
+
+async function fulfillBatch(
+  ctx: ActionCtx,
+  stripe: Stripe,
+  session: Stripe.Checkout.Session,
+) {
+  const id = session.metadata?.monthly_batch_id as
+    | Id<"monthly_checkout_batch">
+    | undefined;
+  if (!id) return;
+  const initial = await ctx.runQuery(internal.billingStore.batch, { id });
+  const b = initial.batch;
+  if (!b) throw new Error("Batch missing");
+  if (b.status === "completed") return;
+  const payer = await ctx.runQuery(internal.queries.users.getUserByIdInternal, {
+    id: b.user_id,
+  });
+  if (
+    session.mode !== "payment" ||
+    session.status !== "complete" ||
+    session.payment_status !== "paid" ||
+    session.currency !== "jpy" ||
+    session.amount_total !== b.total ||
+    stripeId(session.customer) !== payer?.stripe_id ||
+    (b.stripe_session_id && b.stripe_session_id !== session.id)
+  )
+    throw new Error("Invalid batch payment");
+  const payment = await stripe.paymentIntents.retrieve(
+    stripeId(session.payment_intent)!,
+  );
+  if (
+    payment.status !== "succeeded" ||
+    payment.amount_received !== b.total ||
+    payment.currency !== "jpy" ||
+    stripeId(payment.customer) !== payer?.stripe_id ||
+    payment.metadata.monthly_batch_id !== b._id ||
+    !payment.payment_method ||
+    !payment.latest_charge
+  )
+    throw new Error("Invalid batch payment intent");
+  const charge = await stripe.charges.retrieve(
+    stripeId(payment.latest_charge)!,
+  );
+  const paidAt = charge.created * 1000;
+  await ctx.runMutation(internal.billingStore.saveBatchSession, {
+    id,
+    session_id: session.id,
+    customer_id: payer!.stripe_id!,
+  });
+  await ctx.runMutation(internal.billingStore.recordBatchPayment, {
+    id,
+    session_id: session.id,
+    customer_id: payer!.stripe_id!,
+    payment_intent_id: payment.id,
+    payment_method_id: stripeId(payment.payment_method)!,
+    amount: payment.amount_received,
+    paid_at: paidAt,
+    paid_through: nextMonthlyBoundary(paidAt),
+  });
+  const current = await ctx.runQuery(internal.billingStore.batch, { id });
+  const batch = current.batch!;
+  let failed = false;
+  for (const attempt of current.attempts) {
+    if (attempt.status === "completed") continue;
+    try {
+      let subscriptionId = attempt.stripe_subscription_id;
+      if (!subscriptionId) {
+        for await (const candidate of stripe.subscriptions.list({
+          customer: payer!.stripe_id!,
+          status: "all",
+          limit: 100,
+        })) {
+          if (candidate.metadata.monthly_attempt_id === attempt._id) {
+            subscriptionId = candidate.id;
+            break;
+          }
+        }
+      }
+      if (!subscriptionId) {
+        if (Date.now() >= batch.paid_through!)
+          throw new Error(
+            "Prepaid period ended; administrative resolution required",
+          );
+        const date = new Date(batch.paid_at!);
+        const enrollment = await ctx.runQuery(
+          internal.billingStore.enrollment,
+          { student_id: attempt.student_id },
+        );
+        if (!enrollment.student || enrollment.student.user_id !== batch.user_id)
+          throw new Error("Student mapping changed");
+        const selection = batch.selections.find(
+          (s) => s.student_id === attempt.student_id,
+        )!;
+        const stopAt = renewalStopAt(
+          batch.paid_at! / 1000,
+          batch.paid_through! / 1000,
+          selection.annual_expires_at,
+        );
+        const subscription = await stripe.subscriptions.create(
+          {
+            customer: payer!.stripe_id!,
+            items: [{ price: attempt.stripe_price_id, quantity: 1 }],
+            default_payment_method: batch.stripe_payment_method_id!,
+            billing_cycle_anchor_config: {
+              day_of_month: date.getUTCDate(),
+              hour: date.getUTCHours(),
+              minute: date.getUTCMinutes(),
+              second: date.getUTCSeconds(),
+            },
+            proration_behavior: "none",
+            cancel_at: Math.floor(stopAt / 1000),
+            metadata: {
+              monthly_attempt_id: attempt._id,
+              monthly_batch_id: batch._id,
+            },
+          },
+          { idempotencyKey: `monthly-batch-subscription:${attempt._id}` },
+        );
+        subscriptionId = subscription.id;
+      }
+      await syncSubscription(
+        ctx,
+        stripe,
+        subscriptionId,
+        `batch:${attempt._id}:${Date.now()}`,
+        "application.batch_payment",
+      );
+    } catch {
+      failed = true;
+      await ctx.runMutation(internal.billingStore.recordAttemptError, {
+        id: attempt._id,
+        error:
+          "Paid subscription requires recovery or administrative resolution",
+      });
+    }
+  }
+  await ctx.runMutation(internal.billingStore.updateBatchRecovery, {
+    id,
+    error: failed
+      ? "Paid subscriptions require recovery or administrative resolution"
+      : undefined,
+  });
+  if (failed) throw new Error("Batch fulfillment requires retry");
+}
+
+async function clearBatch(
+  ctx: ActionCtx,
+  stripe: Stripe,
+  batch: Doc<"monthly_checkout_batch">,
+) {
+  let session = await batchSession(ctx, stripe, batch);
+  if (session?.status === "open") {
+    try {
+      session = await stripe.checkout.sessions.expire(session.id);
+    } catch (error) {
+      session = await stripe.checkout.sessions.retrieve(session.id);
+      if (session.status === "open") throw error;
+    }
+  }
+  if (!session || session.status === "expired")
+    await ctx.runMutation(internal.billingStore.updateBatchRecovery, {
+      id: batch._id,
+      expired: true,
+    });
+  else if (session.status === "complete")
+    await fulfillBatch(ctx, stripe, session);
+  else throw new Error("Batch could not be cleared");
+}
+
+export const abandonMonthlyBatch = action({
+  args: { id: v.id("monthly_checkout_batch") },
+  handler: async (ctx, { id }): Promise<{ paid: boolean }> => {
+    const payer = await ctx.runQuery(internal.billingStore.payer, {});
+    const { batch } = await ctx.runQuery(internal.billingStore.batch, { id });
+    if (!batch || batch.user_id !== payer._id)
+      throw new Error("Checkout access denied");
+    if (batch.status === "expired" || batch.status === "completed")
+      return { paid: !!batch.paid_at };
+    await clearBatch(ctx, stripeClient(), batch);
+    const current = await ctx.runQuery(internal.billingStore.batch, { id });
+    return { paid: !!current.batch?.paid_at };
+  },
+});
 
 export const createMonthlyCheckout = action({
   args: { course_id: v.id("course"), student_id: v.id("student") },
@@ -88,7 +382,12 @@ export const abandonMonthlyCheckouts = action({
     );
     if (!attempts.length) return;
     const stripe = stripeClient();
+    const batches = await ctx.runQuery(internal.billingStore.pendingBatches, {
+      member: true,
+    });
+    for (const batch of batches) await clearBatch(ctx, stripe, batch);
     for (const attempt of attempts) {
+      if (attempt.batch_id) continue;
       let sessionId = attempt.stripe_session_id;
       if (!sessionId && payer.stripe_id) {
         // Recover a session created before a timeout prevented saveSession.
@@ -415,6 +714,25 @@ export const handleEvent = internalAction({
       const session = await stripe.checkout.sessions.retrieve(
         event.data.object.id,
       );
+      if (session.metadata?.monthly_batch_id) {
+        const id = session.metadata
+          .monthly_batch_id as Id<"monthly_checkout_batch">;
+        const { batch } = await ctx.runQuery(internal.billingStore.batch, {
+          id,
+        });
+        if (!batch) throw new Error("Batch missing");
+        const verified = await batchSession(ctx, stripe, batch);
+        if (!verified || verified.id !== session.id)
+          throw new Error("Batch session mismatch");
+        if (verified.status === "expired")
+          await ctx.runMutation(internal.billingStore.updateBatchRecovery, {
+            id,
+            expired: true,
+          });
+        else if (verified.status === "complete")
+          await fulfillBatch(ctx, stripe, verified);
+        return;
+      }
       const attemptId = session.metadata?.monthly_attempt_id;
       if (!attemptId || session.mode !== "subscription") return;
       if (session.status === "expired")
@@ -460,6 +778,32 @@ export const reconcile = internalAction({
   args: {},
   handler: async (ctx) => {
     const stripe = stripeClient();
+    const batches = await ctx.runQuery(
+      internal.billingStore.pendingBatches,
+      {},
+    );
+    for (const batch of batches) {
+      try {
+        const session = await batchSession(ctx, stripe, batch);
+        if (!session || session.status === "expired")
+          await ctx.runMutation(internal.billingStore.updateBatchRecovery, {
+            id: batch._id,
+            expired: true,
+          });
+        else if (session.status === "complete")
+          await fulfillBatch(ctx, stripe, session);
+        else
+          await ctx.runMutation(internal.billingStore.updateBatchRecovery, {
+            id: batch._id,
+          });
+      } catch {
+        await ctx.runMutation(internal.billingStore.updateBatchRecovery, {
+          id: batch._id,
+          error:
+            "Batch checkout requires recovery or administrative resolution",
+        });
+      }
+    }
     const rows = await ctx.runQuery(
       internal.billingStore.dueReconciliation,
       {},
@@ -510,6 +854,7 @@ export const reconcile = internalAction({
       {},
     );
     for (const attempt of attempts) {
+      if (attempt.batch_id) continue;
       try {
         let sessionId = attempt.stripe_session_id;
         if (!sessionId) {

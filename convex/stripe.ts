@@ -221,6 +221,12 @@ export const fulfill = internalAction({
         const session = await stripe.checkout.sessions.retrieve(
           event.data.object.id,
         );
+        if (session.metadata?.monthly_batch_id) {
+          await ctx.runAction(internal.subscriptions.handleEvent, {
+            event_json: JSON.stringify(event),
+          });
+          return { success: true };
+        }
         if (session.mode === "payment") {
           if (!session.metadata?.order_id && !session.metadata?.cart_id)
             return { success: true };

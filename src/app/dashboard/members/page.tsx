@@ -49,7 +49,7 @@ export default async function MemberPage() {
         lastName={user.last_name ?? ""}
         email={user.email ?? ""}
       />
-      <div className="w-full max-w-4xl">
+      <div className="flex w-full max-w-4xl flex-wrap gap-3">
         <Link
           href={"/dashboard/members/order"}
           className={buttonVariants({
@@ -63,6 +63,16 @@ export default async function MemberPage() {
               ? "add_or_renew_students"
               : "add_students",
           )}
+          <CirclePlus className="size-[1.35rem]" />
+        </Link>
+        <Link
+          href="/dashboard/members/subscriptions/add"
+          className={buttonVariants({
+            variant: "outline",
+            className: "h-[3.15rem] gap-2.5 px-7 text-[0.9rem] has-[>svg]:px-7",
+          })}
+        >
+          {t("add_monthly_subscriptions")}
           <CirclePlus className="size-[1.35rem]" />
         </Link>
       </div>

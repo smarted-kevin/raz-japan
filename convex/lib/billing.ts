@@ -9,6 +9,22 @@ export const billingModel = v.union(
 export const GRACE_MS = 7 * 24 * 60 * 60 * 1000;
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
+export function nextMonthlyBoundary(timestamp: number) {
+  const date = new Date(timestamp);
+  const month = date.getUTCMonth() + 1;
+  const lastDay = new Date(
+    Date.UTC(date.getUTCFullYear(), month + 1, 0),
+  ).getUTCDate();
+  return Date.UTC(
+    date.getUTCFullYear(),
+    month,
+    Math.min(date.getUTCDate(), lastDay),
+    date.getUTCHours(),
+    date.getUTCMinutes(),
+    date.getUTCSeconds(),
+  );
+}
+
 export function validatePrice(price: number) {
   if (!Number.isSafeInteger(price) || price <= 0)
     throw new Error("Price must be a positive integer in JPY");
