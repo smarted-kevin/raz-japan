@@ -11,25 +11,33 @@ import ActivateStudentByCode from "./_components/activateStudentByCode";
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { getTranslations } from "next-intl/server";
 import { isRenewable } from "~/lib/dateCompare";
+import { MemberCheckoutCleanup } from "./_components/memberCheckoutCleanup";
 
 export default async function MemberPage() {
   const { token, session, memberId } = await getMemberSession();
 
-  const user = await fetchQuery(api.queries.users.getUserWithStudents, {
-    id: memberId,
-  }, { token });
+  const user = await fetchQuery(
+    api.queries.users.getUserWithStudents,
+    {
+      id: memberId,
+    },
+    { token },
+  );
 
   if (!user || user.auth_id != session._id) redirect("/sign-in");
 
-  const currentStudents = user.students.filter(
-    (student) => student.status === "active"
-  );
-  const removedStudents = user.students.filter(
-    (student) => student.status === "removed"
-  );
   // Capture one request-time timestamp in this server component for all client rows.
   // eslint-disable-next-line react-hooks/purity
   const renderedAt = Date.now();
+
+  const currentStudents = user.students.filter(
+    (student) =>
+      student.status === "active" && (student.expiry_date ?? 0) > renderedAt,
+  );
+  const removedStudents = user.students.filter(
+    (student) =>
+      student.status !== "active" || (student.expiry_date ?? 0) <= renderedAt,
+  );
 
   const t = await getTranslations("dashboard.members");
 
@@ -45,44 +53,52 @@ export default async function MemberPage() {
         <Link
           href={"/dashboard/members/order"}
           className={buttonVariants({
-            className:
-              "h-[3.15rem] gap-2.5 px-7 text-[0.9rem] has-[>svg]:px-7",
+            className: "h-[3.15rem] gap-2.5 px-7 text-[0.9rem] has-[>svg]:px-7",
           })}
         >
-          {t(user.students.some((student) => isRenewable(60, student.expiry_date, renderedAt)) ? "add_or_renew_students" : "add_students")}
+          {t(
+            user.students.some((student) =>
+              isRenewable(60, student.expiry_date, renderedAt),
+            )
+              ? "add_or_renew_students"
+              : "add_students",
+          )}
           <CirclePlus className="size-[1.35rem]" />
         </Link>
       </div>
       <Card className="w-full max-w-4xl overflow-hidden">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-              <GraduationCap className="h-5 w-5 text-primary" aria-hidden />
+            <div className="bg-primary/10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+              <GraduationCap className="text-primary h-5 w-5" aria-hidden />
             </div>
             <h2 className="text-lg font-semibold">{t("current_students")}</h2>
           </div>
         </CardHeader>
         <CardContent>
-          {currentStudents.length === 0 ? (
-            <div className="rounded-lg border border-dashed py-12 text-center">
-              <p className="text-muted-foreground">{t("no_students_yet")}</p>
-              <Link
-                href={"/dashboard/members/order"}
-                className={buttonVariants({
-                  variant: "outline",
-                  className: "mt-4",
-                })}
-              >
-                {t("add_first_student")}
-                <CirclePlus className="ml-2 h-4 w-4" />
-              </Link>
-            </div>
-          ) : (
-            <MemberStudentTable
-              students={currentStudents}
-              renderedAt={renderedAt}
-            />
-          )}
+          <MemberCheckoutCleanup>
+            {currentStudents.length === 0 ? (
+              <div className="rounded-lg border border-dashed py-12 text-center">
+                <p className="text-muted-foreground">{t("no_students_yet")}</p>
+                <Link
+                  href={"/dashboard/members/order"}
+                  className={buttonVariants({
+                    variant: "outline",
+                    className: "mt-4",
+                  })}
+                >
+                  {t("add_first_student")}
+                  <CirclePlus className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+            ) : (
+              <MemberStudentTable
+                students={currentStudents}
+                renderedAt={renderedAt}
+                showMonthlySubscription
+              />
+            )}
+          </MemberCheckoutCleanup>
         </CardContent>
       </Card>
       <ActivateStudentByCode userId={user.id} />
@@ -90,8 +106,8 @@ export default async function MemberPage() {
         <Card className="w-full max-w-4xl overflow-hidden">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted">
-                <Clock className="h-5 w-5 text-muted-foreground" aria-hidden />
+              <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-full">
+                <Clock className="text-muted-foreground h-5 w-5" aria-hidden />
               </div>
               <h2 className="text-lg font-semibold">{t("expired_students")}</h2>
             </div>

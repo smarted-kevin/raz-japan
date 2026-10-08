@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { adminMutation, requireOrganizationAccess } from "../lib/auth";
+import { isAnnual } from "../lib/billing";
 
 export const createActivationCode = adminMutation({
   args: {
@@ -9,6 +10,9 @@ export const createActivationCode = adminMutation({
   },
   handler: async (ctx, args) => {
     requireOrganizationAccess(ctx.user, args.organization_id);
+    const course = await ctx.db.get(args.course_id);
+    if (!course || !isAnnual(course))
+      throw new Error("Activation codes require an annual course");
     const chars = "123456789ABCDEFGHJKMNPQRSTUVWXYZ";
     const quantity = args.quantity ?? 1;
     const activation_codes: string[] = [];
@@ -17,7 +21,14 @@ export const createActivationCode = adminMutation({
       for (let i = 0; i < 6; i++) {
         activation_code += chars[Math.floor(Math.random() * chars.length)];
       }
-      while (await ctx.db.query("activation_code").withIndex("by_activation_code", (q) => q.eq("activation_code", activation_code)).first()) {
+      while (
+        await ctx.db
+          .query("activation_code")
+          .withIndex("by_activation_code", (q) =>
+            q.eq("activation_code", activation_code),
+          )
+          .first()
+      ) {
         activation_code = "";
         for (let i = 0; i < 6; i++) {
           activation_code += chars[Math.floor(Math.random() * chars.length)];
@@ -33,12 +44,12 @@ export const createActivationCode = adminMutation({
       });
     }
     return activation_codes ?? [];
-  }
+  },
 });
 
 export const removeActivationCode = adminMutation({
   args: {
-    activation_code_id: v.id("activation_code")
+    activation_code_id: v.id("activation_code"),
   },
   handler: async (ctx, args) => {
     const activationCode = await ctx.db.get(args.activation_code_id);
@@ -47,11 +58,14 @@ export const removeActivationCode = adminMutation({
     }
     requireOrganizationAccess(ctx.user, activationCode.organization_id);
     if (activationCode.removed_date) {
-      return { success: false, error: "Activation code has already been removed" };
+      return {
+        success: false,
+        error: "Activation code has already been removed",
+      };
     }
     await ctx.db.patch(args.activation_code_id, {
-      removed_date: Date.now()
+      removed_date: Date.now(),
     });
     return { success: true };
-  }
+  },
 });

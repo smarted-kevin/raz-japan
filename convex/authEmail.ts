@@ -14,9 +14,11 @@ export const sendAuthEmail = internalAction({
     url: v.string(),
   },
   handler: async (_ctx, args) => {
-    const from = process.env.RESEND_FROM_EMAIL ?? "Raz-Japan <onboarding@resend.dev>";
+    const from =
+      process.env.RESEND_FROM_EMAIL ??
+      "Raz-Plus Japan <onboarding@resend.dev>";
 
-    const subject = "Reset your Raz-Japan password";
+    const subject = "Reset your Raz-Plus Japan password";
     const action = "reset your password";
     const expiry = "30 minutes";
     const greeting = args.name.trim() ? `Hello ${args.name.trim()},` : "Hello,";

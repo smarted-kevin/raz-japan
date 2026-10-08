@@ -1,3 +1,4 @@
+import { requireNoAddon } from "../lib/billing";
 import { internalMutation } from "../_generated/server";
 import { ConvexError, v } from "convex/values";
 import { adminMutation, requireUserAccess } from "../lib/auth";
@@ -8,15 +9,20 @@ export const createUser = internalMutation({
     first_name: v.string(),
     last_name: v.string(),
     email: v.string(),
-    role: v.optional(v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god"))),
+    role: v.optional(
+      v.union(
+        v.literal("user"),
+        v.literal("admin"),
+        v.literal("org_admin"),
+        v.literal("god"),
+      ),
+    ),
     org_id: v.optional(v.id("organization")),
     updated_at: v.number(),
     status: v.union(v.literal("active"), v.literal("inactive")),
   },
   handler: async (ctx, args) => {
-    const user = await ctx.db.insert(
-      "userTable",
-    {
+    const user = await ctx.db.insert("userTable", {
       auth_id: args.auth_id ?? "",
       first_name: args.first_name,
       last_name: args.last_name,
@@ -25,10 +31,10 @@ export const createUser = internalMutation({
       status: args.status ?? "active",
       role: args.role ?? "user",
       org_id: args.org_id,
-    })
+    });
 
     return user;
-  }
+  },
 });
 
 export const updateStripeId = internalMutation({
@@ -71,6 +77,13 @@ export const updateUserInfo = internalMutation({
     if (args.email !== undefined) {
       updateData.email = args.email;
     }
+    if (args.status === "inactive") {
+      const students = await ctx.db
+        .query("student")
+        .withIndex("by_user_id", (q) => q.eq("user_id", args.userId))
+        .collect();
+      for (const student of students) await requireNoAddon(ctx, student._id);
+    }
     if (args.status !== undefined) {
       updateData.status = args.status;
     }
@@ -89,11 +102,15 @@ export const migrateUsersToSmartEdOrg = internalMutation({
     // Find the SmartEd organization
     const smartEdOrg = await ctx.db
       .query("organization")
-      .withIndex("by_organization_name", (q) => q.eq("organization_name", "SmartEd"))
+      .withIndex("by_organization_name", (q) =>
+        q.eq("organization_name", "SmartEd"),
+      )
       .first();
 
     if (!smartEdOrg) {
-      throw new ConvexError("SmartEd organization not found. Please create it first.");
+      throw new ConvexError(
+        "SmartEd organization not found. Please create it first.",
+      );
     }
 
     // Get all users with role "user"
@@ -128,7 +145,12 @@ export const migrateUsersToSmartEdOrg = internalMutation({
 export const updateUserRole = adminMutation({
   args: {
     userId: v.id("userTable"),
-    role: v.union(v.literal("user"), v.literal("admin"), v.literal("org_admin"), v.literal("god")),
+    role: v.union(
+      v.literal("user"),
+      v.literal("admin"),
+      v.literal("org_admin"),
+      v.literal("god"),
+    ),
     org_id: v.optional(v.id("organization")),
   },
   handler: async (ctx, args) => {
@@ -165,5 +187,3 @@ export const updateUserRole = adminMutation({
     };
   },
 });
-
-

@@ -1,15 +1,25 @@
 import { internalMutation } from "../_generated/server";
 import { v } from "convex/values";
 import { generateOrderNumber } from "./full_order";
-import { adminMutation, authedMutation, requireOrganizationAccess } from "../lib/auth";
+import {
+  adminMutation,
+  authedMutation,
+  requireOrganizationAccess,
+} from "../lib/auth";
+import { internal } from "../_generated/api";
+import { isAnnual, requireAnnualStudent, requireNoAddon } from "../lib/billing";
 
 export const createStudent = adminMutation({
-  args: { 
+  args: {
     username: v.string(),
     password: v.string(),
     course_id: v.id("course"),
     classroom_id: v.id("classroom"),
-    status: v.union(v.literal("active"), v.literal("inactive"), v.literal("removed")),
+    status: v.union(
+      v.literal("active"),
+      v.literal("inactive"),
+      v.literal("removed"),
+    ),
   },
   handler: async (ctx, args) => {
     const classroom = await ctx.db.get(args.classroom_id);
@@ -18,29 +28,35 @@ export const createStudent = adminMutation({
       return "Course does not match classroom.";
     }
     requireOrganizationAccess(ctx.user, classroom.organization_id);
-    const student = await ctx.db.insert(
-      "student",
-      {
-        ...args,
-        user_id: undefined,
-        cart_id: undefined,
-        created_on: Date.now(),
-        updated_on: Date.now()
-      }
-    )
+    const course = await ctx.db.get(classroom.course_id);
+    if (!course || !isAnnual(course))
+      throw new Error("Add-ons use existing annual accounts");
+    const student = await ctx.db.insert("student", {
+      ...args,
+      user_id: undefined,
+      cart_id: undefined,
+      created_on: Date.now(),
+      updated_on: Date.now(),
+    });
     return student;
-  }
+  },
 });
 
 export const createStudents = adminMutation({
-  args: { 
-    students: v.array(v.object({
-      username: v.string(),
-      password: v.string(),
-      course_id: v.optional(v.id("course")),
-      classroom_id: v.optional(v.id("classroom")),
-      status: v.union(v.literal("active"), v.literal("inactive"), v.literal("removed"))
-    }))
+  args: {
+    students: v.array(
+      v.object({
+        username: v.string(),
+        password: v.string(),
+        course_id: v.optional(v.id("course")),
+        classroom_id: v.optional(v.id("classroom")),
+        status: v.union(
+          v.literal("active"),
+          v.literal("inactive"),
+          v.literal("removed"),
+        ),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     for (const student of args.students) {
@@ -48,77 +64,127 @@ export const createStudents = adminMutation({
 
       const classroom = await ctx.db.get(student.classroom_id);
       if (!classroom) throw new Error("Classroom not found.");
+      const course = await ctx.db.get(classroom.course_id);
+      if (!course || !isAnnual(course))
+        throw new Error("Add-ons use existing annual accounts");
       if (!student.course_id || classroom.course_id !== student.course_id) {
         throw new Error("Course does not match classroom.");
       }
     }
 
-    const classroomIds = Array.from(new Set(args.students.flatMap((student) => student.classroom_id ? [student.classroom_id] : [])));
+    const classroomIds = Array.from(
+      new Set(
+        args.students.flatMap((student) =>
+          student.classroom_id ? [student.classroom_id] : [],
+        ),
+      ),
+    );
     for (const classroomId of classroomIds) {
       const classroom = await ctx.db.get(classroomId);
       if (!classroom) throw new Error("Classroom not found");
       requireOrganizationAccess(ctx.user, classroom.organization_id);
     }
     const createdStudents = await Promise.all(
-      args.students.map(student => 
+      args.students.map((student) =>
         ctx.db.insert("student", {
           ...student,
           created_on: Date.now(),
           updated_on: Date.now(),
           user_id: undefined,
           cart_id: undefined,
-        })
-      )
+        }),
+      ),
     );
     return createdStudents;
-  }
+  },
 });
 
 export const editStudent = adminMutation({
   args: {
-    student_id: v.id("student"), 
+    student_id: v.id("student"),
     username: v.optional(v.string()),
     password: v.optional(v.string()),
     classroom_id: v.optional(v.id("classroom")),
-    status: v.optional(v.union(v.literal("active"), v.literal("inactive"), v.literal("removed"))),
-    expiry_date: v.optional(v.number())
-   },
+    status: v.optional(
+      v.union(v.literal("active"), v.literal("inactive"), v.literal("removed")),
+    ),
+    expiry_date: v.optional(v.number()),
+  },
   handler: async (ctx, args) => {
     const student = await ctx.db.get(args.student_id);
 
-    if (!student) return "Student not found."
+    if (!student) return "Student not found.";
     const classroomId = args.classroom_id ?? student.classroom_id;
     if (!classroomId) return "Student has no classroom.";
     const classroom = await ctx.db.get(classroomId);
     if (!classroom) return "Classroom not found.";
     requireOrganizationAccess(ctx.user, classroom.organization_id);
+    const currentCourse = student.classroom_id
+      ? await ctx.db.get(student.classroom_id)
+      : null;
+    const billingCourse = currentCourse
+      ? await ctx.db.get(currentCourse.course_id)
+      : null;
+    const destinationCourse = await ctx.db.get(classroom.course_id);
+    if (
+      billingCourse &&
+      destinationCourse &&
+      isAnnual(billingCourse) !== isAnnual(destinationCourse) &&
+      (student.user_id ||
+        student.annual_order_id ||
+        student.checkout_attempt_id)
+    )
+      throw new Error(
+        "Enrolled or reserved students cannot switch billing models",
+      );
+    if (
+      billingCourse &&
+      !isAnnual(billingCourse) &&
+      (args.expiry_date !== undefined ||
+        args.status === "active" ||
+        args.classroom_id !== undefined)
+    )
+      throw new Error(
+        "Monthly access and course assignment are managed by billing",
+      );
 
-    const updated_student = await ctx.db
-      .patch(args.student_id, 
-        {
-          username: args.username ?? student.username,
-          password: args.password ?? student.password,
-          classroom_id: args.classroom_id ?? student.classroom_id,
-          status: args.status ?? student.status,
-          expiry_date: args.expiry_date ?? student.expiry_date
-        }
-      )
-    
+    if (
+      (args.status && args.status !== "active") ||
+      (args.classroom_id && args.classroom_id !== student.classroom_id)
+    )
+      await requireNoAddon(ctx, student._id);
+    const updated_student = await ctx.db.patch(args.student_id, {
+      username: args.username ?? student.username,
+      password: args.password ?? student.password,
+      classroom_id: args.classroom_id ?? student.classroom_id,
+      status: args.status ?? student.status,
+      expiry_date: args.expiry_date ?? student.expiry_date,
+    });
+
+    await ctx.scheduler.runAfter(0, internal.subscriptions.syncStudent, {
+      student_id: args.student_id,
+    });
     return updated_student;
-  }
+  },
 });
 
-
 export const activateStudent = internalMutation({
-  args: { 
+  args: {
     student_id: v.id("student"),
-    user_id: v.id("userTable")
+    user_id: v.id("userTable"),
   },
   handler: async (ctx, args) => {
     const student = await ctx.db.get(args.student_id);
     if (!student) {
       return "Student not found";
     }
+    await requireAnnualStudent(ctx, student);
+    if (
+      student.checkout_attempt_id ||
+      student.annual_order_id ||
+      (student.user_id && student.user_id !== args.user_id)
+    )
+      throw new Error("Student is reserved or owned");
     //check if student is already active
     if (student.status === "active") {
       return "Student is already active";
@@ -126,30 +192,32 @@ export const activateStudent = internalMutation({
 
     //Get user Id from user email
     const user = await ctx.db.get(args.user_id);
-    
+
     if (!user) return "User not found.";
 
     const start_date = new Date();
 
-    await ctx.db
-      .patch(args.student_id, 
-        {
-          "status": "active",
-          "expiry_date": new Date(start_date.setFullYear(start_date.getFullYear()+1)).getTime(),
-          user_id: user._id
-        }
-      ) 
-    
+    await ctx.db.patch(args.student_id, {
+      status: "active",
+      expiry_date: new Date(
+        start_date.setFullYear(start_date.getFullYear() + 1),
+      ).getTime(),
+      user_id: user._id,
+    });
+
+    await ctx.scheduler.runAfter(0, internal.subscriptions.syncStudent, {
+      student_id: args.student_id,
+    });
     const return_student = await ctx.db.get(args.student_id);
 
     return {
       student_id: return_student?._id,
       username: return_student?.username,
       password: return_student?.password,
-      expiry_date: return_student?.expiry_date
+      expiry_date: return_student?.expiry_date,
     };
-  }
-})
+  },
+});
 
 export const reactivateStudent = internalMutation({
   args: { student_id: v.id("student") },
@@ -157,57 +225,70 @@ export const reactivateStudent = internalMutation({
     const student = await ctx.db.get(args.student_id);
     if (!student) return "Student not found.";
 
+    await requireAnnualStudent(ctx, student);
+
     const start_date = new Date();
 
-    await ctx.db.patch(
-      args.student_id,
-      { 
-        "status": "active",
-        "expiry_date": new Date(start_date.setFullYear(start_date.getFullYear()+1)).getTime(),
-        "updated_on": Date.now()
-      }
-    )
+    await ctx.db.patch(args.student_id, {
+      status: "active",
+      expiry_date: new Date(
+        start_date.setFullYear(start_date.getFullYear() + 1),
+      ).getTime(),
+      updated_on: Date.now(),
+    });
+    await ctx.scheduler.runAfter(0, internal.subscriptions.syncStudent, {
+      student_id: args.student_id,
+    });
     const return_student = await ctx.db.get(args.student_id);
 
     return {
       student_id: return_student?._id,
       username: return_student?.username,
       password: return_student?.password,
-      expiry_date: return_student?.expiry_date
+      expiry_date: return_student?.expiry_date,
     };
-  }
+  },
 });
 
 export const renewStudent = internalMutation({
   args: { student_id: v.id("student") },
   handler: async (ctx, args) => {
     const student = await ctx.db.get(args.student_id);
-    if (!student || typeof student.expiry_date != "number" ) return "Something went wrong.";
+    if (!student || typeof student.expiry_date != "number")
+      return "Something went wrong.";
+
+    await requireAnnualStudent(ctx, student);
 
     const start_date = new Date(Math.max(student.expiry_date, Date.now()));
 
-    await ctx.db.patch(
-      args.student_id,
-      { 
-        "expiry_date": new Date(start_date.setFullYear(start_date.getFullYear()+1)).getTime(),
-        "updated_on": Date.now()
-      }
-    )
+    await ctx.db.patch(args.student_id, {
+      expiry_date: new Date(
+        start_date.setFullYear(start_date.getFullYear() + 1),
+      ).getTime(),
+      updated_on: Date.now(),
+    });
+    await ctx.scheduler.runAfter(0, internal.subscriptions.syncStudent, {
+      student_id: args.student_id,
+    });
     const return_student = await ctx.db.get(args.student_id);
-    
+
     return {
       student_id: return_student?._id,
       username: return_student?.username,
       password: return_student?.password,
-      expiry_date: return_student?.expiry_date
+      expiry_date: return_student?.expiry_date,
     };
-  }
+  },
 });
 
 export const setStudentStatus = adminMutation({
-  args: { 
+  args: {
     student_id: v.id("student"),
-    status: v.union(v.literal("active"), v.literal("inactive"), v.literal("removed"))
+    status: v.union(
+      v.literal("active"),
+      v.literal("inactive"),
+      v.literal("removed"),
+    ),
   },
   handler: async (ctx, args) => {
     const student = await ctx.db.get(args.student_id);
@@ -218,19 +299,23 @@ export const setStudentStatus = adminMutation({
     const classroom = await ctx.db.get(student.classroom_id);
     if (!classroom) return "Classroom not found";
     requireOrganizationAccess(ctx.user, classroom.organization_id);
+    const course = await ctx.db.get(classroom.course_id);
+    if (course && !isAnnual(course) && args.status === "active")
+      throw new Error("Monthly access is managed by billing");
+    if (args.status !== "active") await requireNoAddon(ctx, student._id);
     await ctx.db.patch(args.student_id, {
       status: args.status,
       updated_on: Date.now(),
     });
 
     return await ctx.db.get(args.student_id);
-  }
-})
+  },
+});
 
 export const activateStudentByActivationCode = authedMutation({
   args: {
     activation_code: v.string(),
-    user_id: v.id("userTable")
+    user_id: v.id("userTable"),
   },
   handler: async (ctx, args) => {
     if (args.user_id !== ctx.user._id) {
@@ -239,7 +324,9 @@ export const activateStudentByActivationCode = authedMutation({
     // Find activation code
     const activationCode = await ctx.db
       .query("activation_code")
-      .withIndex("by_activation_code", (q) => q.eq("activation_code", args.activation_code))
+      .withIndex("by_activation_code", (q) =>
+        q.eq("activation_code", args.activation_code),
+      )
       .first();
 
     if (!activationCode) {
@@ -261,6 +348,11 @@ export const activateStudentByActivationCode = authedMutation({
     if (!course) {
       return { success: false, error: "Course not found" };
     }
+    if (!isAnnual(course))
+      return {
+        success: false,
+        error: "Monthly courses cannot use activation codes",
+      };
 
     // Classroom ownership is authoritative for allocating student inventory.
     // Convex mutations are transactional, so selecting the student and marking
@@ -272,6 +364,12 @@ export const activateStudentByActivationCode = authedMutation({
 
     let availableStudent;
     for (const student of students) {
+      if (
+        student.user_id ||
+        student.checkout_attempt_id ||
+        student.annual_order_id
+      )
+        continue;
       if (!student.classroom_id) continue;
 
       const classroom = await ctx.db.get(student.classroom_id);
@@ -285,7 +383,10 @@ export const activateStudentByActivationCode = authedMutation({
     }
 
     if (!availableStudent) {
-      return { success: false, error: "No available student found for this course" };
+      return {
+        success: false,
+        error: "No available student found for this course",
+      };
     }
 
     // Verify user exists
@@ -298,9 +399,11 @@ export const activateStudentByActivationCode = authedMutation({
     const start_date = new Date();
     await ctx.db.patch(availableStudent._id, {
       status: "active",
-      expiry_date: new Date(start_date.setFullYear(start_date.getFullYear() + 1)).getTime(),
+      expiry_date: new Date(
+        start_date.setFullYear(start_date.getFullYear() + 1),
+      ).getTime(),
       user_id: user._id,
-      updated_on: Date.now()
+      updated_on: Date.now(),
     });
 
     // Create full_order
@@ -341,22 +444,24 @@ export const activateStudentByActivationCode = authedMutation({
         student_id: updatedStudent?._id,
         username: updatedStudent?.username,
         password: updatedStudent?.password,
-        expiry_date: updatedStudent?.expiry_date
-      }
+        expiry_date: updatedStudent?.expiry_date,
+      },
     };
-  }
-})
+  },
+});
 
 export const renewStudentByActivationCode = authedMutation({
   args: {
     activation_code: v.string(),
-    student_id: v.id("student")
+    student_id: v.id("student"),
   },
   handler: async (ctx, args) => {
     // Find activation code
     const activationCode = await ctx.db
       .query("activation_code")
-      .withIndex("by_activation_code", (q) => q.eq("activation_code", args.activation_code))
+      .withIndex("by_activation_code", (q) =>
+        q.eq("activation_code", args.activation_code),
+      )
       .first();
 
     if (!activationCode) {
@@ -380,10 +485,24 @@ export const renewStudentByActivationCode = authedMutation({
     }
 
     // Get existing student
+    if (!isAnnual(course))
+      return {
+        success: false,
+        error: "Monthly courses cannot use activation codes",
+      };
     const student = await ctx.db.get(args.student_id);
     if (!student) {
       return { success: false, error: "Student not found" };
     }
+    await requireAnnualStudent(ctx, student);
+    const studentClassroom = student.classroom_id
+      ? await ctx.db.get(student.classroom_id)
+      : null;
+    if (studentClassroom?.course_id !== activationCode.course)
+      return {
+        success: false,
+        error: "Activation course does not match student",
+      };
 
     // Check if student is active
     if (student.status !== "active") {
@@ -411,7 +530,7 @@ export const renewStudentByActivationCode = authedMutation({
 
     await ctx.db.patch(student._id, {
       expiry_date: newExpiryDate.getTime(),
-      updated_on: Date.now()
+      updated_on: Date.now(),
     });
 
     // Create full_order
@@ -444,6 +563,9 @@ export const renewStudentByActivationCode = authedMutation({
     });
 
     // Get the updated student
+    await ctx.scheduler.runAfter(0, internal.subscriptions.syncStudent, {
+      student_id: student._id,
+    });
     const updatedStudent = await ctx.db.get(student._id);
 
     return {
@@ -452,8 +574,8 @@ export const renewStudentByActivationCode = authedMutation({
         student_id: updatedStudent?._id,
         username: updatedStudent?.username,
         password: updatedStudent?.password,
-        expiry_date: updatedStudent?.expiry_date
-      }
+        expiry_date: updatedStudent?.expiry_date,
+      },
     };
-  }
-})
+  },
+});

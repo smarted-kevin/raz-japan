@@ -1,4 +1,8 @@
 "use client";
+import {
+  PaymentPeriod,
+  InvoiceReference,
+} from "~/components/billing/paymentPeriod";
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
@@ -37,20 +41,26 @@ import {
   ChevronsRight,
 } from "lucide-react";
 import Link from "next/link";
-import type { OrdersWithUserAndStudentData } from "../../_actions/schemas";
+import type { FunctionReturnType } from "convex/server";
+import type { api } from "@/convex/_generated/api";
 import { dateDisplayFormat } from "~/lib/formatters";
-import { useAdminStatusLabel } from "../../_lib/useAdminStatusLabel";
 
 export default function OrderTable({
   orders,
 }: {
-  orders: OrdersWithUserAndStudentData[];
+  orders: FunctionReturnType<
+    typeof api.queries.full_order.getOrdersWithUserAndStudentData
+  >;
 }) {
   const t = useTranslations("dashboard.admin.orders");
   const tc = useTranslations("dashboard.admin.common");
-  const statusLabel = useAdminStatusLabel();
+  const tb = useTranslations("billing");
 
-  const columns: ColumnDef<OrdersWithUserAndStudentData>[] = useMemo(
+  const columns: ColumnDef<
+    FunctionReturnType<
+      typeof api.queries.full_order.getOrdersWithUserAndStudentData
+    >[number]
+  >[] = useMemo(
     () => [
       {
         accessorKey: "order_number",
@@ -66,7 +76,7 @@ export default function OrderTable({
         cell: ({ row }) => (
           <Link
             href={`/dashboard/admin/orders/${row.original.order_id}`}
-            className="text-primary hover:underline font-medium"
+            className="text-primary font-medium hover:underline"
           >
             {row.original.order_number ?? tc("na")}
           </Link>
@@ -82,6 +92,13 @@ export default function OrderTable({
             {t("user_id")}
             <ArrowUpDown className="h-4 w-4" />
           </button>
+        ),
+      },
+      {
+        accessorKey: "stripe_invoice_id",
+        header: tb("invoice"),
+        cell: ({ row }) => (
+          <InvoiceReference invoiceId={row.original.stripe_invoice_id} />
         ),
       },
       {
@@ -115,20 +132,36 @@ export default function OrderTable({
         cell: ({ row }) =>
           row.original.student_orders.map((so) => (
             <div key={so.id}>
-              {so.username} {so.amount} {so.order_type}
+              {so.username} {so.amount} <PaymentPeriod payment={so} />
             </div>
           )),
       },
     ],
-    [t, tc]
+    [t, tc, tb],
   );
 
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("all");
+  const [model, setModel] = useState("all");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [userFilter, setUserFilter] = useState("");
 
+  // Stable data prevents pagination resets from triggering a render loop.
+  const filteredOrders = useMemo(
+    () =>
+      orders
+        .filter((order) => status === "all" || order.status === status)
+        .filter(
+          (order) =>
+            model === "all" ||
+            order.student_orders.some(
+              (so) => (so.billing_model ?? "annual_purchase") === model,
+            ),
+        ),
+    [orders, status, model],
+  );
+
   const table = useReactTable({
-    data: orders,
+    data: filteredOrders,
     columns,
     state: { sorting, globalFilter: userFilter },
     onSortingChange: setSorting,
@@ -143,27 +176,43 @@ export default function OrderTable({
   });
 
   return (
-    <div className="space-y-4 w-full min-w-0">
+    <div className="w-full min-w-0 space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
         <Input
           placeholder={tc("filter_by_user")}
           value={userFilter}
           onChange={(e) => setUserFilter(e.target.value)}
-          className="w-full sm:max-w-sm min-w-0"
+          className="w-full min-w-0 sm:max-w-sm"
         />
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue>{statusLabel(status)}</SelectValue>
+            <SelectValue>{tb(status)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="active">{tc("active")}</SelectItem>
-            <SelectItem value="inactive">{tc("inactive")}</SelectItem>
-            <SelectItem value="removed">{tc("removed")}</SelectItem>
+            {["all", "created", "pending", "fulfilled", "canceled"].map(
+              (value) => (
+                <SelectItem key={value} value={value}>
+                  {tb(value)}
+                </SelectItem>
+              ),
+            )}
+          </SelectContent>
+        </Select>
+        <Select value={model} onValueChange={setModel}>
+          <SelectTrigger className="w-full sm:w-64">
+            <SelectValue>{tb(model)}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {["all", "annual_purchase", "monthly_subscription"].map((value) => (
+              <SelectItem key={value} value={value}>
+                {tb(value)}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
 
-      <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
+      <div className="-mx-4 w-full min-w-0 overflow-x-auto sm:mx-0">
         <Table>
           <TableHeader className="bg-primary-foreground">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -172,7 +221,7 @@ export default function OrderTable({
                   <TableHead key={header.id}>
                     {flexRender(
                       header.column.columnDef.header,
-                      header.getContext()
+                      header.getContext(),
                     )}
                   </TableHead>
                 ))}
@@ -185,14 +234,20 @@ export default function OrderTable({
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
                   {tc("no_results")}
                 </TableCell>
               </TableRow>
@@ -201,7 +256,7 @@ export default function OrderTable({
         </Table>
       </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
+      <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-muted-foreground text-sm">
           {t("total_rows", { count: table.getFilteredRowModel().rows.length })}
         </div>

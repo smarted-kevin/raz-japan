@@ -1,3 +1,4 @@
+import { AdminSubscriptionsPanel } from "~/components/billing/adminSubscriptionsPanel";
 import { fetchQuery } from "convex/nextjs";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -26,9 +27,13 @@ export default async function AdminUserDetailPage(props: {
 
   const params = await props.params;
   const userId = params.id as Id<"userTable">;
-  const user = await fetchQuery(api.queries.users.getUserDetailForAdmin, {
-    id: userId,
-  }, { token });
+  const user = await fetchQuery(
+    api.queries.users.getUserDetailForAdmin,
+    {
+      id: userId,
+    },
+    { token },
+  );
 
   if (!user) {
     redirect("/dashboard/admin/users");
@@ -36,9 +41,13 @@ export default async function AdminUserDetailPage(props: {
 
   const orders =
     user.role === "user"
-      ? await fetchQuery(api.queries.full_order.getOrdersByUserId, {
-          user_id: userId,
-        }, { token })
+      ? await fetchQuery(
+          api.queries.full_order.getOrdersByUserId,
+          {
+            user_id: userId,
+          },
+          { token },
+        )
       : [];
 
   const t = await getTranslations("dashboard.admin.users");
@@ -51,7 +60,7 @@ export default async function AdminUserDetailPage(props: {
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="font-bold text-2xl">{t("user_details")}</h1>
+        <h1 className="text-2xl font-bold">{t("user_details")}</h1>
       </div>
 
       <UserInfoCard
@@ -66,6 +75,7 @@ export default async function AdminUserDetailPage(props: {
       {user.role === "user" && (
         <>
           <UserStudentsTable students={user.students} />
+          <AdminSubscriptionsPanel userId={user.id} />
           <UserOrdersSection userId={user.id} orders={orders} />
         </>
       )}

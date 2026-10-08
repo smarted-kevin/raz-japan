@@ -86,7 +86,7 @@ export function PaymentConfirmationEmail({
 
             <Text style={paragraph}>
               Best regards,<br />
-              Raz-Japan Team
+              Raz-Plus Japan Team
             </Text>
           </Section>
 

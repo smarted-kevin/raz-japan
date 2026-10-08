@@ -1,6 +1,8 @@
 "use client";
 
+import { useQuery } from "convex/react";
 import { useTranslations } from "next-intl";
+import { api } from "@/convex/_generated/api";
 import {
   Table,
   TableBody,
@@ -15,11 +17,17 @@ import { MemberStudentCard } from "./memberStudentCard";
 export function MemberStudentTable({
   students,
   renderedAt,
+  showMonthlySubscription = false,
 }: {
   students: StudentData[];
   renderedAt: number;
+  showMonthlySubscription?: boolean;
 }) {
   const t = useTranslations("dashboard.members");
+  const billing = useQuery(
+    api.billingStore.memberBilling,
+    showMonthlySubscription ? {} : "skip",
+  );
   return (
     <>
       {/* Mobile: Card layout */}
@@ -29,6 +37,8 @@ export function MemberStudentTable({
             key={student.id}
             student={student}
             renderedAt={renderedAt}
+            billing={billing}
+            showMonthlySubscription={showMonthlySubscription}
           />
         ))}
       </div>
@@ -43,6 +53,9 @@ export function MemberStudentTable({
               <TableHead>{t("classroom")}</TableHead>
               <TableHead>{t("expiry_date")}</TableHead>
               <TableHead>{t("status")}</TableHead>
+              {showMonthlySubscription && (
+                <TableHead>{t("monthly_subscription")}</TableHead>
+              )}
               <TableHead>{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
@@ -52,6 +65,8 @@ export function MemberStudentTable({
                 key={student.id}
                 student={student}
                 renderedAt={renderedAt}
+                billing={billing}
+                showMonthlySubscription={showMonthlySubscription}
               />
             ))}
           </TableBody>

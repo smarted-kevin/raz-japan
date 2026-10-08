@@ -3,14 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { 
-  Home, 
-  Users, 
-  GraduationCap, 
-  School, 
-  BookOpen, 
-  ShoppingCart, 
-  Key 
+import {
+  Home,
+  Users,
+  GraduationCap,
+  School,
+  BookOpen,
+  ShoppingCart,
+  Key,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
 
@@ -30,20 +30,66 @@ const iconMap = {
   courses: BookOpen,
   orders: ShoppingCart,
   activation_codes: Key,
+  subscriptions: ShoppingCart,
 };
 
-export default function SidebarNav({ role, onLinkClick, collapsed = false }: SidebarNavProps) {
+export default function SidebarNav({
+  role,
+  onLinkClick,
+  collapsed = false,
+}: SidebarNavProps) {
   const pathname = usePathname();
   const t = useTranslations("dashboard.admin.nav");
-  
+
   const allLinks = [
-    { name: t("home"), href: "/dashboard/admin", roles: ["admin", "org_admin", "god"], icon: "home" },
-    { name: t("users"), href: "/dashboard/admin/users", roles: ["admin", "org_admin", "god"], icon: "users" },
-    { name: t("students"), href: "/dashboard/admin/students", roles: ["admin", "org_admin", "god"], icon: "students" },
-    { name: t("classrooms"), href: "/dashboard/admin/classrooms", roles: ["admin", "org_admin", "god"], icon: "classrooms" },
-    { name: t("courses"), href: "/dashboard/admin/courses", roles: ["admin", "god"], icon: "courses" },
-    { name: t("orders"), href: "/dashboard/admin/orders", roles: ["admin", "god"], icon: "orders" },
-    { name: t("activation_codes"), href: "/dashboard/admin/activation-codes", roles: ["admin", "org_admin", "god"], icon: "activation_codes" },
+    {
+      name: t("subscriptions"),
+      href: "/dashboard/admin/subscriptions",
+      roles: ["admin", "org_admin", "god"],
+      icon: "subscriptions",
+    },
+    {
+      name: t("home"),
+      href: "/dashboard/admin",
+      roles: ["admin", "org_admin", "god"],
+      icon: "home",
+    },
+    {
+      name: t("users"),
+      href: "/dashboard/admin/users",
+      roles: ["admin", "org_admin", "god"],
+      icon: "users",
+    },
+    {
+      name: t("students"),
+      href: "/dashboard/admin/students",
+      roles: ["admin", "org_admin", "god"],
+      icon: "students",
+    },
+    {
+      name: t("classrooms"),
+      href: "/dashboard/admin/classrooms",
+      roles: ["admin", "org_admin", "god"],
+      icon: "classrooms",
+    },
+    {
+      name: t("courses"),
+      href: "/dashboard/admin/courses",
+      roles: ["admin", "god"],
+      icon: "courses",
+    },
+    {
+      name: t("orders"),
+      href: "/dashboard/admin/orders",
+      roles: ["admin", "god"],
+      icon: "orders",
+    },
+    {
+      name: t("activation_codes"),
+      href: "/dashboard/admin/activation-codes",
+      roles: ["admin", "org_admin", "god"],
+      icon: "activation_codes",
+    },
   ];
 
   // Filter links based on user role
@@ -54,7 +100,7 @@ export default function SidebarNav({ role, onLinkClick, collapsed = false }: Sid
       {links.map((link) => {
         const Icon = iconMap[link.icon as keyof typeof iconMap];
         const isActive = pathname === link.href;
-        
+
         return (
           <Link
             key={link.name}
@@ -62,12 +108,10 @@ export default function SidebarNav({ role, onLinkClick, collapsed = false }: Sid
             onClick={onLinkClick}
             className={cn(
               "flex items-center rounded-md text-sm font-medium transition-colors",
-              collapsed
-                ? "justify-center px-2 py-2"
-                : "gap-3 px-3 py-2",
+              collapsed ? "justify-center px-2 py-2" : "gap-3 px-3 py-2",
               isActive
                 ? "bg-blue-900 text-white"
-                : "text-white/80 hover:bg-blue-600 hover:text-white"
+                : "text-white/80 hover:bg-blue-600 hover:text-white",
             )}
             title={collapsed ? link.name : undefined}
           >

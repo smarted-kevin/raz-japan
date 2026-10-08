@@ -8,13 +8,17 @@
  * @module
  */
 
+import type * as annualBilling from "../annualBilling.js";
 import type * as auth from "../auth.js";
 import type * as authEmail from "../authEmail.js";
+import type * as billingStore from "../billingStore.js";
 import type * as crons from "../crons.js";
 import type * as email from "../email.js";
 import type * as http from "../http.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_authAdminGuard from "../lib/authAdminGuard.js";
+import type * as lib_billing from "../lib/billing.js";
+import type * as lib_stripeBilling from "../lib/stripeBilling.js";
 import type * as mutations_activation_code from "../mutations/activation_code.js";
 import type * as mutations_cart from "../mutations/cart.js";
 import type * as mutations_classroom from "../mutations/classroom.js";
@@ -38,6 +42,7 @@ import type * as queries_student from "../queries/student.js";
 import type * as queries_student_order from "../queries/student_order.js";
 import type * as queries_users from "../queries/users.js";
 import type * as stripe from "../stripe.js";
+import type * as subscriptions from "../subscriptions.js";
 
 import type {
   ApiFromModules,
@@ -46,13 +51,17 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  annualBilling: typeof annualBilling;
   auth: typeof auth;
   authEmail: typeof authEmail;
+  billingStore: typeof billingStore;
   crons: typeof crons;
   email: typeof email;
   http: typeof http;
   "lib/auth": typeof lib_auth;
   "lib/authAdminGuard": typeof lib_authAdminGuard;
+  "lib/billing": typeof lib_billing;
+  "lib/stripeBilling": typeof lib_stripeBilling;
   "mutations/activation_code": typeof mutations_activation_code;
   "mutations/cart": typeof mutations_cart;
   "mutations/classroom": typeof mutations_classroom;
@@ -76,6 +85,7 @@ declare const fullApi: ApiFromModules<{
   "queries/student_order": typeof queries_student_order;
   "queries/users": typeof queries_users;
   stripe: typeof stripe;
+  subscriptions: typeof subscriptions;
 }>;
 
 /**

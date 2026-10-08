@@ -1,116 +1,29 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
-import { Button } from "~/components/ui/button";
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
-import { api } from "../../../../../../convex/_generated/api";
-import { fetchQuery } from "convex/nextjs";
-import { notFound } from "next/navigation";
-import Stripe from "stripe";
-import { formatYen } from "~/lib/formatters";
-import { env } from "~/env";
+import { getMemberSession } from "~/lib/member-session";
+import { CheckoutStatus } from "~/components/billing/checkoutStatus";
 import type { Id } from "@/convex/_generated/dataModel";
-import { internal } from "@/convex/_generated/api";
-import { redirect } from "next/navigation";
-import { getToken } from "~/lib/auth-server";
-
-const stripe = new Stripe(env.STRIPE_SANDBOX_SECRET_KEY);
-
-
-export default async function SuccessPage(
- 
-) {
-  const token = await getToken();
-  const session = await fetchQuery(api.auth.getCurrentUser, {}, { token });
-
-  if (!session) redirect('/sign-in'); 
-
- 
-  /*
-  const cart = await fetchQuery(
-    internal.queries.cart.getCartById, 
-    { id: paymentIntent.metadata?.cart_id as Id<"cart"> }
-  );
-
-  const user = await fetchQuery(
-    api.queries.users.getUserById,
-    { id: cart?.user_id as Id<"userTable">}
-  );
-
-  const renewal_students = await fetchQuery(
-    api.queries.student.getRenewalStudentsWithClassroomAndCourse, 
-    { ids: cart?.renewal_students as Id<"student">[] }
-  );
-
-  const isSuccess = paymentIntent.status === "succeeded";
-
-  if (!isSuccess) return "Something went wrong.";
-*/
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ attempt?: string }>;
+}) {
+  await getMemberSession();
+  const params = await searchParams;
+  const t = await getTranslations("billing");
   return (
-    <div className="flex min-h-[60vh] items-center justify-center px-4">
-      <div className="mb-10 flex flex-col items-center gap-y-4 text-center">
-        <h2 className="text-3xl font-bold">Success!</h2>
-        <h4 className="text-xl">{`Thank you for your order`}</h4>
-        <Button className="w-fit" asChild>
-          <Link href="/dashboard">Go to dashboard</Link>
-        </Button>
-      </div>
-      {/*
-      <div className="flex flex-col gap-y-4">
-        <h2 className="text-xl font-bold">Order Contents:</h2>
-        <div>
-          <h4 className="font-bold">New Students:</h4>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Price Per Student</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell>{cart?.new_students}</TableCell>
-                <TableCell>{formatYen(4500)}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
-        <div>
-          <h4 className="font-bold">Renewal Students:</h4>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Username</TableHead>
-                <TableHead>Classroom Name</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {renewal_students.map((student) => (
-                <TableRow key={student.student.id}>
-                  <TableCell>{student.student.username}</TableCell>
-                  <TableCell>{student.classroom.classroom_name}</TableCell>
-                  <TableCell>{student.student.status}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <Button className="w-2/3 min-w-min mx-auto mt-4" asChild>
-          <Link 
-            href={"/dashboard/members"}
-          >
-          See All your student information on your Member page
-          </Link>
-        </Button>
-      </div>
-        */}
-
-    </div>
-  )
+    <main className="mx-auto max-w-2xl space-y-6 p-6">
+      {params.attempt ? (
+        <CheckoutStatus attemptId={params.attempt as Id<"monthly_checkout">} />
+      ) : (
+        <>
+          <h1 className="text-2xl font-bold">{t("order_received")}</h1>
+          <p>{t("annual_checkout_note")}</p>
+        </>
+      )}
+      <Link className="text-primary underline" href="/dashboard/members">
+        {t("back_members")}
+      </Link>
+    </main>
+  );
 }

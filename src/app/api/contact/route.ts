@@ -115,10 +115,10 @@ export async function POST(request: Request) {
     const { error } = await resend.emails.send({
       from:
         process.env.RESEND_FROM_EMAIL ??
-        "Raz-Japan <onboarding@resend.dev>",
+        "Raz-Plus Japan <onboarding@resend.dev>",
       to: [to.trim()],
       replyTo: email,
-      subject: `[Raz-Japan] Contact: ${topicLabel}`,
+      subject: `[Raz-Plus Japan] Contact: ${topicLabel}`,
       text,
     });
 

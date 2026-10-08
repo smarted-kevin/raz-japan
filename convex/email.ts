@@ -51,9 +51,11 @@ export const sendPaymentConfirmationEmail = internalAction({
 
       // Send email using Resend
       const { data, error } = await resend.emails.send({
-        from: process.env.RESEND_FROM_EMAIL ?? "Raz-Japan <onboarding@resend.dev>",
+        from:
+          process.env.RESEND_FROM_EMAIL ??
+          "Raz-Plus Japan <onboarding@resend.dev>",
         to: user.email,
-        subject: "Payment Confirmed - Raz-Japan",
+        subject: "Payment Confirmed - Raz-Plus Japan",
         html: emailHtml,
       });
 
@@ -138,7 +140,9 @@ export const sendRenewalNoticeEmails = internalAction({
 
           // Send email using Resend
           const { error } = await resend.emails.send({
-            from: process.env.RESEND_FROM_EMAIL ?? "Raz-Japan <onboarding@resend.dev>",
+            from:
+              process.env.RESEND_FROM_EMAIL ??
+              "Raz-Plus Japan <onboarding@resend.dev>",
             to: userData.userEmail,
             subject: `Renewal Notice - ${expiringStudentsData.length} Student${expiringStudentsData.length > 1 ? 's' : ''} Expiring Soon`,
             html: emailHtml,

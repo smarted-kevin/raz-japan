@@ -3,7 +3,7 @@ import { PublicAuthPageShell } from "~/components/layout/public-auth-page-shell"
 import ResetPassword from "./ResetPassword";
 
 export const metadata: Metadata = {
-  title: "Reset password | Raz-Japan",
+  title: "Reset password | Raz-Plus Japan",
 };
 
 export default async function ResetPasswordPage({

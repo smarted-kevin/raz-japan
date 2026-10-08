@@ -158,7 +158,7 @@ export default function ActivationCodeTable({
         accessorFn: (row) => row.removed_date ?? 0,
       },
     ],
-    [t, tc]
+    [t, tc],
   );
 
   const [openState, setOpenState] = useState(false);
@@ -172,15 +172,18 @@ export default function ActivationCodeTable({
 
   const allActivationCodes = useQuery(
     api.queries.activation_code.getAllActivationCodes,
-    isOrgAdmin ? "skip" : undefined
+    isOrgAdmin ? "skip" : undefined,
   );
   const orgActivationCodes = useQuery(
     api.queries.activation_code.getActivationCodesByOrganization,
-    isOrgAdmin && orgId ? { org_id: orgId } : "skip"
+    isOrgAdmin && orgId ? { org_id: orgId } : "skip",
   );
 
   const activationCodes = isOrgAdmin ? orgActivationCodes : allActivationCodes;
-  const courses = useQuery(api.queries.course.getAllCourses);
+  const allCourses = useQuery(api.queries.course.getAllCourses);
+  const courses = allCourses?.filter(
+    (c) => c.billing_model !== "monthly_subscription",
+  );
   const orgs = useQuery(api.queries.organization.getAllOrganizations);
 
   const uniqueOrgs = useMemo(() => {
@@ -212,28 +215,28 @@ export default function ActivationCodeTable({
   const statusFilter = useMemo(
     () =>
       (columnFilters.find((f) => f.id === "status")?.value as string) ?? "all",
-    [columnFilters]
+    [columnFilters],
   );
 
   const orgFilter = useMemo(
     () =>
-      (columnFilters.find((f) => f.id === "organization_name")?.value as string) ??
-      "all",
-    [columnFilters]
+      (columnFilters.find((f) => f.id === "organization_name")
+        ?.value as string) ?? "all",
+    [columnFilters],
   );
 
   const handleStatusFilterChange = useCallback(
     (value: string) => {
       table.getColumn("status")?.setFilterValue(value);
     },
-    [table]
+    [table],
   );
 
   const handleOrgFilterChange = useCallback(
     (value: string) => {
       table.getColumn("organization_name")?.setFilterValue(value);
     },
-    [table]
+    [table],
   );
 
   if (
@@ -245,8 +248,8 @@ export default function ActivationCodeTable({
   }
 
   return (
-    <div className="space-y-4 w-full min-w-0">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4 w-full items-stretch sm:items-center">
+    <div className="w-full min-w-0 space-y-4">
+      <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
         <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
           <SelectTrigger className="w-full sm:w-[150px]">
             <SelectValue>
@@ -269,7 +272,9 @@ export default function ActivationCodeTable({
               <SelectValue placeholder={tc("filter_by_organization")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{tc("filter_all_organizations")}</SelectItem>
+              <SelectItem value="all">
+                {tc("filter_all_organizations")}
+              </SelectItem>
               {uniqueOrgs.map((org) => (
                 <SelectItem key={org} value={org}>
                   {org}
@@ -280,7 +285,7 @@ export default function ActivationCodeTable({
         )}
 
         {!isOrgAdmin && (
-          <div className="w-full sm:w-auto sm:ml-auto">
+          <div className="w-full sm:ml-auto sm:w-auto">
             <AddActivationCodeDialog
               courses={courses ?? []}
               orgs={orgs ?? []}
@@ -293,7 +298,7 @@ export default function ActivationCodeTable({
 
       {table.getRowModel().rows.length > 0 ? (
         <>
-          <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
+          <div className="-mx-4 w-full min-w-0 overflow-x-auto sm:mx-0">
             <Table>
               <TableHeader className="bg-primary-foreground">
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -302,7 +307,7 @@ export default function ActivationCodeTable({
                       <TableHead key={header.id}>
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                       </TableHead>
                     ))}
@@ -321,7 +326,7 @@ export default function ActivationCodeTable({
             </Table>
           </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
+          <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-muted-foreground text-sm">
               {t("total_codes", {
                 count: table.getFilteredRowModel().rows.length,
@@ -392,7 +397,7 @@ export default function ActivationCodeTable({
           </div>
         </>
       ) : (
-        <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
+        <div className="-mx-4 w-full min-w-0 overflow-x-auto sm:mx-0">
           <Table>
             <TableHeader className="bg-primary-foreground">
               {table.getHeaderGroups().map((headerGroup) => (
@@ -401,7 +406,7 @@ export default function ActivationCodeTable({
                     <TableHead key={header.id}>
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                     </TableHead>
                   ))}

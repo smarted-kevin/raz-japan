@@ -1,6 +1,14 @@
 import { internalQuery } from "../_generated/server";
 import { v } from "convex/values";
-import { adminQuery, authedQuery, canAccessUser, isAdminRole, requireOrganizationAccess, requireUserAccess } from "../lib/auth";
+import { isAnnual, studentCourse } from "../lib/billing";
+import {
+  adminQuery,
+  authedQuery,
+  canAccessUser,
+  isAdminRole,
+  requireOrganizationAccess,
+  requireUserAccess,
+} from "../lib/auth";
 
 export const getStudentById = authedQuery({
   args: { id: v.id("student") },
@@ -13,7 +21,7 @@ export const getStudentById = authedQuery({
       throw new Error("Student access denied");
     }
     return student;
-  }
+  },
 });
 
 export const getStudentsByClassroomId = adminQuery({
@@ -24,9 +32,11 @@ export const getStudentsByClassroomId = adminQuery({
     requireOrganizationAccess(ctx.user, classroom.organization_id);
     const students = await ctx.db
       .query("student")
-      .withIndex("by_classroom_id", (q) => q.eq("classroom_id", args.classroom_id))
+      .withIndex("by_classroom_id", (q) =>
+        q.eq("classroom_id", args.classroom_id),
+      )
       .collect();
-      
+
     return students.map((student) => ({
       id: student._id,
       username: student.username,
@@ -35,65 +45,107 @@ export const getStudentsByClassroomId = adminQuery({
       expiry_date: student.expiry_date,
       status: student.status,
     }));
-  }
+  },
 });
 
 export const getAvailableStudent = internalQuery({
   handler: async (ctx) => {
-    const student = await ctx.db
+    const candidates = await ctx.db
       .query("student")
       .withIndex("by_status", (q) => q.eq("status", "inactive"))
-      .first();
-    
-    const classroom = student && student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
-    const course = classroom && classroom.course_id ? await ctx.db.get(classroom.course_id) : undefined;
+      .collect();
+    let student;
+    for (const candidate of candidates) {
+      if (
+        candidate.user_id ||
+        candidate.checkout_attempt_id ||
+        candidate.annual_order_id
+      )
+        continue;
+      const candidateCourse = await studentCourse(ctx, candidate);
+      if (
+        candidateCourse &&
+        isAnnual(candidateCourse) &&
+        candidateCourse.status === "active"
+      ) {
+        student = candidate;
+        break;
+      }
+    }
+
+    const classroom =
+      student && student.classroom_id
+        ? await ctx.db.get(student.classroom_id)
+        : undefined;
+    const course =
+      classroom && classroom.course_id
+        ? await ctx.db.get(classroom.course_id)
+        : undefined;
 
     return {
       student: {
         id: student?._id,
         username: student?.username,
         status: student?.status,
-      }, 
+      },
       classroom: {
         classroom_name: classroom?.classroom_name,
       },
       course: {
+        billing_model: course?.billing_model ?? "annual_purchase",
         course_name: course?.course_name,
-        price: course?.price
-      }
-    }
-  } 
+        price: course?.price,
+      },
+    };
+  },
 });
 
 export const getAllStudentsWithClassroomAndUser = adminQuery({
   args: {},
   handler: async (ctx) => {
-    const allStudents = await ctx.db
-      .query("student")
-      .collect();
-    const students = ctx.user.role === "org_admin"
-      ? (await Promise.all(allStudents.map(async (student) => ({
-          student,
-          classroom: student.classroom_id ? await ctx.db.get(student.classroom_id) : null,
-        })))).filter(({ classroom }) => classroom?.organization_id === ctx.user.org_id).map(({ student }) => student)
-      : allStudents;
+    const allStudents = await ctx.db.query("student").collect();
+    const students =
+      ctx.user.role === "org_admin"
+        ? (
+            await Promise.all(
+              allStudents.map(async (student) => ({
+                student,
+                classroom: student.classroom_id
+                  ? await ctx.db.get(student.classroom_id)
+                  : null,
+              })),
+            )
+          )
+            .filter(
+              ({ classroom }) => classroom?.organization_id === ctx.user.org_id,
+            )
+            .map(({ student }) => student)
+        : allStudents;
 
-    return await Promise.all(students.map(async (student) => {
-      const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
-      const user = student.user_id ? await ctx.db.get(student.user_id) : undefined;
+    return await Promise.all(
+      students.map(async (student) => {
+        const classroom = student.classroom_id
+          ? await ctx.db.get(student.classroom_id)
+          : undefined;
+        const user = student.user_id
+          ? await ctx.db.get(student.user_id)
+          : undefined;
 
-      return {
-        id: student._id, 
-        username: student.username,
-        password: student.password,
-        user_id: user && canAccessUser(ctx.user, user) ? student.user_id : undefined,
-        user_email: user && canAccessUser(ctx.user, user) ? user.email : undefined,
-        expiry_date: student.expiry_date,
-        status: student.status,
-        classroom_name: classroom?.classroom_name,
-      }
-    }));
-  }
+        return {
+          id: student._id,
+          username: student.username,
+          password: student.password,
+          user_id:
+            user && canAccessUser(ctx.user, user) ? student.user_id : undefined,
+          user_email:
+            user && canAccessUser(ctx.user, user) ? user.email : undefined,
+          expiry_date: student.expiry_date,
+          status: student.status,
+          classroom_name: classroom?.classroom_name,
+        };
+      }),
+    );
+  },
 });
 
 export const getStudentsByOrganization = adminQuery({
@@ -113,90 +165,111 @@ export const getStudentsByOrganization = adminQuery({
 
     // Filter students that belong to classrooms in this organization
     const orgStudents = allStudents.filter(
-      (student) => student.classroom_id && classroomIds.has(student.classroom_id)
+      (student) =>
+        student.classroom_id && classroomIds.has(student.classroom_id),
     );
 
-    return await Promise.all(orgStudents.map(async (student) => {
-      const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
-      const user = student.user_id ? await ctx.db.get(student.user_id) : undefined;
+    return await Promise.all(
+      orgStudents.map(async (student) => {
+        const classroom = student.classroom_id
+          ? await ctx.db.get(student.classroom_id)
+          : undefined;
+        const user = student.user_id
+          ? await ctx.db.get(student.user_id)
+          : undefined;
 
-      return {
-        id: student._id,
-        username: student.username,
-        password: student.password,
-        user_id: user && canAccessUser(ctx.user, user) ? student.user_id : undefined,
-        user_email: user && canAccessUser(ctx.user, user) ? user.email : undefined,
-        expiry_date: student.expiry_date,
-        status: student.status,
-        classroom_name: classroom?.classroom_name,
-      };
-    }));
-  }
+        return {
+          id: student._id,
+          username: student.username,
+          password: student.password,
+          user_id:
+            user && canAccessUser(ctx.user, user) ? student.user_id : undefined,
+          user_email:
+            user && canAccessUser(ctx.user, user) ? user.email : undefined,
+          expiry_date: student.expiry_date,
+          status: student.status,
+          classroom_name: classroom?.classroom_name,
+        };
+      }),
+    );
+  },
 });
 
 export const getRenewalStudentsWithClassroomAndCourse = authedQuery({
   args: { ids: v.array(v.id("student")) },
   handler: async (ctx, args) => {
-    const students = await Promise.all(args.ids.map(async (id) => {
-      const student = await ctx.db.get(id);
-      if (student?.user_id) {
-        const owner = await ctx.db.get(student.user_id);
-        if (owner) requireUserAccess(ctx.user, owner);
-      } else if (!isAdminRole(ctx.user.role)) {
-        throw new Error("Student access denied");
-      }
-      const classroom = student && student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
-      const course = classroom && classroom.course_id ? await ctx.db.get(classroom.course_id) : undefined;
-      
-      return {
-        student: {
-          id: student?._id,
-          username: student?.username,
-          status: student?.status,
-        }, 
-        classroom: {
-          classroom_name: classroom?.classroom_name,
-        },
-        course: {
-          course_name: course?.course_name,
-          price: course?.price,
-          stripe_price_id: course?.stripe_price_id
+    const students = await Promise.all(
+      args.ids.map(async (id) => {
+        const student = await ctx.db.get(id);
+        if (student?.user_id) {
+          const owner = await ctx.db.get(student.user_id);
+          if (owner) requireUserAccess(ctx.user, owner);
+        } else if (!isAdminRole(ctx.user.role)) {
+          throw new Error("Student access denied");
         }
-      }
-    }));
-    
+        const classroom =
+          student && student.classroom_id
+            ? await ctx.db.get(student.classroom_id)
+            : undefined;
+        const course =
+          classroom && classroom.course_id
+            ? await ctx.db.get(classroom.course_id)
+            : undefined;
+
+        return {
+          student: {
+            id: student?._id,
+            username: student?.username,
+            status: student?.status,
+          },
+          classroom: {
+            classroom_name: classroom?.classroom_name,
+          },
+          course: {
+            billing_model: course?.billing_model ?? "annual_purchase",
+            course_name: course?.course_name,
+            price: course?.price,
+            stripe_price_id: course?.stripe_price_id,
+          },
+        };
+      }),
+    );
+
     return students;
-  }
-})
+  },
+});
 
 export const getRenewalStudentsWithClassroomAndCourseInternal = internalQuery({
   args: { ids: v.array(v.id("student")) },
   handler: async (ctx, args) => {
-    return Promise.all(args.ids.map(async (id) => {
-      const student = await ctx.db.get(id);
-      const classroom = student?.classroom_id
-        ? await ctx.db.get(student.classroom_id)
-        : undefined;
-      const course = classroom?.course_id
-        ? await ctx.db.get(classroom.course_id)
-        : undefined;
+    return Promise.all(
+      args.ids.map(async (id) => {
+        const student = await ctx.db.get(id);
+        const classroom = student?.classroom_id
+          ? await ctx.db.get(student.classroom_id)
+          : undefined;
+        const course = classroom?.course_id
+          ? await ctx.db.get(classroom.course_id)
+          : undefined;
 
-      return {
-        student: {
-          id: student?._id,
-          username: student?.username,
-          status: student?.status,
-        },
-        classroom: {
-          classroom_name: classroom?.classroom_name,
-        },
-        course: {
-          course_name: course?.course_name,
-          price: course?.price,
-          stripe_price_id: course?.stripe_price_id,
-        },
-      };
-    }));
+        return {
+          student: {
+            id: student?._id,
+            username: student?.username,
+            status: student?.status,
+          },
+          classroom: {
+            classroom_name: classroom?.classroom_name,
+          },
+          course: {
+            billing_model: course?.billing_model ?? "annual_purchase",
+            course_name: course?.course_name,
+            price: course?.price,
+            stripe_price_id: course?.stripe_price_id,
+          },
+        };
+      }),
+    );
   },
 });
 
@@ -204,26 +277,39 @@ export const getRenewalStudentsWithClassroomAndCourseInternal = internalQuery({
 export const getStudentCountInClassroomByStatus = adminQuery({
   handler: async (ctx) => {
     const allClassrooms = await ctx.db.query("classroom").collect();
-    const classrooms = ctx.user.role === "org_admin"
-      ? allClassrooms.filter((classroom) => classroom.organization_id === ctx.user.org_id)
-      : allClassrooms;
+    const classrooms =
+      ctx.user.role === "org_admin"
+        ? allClassrooms.filter(
+            (classroom) => classroom.organization_id === ctx.user.org_id,
+          )
+        : allClassrooms;
 
-    const studentCounts = await Promise.all(classrooms.map(async (classroom) => {
-      const students = await ctx.db
-        .query("student")
-        .withIndex("by_classroom_id", (q) => q.eq("classroom_id", classroom._id))
-        .collect();
+    const studentCounts = await Promise.all(
+      classrooms.map(async (classroom) => {
+        const students = await ctx.db
+          .query("student")
+          .withIndex("by_classroom_id", (q) =>
+            q.eq("classroom_id", classroom._id),
+          )
+          .collect();
 
-      return {
-        classroom_id: classroom._id,
-        active_count: students.filter((student) => student.status === "active").length,
-        inactive_count: students.filter((student) => student.status === "inactive").length,
-        removed_count: students.filter((student) => student.status === "removed").length
-      };
-    }));
+        return {
+          classroom_id: classroom._id,
+          active_count: students.filter(
+            (student) => student.status === "active",
+          ).length,
+          inactive_count: students.filter(
+            (student) => student.status === "inactive",
+          ).length,
+          removed_count: students.filter(
+            (student) => student.status === "removed",
+          ).length,
+        };
+      }),
+    );
 
     return studentCounts;
-  }
+  },
 });
 
 /**
@@ -235,7 +321,7 @@ export const getStudentsExpiringInOneMonth = internalQuery({
     const now = Date.now();
     const oneMonthFromNow = now + 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
     const oneDayBefore = oneMonthFromNow - 24 * 60 * 60 * 1000; // 1 day before to account for timing
-    
+
     // Get all active students with expiry dates
     const allStudents = await ctx.db
       .query("student")
@@ -243,17 +329,32 @@ export const getStudentsExpiringInOneMonth = internalQuery({
       .collect();
 
     // Filter students expiring in approximately 1 month (within a 2-day window)
-    const expiringStudents = allStudents.filter((student) => {
+    const annualStudents = [];
+    for (const student of allStudents) {
+      const course = await studentCourse(ctx, student);
+      if (course && isAnnual(course)) annualStudents.push(student);
+    }
+    const expiringStudents = annualStudents.filter((student) => {
       if (!student.expiry_date) return false;
-      return student.expiry_date >= oneDayBefore && student.expiry_date <= oneMonthFromNow;
+      return (
+        student.expiry_date >= oneDayBefore &&
+        student.expiry_date <= oneMonthFromNow
+      );
     });
 
     // Get user and course information for each expiring student
     const studentsWithDetails = await Promise.all(
       expiringStudents.map(async (student) => {
-        const user = student.user_id ? await ctx.db.get(student.user_id) : undefined;
-        const classroom = student.classroom_id ? await ctx.db.get(student.classroom_id) : undefined;
-        const course = classroom && classroom.course_id ? await ctx.db.get(classroom.course_id) : undefined;
+        const user = student.user_id
+          ? await ctx.db.get(student.user_id)
+          : undefined;
+        const classroom = student.classroom_id
+          ? await ctx.db.get(student.classroom_id)
+          : undefined;
+        const course =
+          classroom && classroom.course_id
+            ? await ctx.db.get(classroom.course_id)
+            : undefined;
 
         return {
           studentId: student._id,
@@ -266,12 +367,12 @@ export const getStudentsExpiringInOneMonth = internalQuery({
           courseName: course?.course_name,
           coursePrice: course?.price,
         };
-      })
+      }),
     );
 
     // Group by user to avoid sending multiple emails to the same user
     const studentsByUser = new Map<string, typeof studentsWithDetails>();
-    
+
     studentsWithDetails.forEach((student) => {
       if (student.userId && student.userEmail) {
         const userId = student.userId;
@@ -291,7 +392,9 @@ export const getStudentsExpiringInOneMonth = internalQuery({
         }
         // firstStudent.userId is guaranteed to exist because we only added students where userId && userEmail were truthy
         if (!firstStudent.userId) {
-          throw new Error("Unexpected: student without userId in grouped results");
+          throw new Error(
+            "Unexpected: student without userId in grouped results",
+          );
         }
         return {
           userId: firstStudent.userId,

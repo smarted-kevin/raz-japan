@@ -20,8 +20,9 @@ const PUBLIC_PATHS = [
 ];
 
 export const metadata: Metadata = {
-  title: "Raz Japan",
-  description: "Raz but in Japan",
+  title: "Raz-Plus Japan",
+  description:
+    "Raz-Plus Japan helps children build English reading skills with interactive books, audio, quizzes, and rewards.",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 

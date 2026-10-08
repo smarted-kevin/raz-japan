@@ -1,11 +1,12 @@
 "use client";
 
+import Link from "next/link";
+import { useMutation } from "convex/react";
+import { useRouter } from "next/navigation";
+import { api } from "@/convex/_generated/api";
 import { memo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import {
-  TableCell,
-  TableRow,
-} from "~/components/ui/table";
+import { TableCell, TableRow } from "~/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -43,8 +44,12 @@ const StudentRow = memo(function StudentRow({
   onRemove,
 }: StudentRowProps) {
   const t = useTranslations("dashboard.admin.students");
+  const tb = useTranslations("billing");
   const tc = useTranslations("dashboard.admin.common");
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState(false);
+  const edit = useMutation(api.mutations.student.editStudent);
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -58,7 +63,27 @@ const StudentRow = memo(function StudentRow({
             {open && (
               <DialogContent>
                 <DialogTitle>{t("edit_student")}</DialogTitle>
-                <form>
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const values = new FormData(event.currentTarget);
+                    setError(false);
+                    startTransition(async () => {
+                      try {
+                        const result = await edit({
+                          student_id: student.id,
+                          username: String(values.get("username")),
+                          password: String(values.get("password")),
+                        });
+                        if (typeof result === "string") throw new Error(result);
+                        setOpen(false);
+                        router.refresh();
+                      } catch {
+                        setError(true);
+                      }
+                    });
+                  }}
+                >
                   <div className="flex flex-col gap-y-4">
                     <div className="flex items-center gap-x-4">
                       <Label htmlFor="username">{tc("username")}</Label>
@@ -103,13 +128,26 @@ const StudentRow = memo(function StudentRow({
                       />
                     </div>
                     <Input type="hidden" name="id" value={student.id} />
-                    <Button type="submit">{tc("save_changes")}</Button>
+                    {error && (
+                      <p role="alert" className="text-destructive">
+                        {tb("action_error")}
+                      </p>
+                    )}
+                    <Button disabled={isPending} type="submit">
+                      {tc("save_changes")}
+                    </Button>
                   </div>
                 </form>
               </DialogContent>
             )}
           </Dialog>
 
+          <Link
+            className="text-primary text-sm underline"
+            href={"/dashboard/admin/subscriptions?student=" + student.id}
+          >
+            {tb("addons")}
+          </Link>
           <span>|</span>
 
           {student.status === "active" ? (
@@ -119,7 +157,15 @@ const StudentRow = memo(function StudentRow({
               disabled={isPending}
               onClick={() => {
                 startTransition(async () => {
-                  await onRemove({ student_id: student.id, status: "removed" });
+                  setError(false);
+                  try {
+                    await onRemove({
+                      student_id: student.id,
+                      status: "removed",
+                    });
+                  } catch {
+                    setError(true);
+                  }
                 });
               }}
             >

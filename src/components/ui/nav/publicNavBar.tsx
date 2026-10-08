@@ -10,9 +10,13 @@ import { LANDING_IMAGES } from "~/lib/landing-images";
 
 type PublicNavBarProps = {
   branded?: boolean;
+  showAudienceBanner?: boolean;
 };
 
-export function PublicNavBar({ branded = false }: PublicNavBarProps) {
+export function PublicNavBar({
+  branded = false,
+  showAudienceBanner = true,
+}: PublicNavBarProps) {
   const t = useTranslations("Homepage");
   const memberSignupEnabled = isMemberSignupEnabled();
 
@@ -58,29 +62,31 @@ export function PublicNavBar({ branded = false }: PublicNavBarProps) {
           />
         </div>
       </nav>
-      <div className="border-border border-t bg-gradient-to-br from-[#fff2f9] via-[#fbe8f4] to-[#f3c7e2]">
-        <div
-          className={cn(
-            publicSiteContainerClassName,
-            "flex items-center justify-between gap-4 py-2 text-xs sm:text-sm",
-          )}
-        >
-          <p className="text-muted-foreground min-w-0">
-            {t("individual_customers_website")}
-          </p>
-          <a
-            href="https://learninga-z.jp"
+      {showAudienceBanner && (
+        <div className="border-border border-t bg-gradient-to-br from-[#fff2f9] via-[#fbe8f4] to-[#f3c7e2]">
+          <div
             className={cn(
-              "focus-visible:ring-ring shrink-0 rounded-sm font-medium underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
-              branded
-                ? "text-[#a92379] hover:text-[#861b61]"
-                : "text-blue-900 hover:text-blue-700",
+              publicSiteContainerClassName,
+              "flex items-center justify-between gap-4 py-2 text-xs sm:text-sm",
             )}
           >
-            {t("for_schools")}
-          </a>
+            <p className="text-muted-foreground min-w-0">
+              {t("individual_customers_website")}
+            </p>
+            <a
+              href="https://learninga-z.jp"
+              className={cn(
+                "focus-visible:ring-ring shrink-0 rounded-sm font-medium underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none",
+                branded
+                  ? "text-[#a92379] hover:text-[#861b61]"
+                  : "text-blue-900 hover:text-blue-700",
+              )}
+            >
+              {t("for_schools")}
+            </a>
+          </div>
         </div>
-      </div>
+      )}
     </header>
   );
 }

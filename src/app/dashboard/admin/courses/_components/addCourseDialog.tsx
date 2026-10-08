@@ -23,7 +23,6 @@ import type { NewCourseForm } from "../../_actions/schemas";
 import { useAction } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
-import type { Id } from "@/convex/_generated/dataModel";
 
 export default function AddCourseDialog({
   openState,
@@ -46,11 +45,11 @@ export default function AddCourseDialog({
   });
 
   async function onSubmit(values: NewCourseForm) {
-    const result = (await addCourse({
+    const result = await addCourse({
       course_name: values.course_name,
       price: values.price,
-    })) as { course_id?: Id<"course">; error?: string };
-    if (result.error) {
+    });
+    if (!result.success) {
       setError(result.error);
     } else {
       setError(undefined);
@@ -75,7 +74,7 @@ export default function AddCourseDialog({
                 name="course_name"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{t("course_name")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
@@ -90,7 +89,7 @@ export default function AddCourseDialog({
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{tc("price")}</FormLabel>
                       <FormControl>
                         <Input

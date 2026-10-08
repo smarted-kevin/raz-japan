@@ -1,3 +1,4 @@
+import { AdminSubscriptionsPanel } from "~/components/billing/adminSubscriptionsPanel";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { fetchQuery } from "convex/nextjs";
@@ -19,10 +20,18 @@ export default async function ClassroomPage(props: {
   if (!token) redirect("/sign-in");
   const params = await props.params;
   const [classroom, students] = await Promise.all([
-    fetchQuery(api.queries.classroom.getClassroomById, { id: params.id }, { token }),
-    fetchQuery(api.queries.student.getStudentsByClassroomId, {
-      classroom_id: params.id,
-    }, { token }),
+    fetchQuery(
+      api.queries.classroom.getClassroomById,
+      { id: params.id },
+      { token },
+    ),
+    fetchQuery(
+      api.queries.student.getStudentsByClassroomId,
+      {
+        classroom_id: params.id,
+      },
+      { token },
+    ),
   ]);
 
   const studentsData = students as ClassroomStudentData[];
@@ -42,7 +51,7 @@ export default async function ClassroomPage(props: {
             </Button>
           </Link>
         </div>
-        <h1 className="font-bold text-2xl">
+        <h1 className="text-2xl font-bold">
           {t("classroom_prefix", { name: classroom?.classroom_name ?? "" })}
         </h1>
         <div className="flex items-center justify-between">
@@ -55,7 +64,10 @@ export default async function ClassroomPage(props: {
             />
           )}
         </div>
-        {students.length > 0 && <ClassroomStudentTable students={studentsData} />}
+        {students.length > 0 && (
+          <ClassroomStudentTable students={studentsData} />
+        )}
+        <AdminSubscriptionsPanel classroomId={params.id} />
         {students.length < 1 && <p>{t("no_students_in_classroom")}</p>}
       </main>
     </>

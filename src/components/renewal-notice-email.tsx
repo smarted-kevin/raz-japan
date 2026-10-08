@@ -114,7 +114,7 @@ export function RenewalNoticeEmail({
 
             <Text style={paragraph}>
               Best regards,<br />
-              Raz-Japan Team
+              Raz-Plus Japan Team
             </Text>
           </Section>
 

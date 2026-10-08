@@ -11,18 +11,50 @@ interface NavLinksProps {
 }
 
 export default function NavLinks({ role }: NavLinksProps) {
-  
   const pathname = usePathname();
   const t = useTranslations("dashboard.admin.nav");
-  
+
   const allLinks = [
-    { name: t("home"), href: "/dashboard/admin", roles: ["admin", "org_admin", "god"] },
-    { name: t("users"), href: "/dashboard/admin/users", roles: ["admin", "org_admin", "god"] },
-    { name: t("students"), href: "/dashboard/admin/students", roles: ["admin", "org_admin", "god"] },
-    { name: t("classrooms"), href: "/dashboard/admin/classrooms", roles: ["admin", "org_admin", "god"] },
-    { name: t("courses"), href: "/dashboard/admin/courses", roles: ["admin", "god"] },
-    { name: t("orders"), href: "/dashboard/admin/orders", roles: ["admin", "god"] },
-    { name: t("activation_codes"), href: "/dashboard/admin/activation-codes", roles: ["admin", "org_admin", "god"] },
+    {
+      name: t("subscriptions"),
+      href: "/dashboard/admin/subscriptions",
+      roles: ["admin", "org_admin", "god"],
+    },
+    {
+      name: t("home"),
+      href: "/dashboard/admin",
+      roles: ["admin", "org_admin", "god"],
+    },
+    {
+      name: t("users"),
+      href: "/dashboard/admin/users",
+      roles: ["admin", "org_admin", "god"],
+    },
+    {
+      name: t("students"),
+      href: "/dashboard/admin/students",
+      roles: ["admin", "org_admin", "god"],
+    },
+    {
+      name: t("classrooms"),
+      href: "/dashboard/admin/classrooms",
+      roles: ["admin", "org_admin", "god"],
+    },
+    {
+      name: t("courses"),
+      href: "/dashboard/admin/courses",
+      roles: ["admin", "god"],
+    },
+    {
+      name: t("orders"),
+      href: "/dashboard/admin/orders",
+      roles: ["admin", "god"],
+    },
+    {
+      name: t("activation_codes"),
+      href: "/dashboard/admin/activation-codes",
+      roles: ["admin", "org_admin", "god"],
+    },
   ];
 
   // Filter links based on user role
@@ -35,11 +67,14 @@ export default function NavLinks({ role }: NavLinksProps) {
           <Link
             key={link.name}
             href={link.href}
-            className={(pathname == link.href ? "bg-blue-900" : "bg-blue-400") + "text-white h-full flex items-center gap-x-1 [&:hover]:bg-blue-600 px-5"}
+            className={
+              (pathname == link.href ? "bg-blue-900" : "bg-blue-400") +
+              "flex h-full items-center gap-x-1 px-5 text-white [&:hover]:bg-blue-600"
+            }
           >
             <span className="text-lightgray">{link.name}</span>
           </Link>
-        )
+        );
       })}
     </div>
   );

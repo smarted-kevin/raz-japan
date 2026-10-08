@@ -12,7 +12,9 @@ http.route({
   path: "/stripe/webhook",
   method: "POST",
   handler: httpAction(async (ctx, request) => {
-    const signature = request.headers.get("stripe-signature")!;
+    const signature = request.headers.get("stripe-signature");
+    if (!signature)
+      return new Response("Missing Stripe signature", { status: 400 });
     const result = await ctx.runAction(internal.stripe.fulfill, {
       signature,
       payload: await request.text(),
@@ -23,7 +25,7 @@ http.route({
       });
     } else {
       return new Response(result.error ?? "Webhook error", {
-        status: 400,
+        status: result.invalid_signature ? 400 : 500,
       });
     }
   }),

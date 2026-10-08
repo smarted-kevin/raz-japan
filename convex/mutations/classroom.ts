@@ -1,8 +1,9 @@
+import { isAnnual } from "../lib/billing";
 import { v } from "convex/values";
 import { adminMutation, requireOrganizationAccess } from "../lib/auth";
 
 export const createClassroom = adminMutation({
-  args: { 
+  args: {
     classroom_name: v.string(),
     course_name: v.string(),
     organization: v.string(),
@@ -12,33 +13,33 @@ export const createClassroom = adminMutation({
       .query("course")
       .withIndex("by_course_name", (q) => q.eq("course_name", args.course_name))
       .first();
-    if (!course) return "Course not found."
+    if (!course) return "Course not found.";
+    if (!isAnnual(course))
+      throw new Error("Add-ons use existing annual student accounts");
 
     const org = await ctx.db
       .query("organization")
-      .withIndex("by_organization_name", (q) => q.eq("organization_name", args.organization))
-      .first();
-    if (!org) return "Organization not found."
-    requireOrganizationAccess(ctx.user, org._id);
-    
-    const new_class = await ctx.db
-      .insert(
-        "classroom",
-        {
-          classroom_name: args.classroom_name,
-          course_id: course._id,
-          organization_id: org._id,
-          status: "active",
-          created_date: Date.now(),
-          updated_date: Date.now()
-        }
+      .withIndex("by_organization_name", (q) =>
+        q.eq("organization_name", args.organization),
       )
+      .first();
+    if (!org) return "Organization not found.";
+    requireOrganizationAccess(ctx.user, org._id);
+
+    const new_class = await ctx.db.insert("classroom", {
+      classroom_name: args.classroom_name,
+      course_id: course._id,
+      organization_id: org._id,
+      status: "active",
+      created_date: Date.now(),
+      updated_date: Date.now(),
+    });
     const classroom = await ctx.db.get(new_class);
 
     return {
       classroom_id: classroom?._id,
       course_id: classroom?.course_id,
       organization_id: classroom?.organization_id,
-    }
-  }
+    };
+  },
 });

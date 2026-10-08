@@ -555,7 +555,7 @@ export default async function HomePage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#c83192]">
                   <BookOpen className="h-6 w-6 text-white" />
                 </div>
-                <span className="text-xl font-bold">Raz-Japan</span>
+                <span className="text-xl font-bold">Raz-Plus Japan</span>
               </Link>
               <p className="mb-4 max-w-md text-sm leading-relaxed text-gray-400">
                 {t("footer_tagline")}

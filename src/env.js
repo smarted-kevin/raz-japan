@@ -10,6 +10,10 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "test", "production"]),
     CONVEX_DEPLOYMENT: z.string(),
     STRIPE_SANDBOX_SECRET_KEY: z.string(),
+    STRIPE_SECRET_KEY: z.string().optional(),
+    MONTHLY_SUBSCRIPTIONS_ENABLED: z.enum(["true", "false"]).default("false"),
+    STRIPE_BILLING_PORTAL_CONFIGURATION_ID: z.string().optional(),
+    STRIPE_ANNUAL_PRODUCT_ID: z.string().optional(),
     MEMBER_SIGNUP_ENABLED: z.enum(["true", "false"]).default("false"),
     //STRIPE_WEBHOOK_SECRET: z.string(),
     SITE_URL: z.string(),
@@ -36,6 +40,11 @@ export const env = createEnv({
     NODE_ENV: process.env.NODE_ENV,
     CONVEX_DEPLOYMENT: process.env.CONVEX_DEPLOYMENT,
     STRIPE_SANDBOX_SECRET_KEY: process.env.STRIPE_SANDBOX_SECRET_KEY,
+    STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
+    MONTHLY_SUBSCRIPTIONS_ENABLED: process.env.MONTHLY_SUBSCRIPTIONS_ENABLED,
+    STRIPE_BILLING_PORTAL_CONFIGURATION_ID:
+      process.env.STRIPE_BILLING_PORTAL_CONFIGURATION_ID,
+    STRIPE_ANNUAL_PRODUCT_ID: process.env.STRIPE_ANNUAL_PRODUCT_ID,
     MEMBER_SIGNUP_ENABLED: process.env.MEMBER_SIGNUP_ENABLED,
     NEXT_PUBLIC_CONVEX_URL: process.env.NEXT_PUBLIC_CONVEX_URL,
     NEXT_PUBLIC_STRIPE_SANDBOX_PUBLIC_KEY:

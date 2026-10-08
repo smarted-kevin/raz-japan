@@ -1,4 +1,9 @@
 "use client";
+import {
+  PaymentPeriod,
+  InvoiceReference,
+  type PaymentSnapshot,
+} from "~/components/billing/paymentPeriod";
 
 import { useTranslations } from "next-intl";
 import {
@@ -9,17 +14,12 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { dateDisplayFormat, formatYen, capitalize } from "~/lib/formatters";
 import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
 
-type StudentOrderData = {
+type StudentOrderData = PaymentSnapshot & {
   id: Id<"student_order">;
   amount: number;
   order_id: Id<"full_order">;
@@ -36,6 +36,7 @@ type AdminOrderData = {
   created_date: number;
   status: "created" | "pending" | "fulfilled" | "canceled" | undefined;
   total_amount: number;
+  stripe_invoice_id?: string;
   user_id: Id<"userTable">;
   email: string | undefined;
   first_name: string | undefined;
@@ -54,8 +55,8 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
 
   return (
     <div className="space-y-6 print:space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        <Card className="print:shadow-none print:border">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
+        <Card className="print:border print:shadow-none">
           <CardHeader className="pb-2 sm:pb-4">
             <CardTitle className="text-base sm:text-lg">
               {t("order_information")}
@@ -63,8 +64,12 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-2 text-sm">
-              <span className="text-muted-foreground">{tc("order_number")}</span>
-              <span className="font-medium">{order.order_number ?? tc("na")}</span>
+              <span className="text-muted-foreground">
+                {tc("order_number")}
+              </span>
+              <span className="font-medium">
+                {order.order_number ?? tc("na")}
+              </span>
               <span className="text-muted-foreground">{tc("date")}</span>
               <span className="font-medium">
                 {dateDisplayFormat(order.created_date)}
@@ -76,21 +81,25 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
             </div>
           </CardContent>
         </Card>
-        <Card className="print:shadow-none print:border">
+        <Card className="print:border print:shadow-none">
           <CardHeader className="pb-2 sm:pb-4">
-            <CardTitle className="text-base sm:text-lg">{t("customer")}</CardTitle>
+            <CardTitle className="text-base sm:text-lg">
+              {t("customer")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="grid grid-cols-2 gap-2 text-sm">
               <span className="text-muted-foreground">{tc("name")}</span>
               <span className="font-medium">{customerName}</span>
               <span className="text-muted-foreground">{tc("email")}</span>
-              <span className="font-medium break-all">{order.email ?? "—"}</span>
+              <span className="font-medium break-all">
+                {order.email ?? "—"}
+              </span>
             </div>
             <div className="pt-2 print:hidden">
               <Link
                 href={`/dashboard/admin/users/${order.user_id}`}
-                className="text-sm text-primary hover:underline"
+                className="text-primary text-sm hover:underline"
               >
                 {t("view_member_profile")}
               </Link>
@@ -99,14 +108,14 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
         </Card>
       </div>
 
-      <Card className="print:shadow-none print:border overflow-hidden">
+      <Card className="overflow-hidden print:border print:shadow-none">
         <CardHeader className="pb-2 sm:pb-4">
           <CardTitle className="text-base sm:text-lg">
             {tc("students")} ({order.student_orders.length})
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0 sm:px-6 sm:pb-6">
-          <div className="hidden sm:block overflow-x-auto">
+          <div className="hidden overflow-x-auto sm:block">
             <Table>
               <TableHeader className="bg-muted/50">
                 <TableRow>
@@ -121,7 +130,7 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
                   <TableRow>
                     <TableCell
                       colSpan={4}
-                      className="text-center text-muted-foreground py-8"
+                      className="text-muted-foreground py-8 text-center"
                     >
                       {t("no_students_in_order")}
                     </TableCell>
@@ -129,10 +138,15 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
                 ) : (
                   order.student_orders.map((so) => (
                     <TableRow key={so.id}>
-                      <TableCell className="font-medium">{so.username}</TableCell>
+                      <TableCell className="font-medium">
+                        {so.username}
+                        <PaymentPeriod payment={so} />
+                      </TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs">
-                          {capitalize(so.order_type)}
+                        <span className="bg-muted inline-flex items-center rounded-full px-2 py-0.5 text-xs">
+                          {so.billing_model === "monthly_subscription"
+                            ? t("type")
+                            : capitalize(so.order_type)}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -149,26 +163,27 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
               </TableBody>
             </Table>
           </div>
-          <div className="sm:hidden divide-y">
+          <div className="divide-y sm:hidden">
             {order.student_orders.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground text-sm px-4">
+              <div className="text-muted-foreground px-4 py-8 text-center text-sm">
                 {t("no_students_in_order")}
               </div>
             ) : (
               order.student_orders.map((so) => (
                 <div
                   key={so.id}
-                  className="flex justify-between items-start gap-4 px-4 py-3 first:pt-0"
+                  className="flex items-start justify-between gap-4 px-4 py-3 first:pt-0"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium truncate">{so.username}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">
+                    <p className="truncate font-medium">{so.username}</p>
+                    <PaymentPeriod payment={so} />
+                    <p className="text-muted-foreground mt-0.5 text-xs">
                       {capitalize(so.order_type)}
                       {so.expiry_date &&
                         ` • ${t("expires", { date: dateDisplayFormat(so.expiry_date) })}`}
                     </p>
                   </div>
-                  <span className="font-medium text-sm shrink-0">
+                  <span className="shrink-0 text-sm font-medium">
                     {formatYen(so.amount)}
                   </span>
                 </div>
@@ -178,9 +193,10 @@ export function AdminOrderDetails({ order }: { order: AdminOrderData }) {
         </CardContent>
       </Card>
 
+      <InvoiceReference invoiceId={order.stripe_invoice_id} />
       <div className="flex justify-end">
-        <div className="w-full max-w-md sm:max-w-xs border-t pt-4">
-          <div className="flex justify-between items-center text-lg font-semibold">
+        <div className="w-full max-w-md border-t pt-4 sm:max-w-xs">
+          <div className="flex items-center justify-between text-lg font-semibold">
             <span>{tc("order_total")}</span>
             <span>{formatYen(displayTotal)}</span>
           </div>

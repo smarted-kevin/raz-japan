@@ -1,20 +1,27 @@
 import { v } from "convex/values";
 import { type Id } from "../_generated/dataModel";
 import { internalQuery } from "../_generated/server";
-import { adminQuery, authedQuery, canAccessUser, requireUserAccess } from "../lib/auth";
+import {
+  adminQuery,
+  authedQuery,
+  canAccessUser,
+  requireUserAccess,
+} from "../lib/auth";
 
 export const getAllOrders = adminQuery({
   args: {},
   handler: async (ctx) => {
     const orders = await ctx.db.query("full_order").collect();
-    const scopedOrders = await Promise.all(orders.map(async (order) => ({
-      order,
-      owner: await ctx.db.get(order.user_id),
-    })));
+    const scopedOrders = await Promise.all(
+      orders.map(async (order) => ({
+        order,
+        owner: await ctx.db.get(order.user_id),
+      })),
+    );
     return scopedOrders
       .filter(({ owner }) => owner && canAccessUser(ctx.user, owner))
       .map(({ order }) => order);
-  }
+  },
 });
 /*
 
@@ -24,8 +31,22 @@ export const getAllOrders = adminQuery({
  * @returns array of orders with user id and email, and array of student order data
  */
 export const getOrdersWithUserAndStudentData = adminQuery({
-  args: { status: v.optional(v.union(v.literal("created"), v.literal("pending"), v.literal("fulfilled"), v.literal("canceled"))),
-    order_type: v.optional(v.union(v.literal("new"), v.literal("renewal"), v.literal("reactivation"))),
+  args: {
+    status: v.optional(
+      v.union(
+        v.literal("created"),
+        v.literal("pending"),
+        v.literal("fulfilled"),
+        v.literal("canceled"),
+      ),
+    ),
+    order_type: v.optional(
+      v.union(
+        v.literal("new"),
+        v.literal("renewal"),
+        v.literal("reactivation"),
+      ),
+    ),
     student_id: v.optional(v.id("student")),
     user_id: v.optional(v.id("userTable")),
     promotion_id: v.optional(v.id("promotion_code")),
@@ -33,73 +54,98 @@ export const getOrdersWithUserAndStudentData = adminQuery({
     updated_date: v.optional(v.number()),
     created_date: v.optional(v.number()),
     total_amount: v.optional(v.number()),
-   },
+  },
   handler: async (ctx, args) => {
     //1. Get all full_orders
     const orders = args.status
-      ? await ctx.db.query("full_order").withIndex("by_status", (q) => q.eq("status", args.status)).collect()
+      ? await ctx.db
+          .query("full_order")
+          .withIndex("by_status", (q) => q.eq("status", args.status))
+          .collect()
       : await ctx.db.query("full_order").collect();
 
     //2. For each order, get user data and student order data
-    const result = await Promise.all(orders.map(async (order) => {
-      // Get user data
-      const user = await ctx.db.get(order.user_id);
-      if (!user) {
-        return null;
-      }
-      if (!canAccessUser(ctx.user, user)) return null;
-
-      // Get student orders for this order
-      const studentOrders = await ctx.db
-        .query("student_order")
-        .withIndex("by_order_id", (q) => q.eq("order_id", order._id))
-        .collect();
-
-      // Get student data for each student order
-      const studentOrdersWithData = await Promise.all(studentOrders.map(async (student_order) => {
-        const student = await ctx.db.get(student_order.student_id);
-        if (!student) {
+    const result = await Promise.all(
+      orders.map(async (order) => {
+        // Get user data
+        const user = await ctx.db.get(order.user_id);
+        if (!user) {
           return null;
         }
+        if (!canAccessUser(ctx.user, user)) return null;
+
+        // Get student orders for this order
+        const studentOrders = await ctx.db
+          .query("student_order")
+          .withIndex("by_order_id", (q) => q.eq("order_id", order._id))
+          .collect();
+
+        // Get student data for each student order
+        const studentOrdersWithData = await Promise.all(
+          studentOrders.map(async (student_order) => {
+            const student = await ctx.db.get(student_order.student_id);
+            if (!student) {
+              return null;
+            }
+
+            return {
+              id: student_order._id,
+              amount: student_order.amount,
+              order_id: student_order.order_id,
+              order_type: student_order.order_type,
+              billing_model: student_order.billing_model ?? "annual_purchase",
+              subscription_id: student_order.subscription_id,
+              period_start: student_order.period_start,
+              period_end: student_order.period_end,
+              course_name: student_order.course_name,
+              username: student.username,
+              expiry_date: student_order.period_end ?? student.expiry_date,
+              status: student.status,
+            };
+          }),
+        );
+
+        // Filter out null values
+        const validStudentOrders = studentOrdersWithData.filter(
+          (so) => so !== null,
+        ) as {
+          id: Id<"student_order">;
+          amount: number;
+          order_id: Id<"full_order">;
+          order_type: "new" | "renewal" | "reactivation";
+          billing_model: "annual_purchase" | "monthly_subscription";
+          subscription_id: Id<"subscription"> | undefined;
+          period_start: number | undefined;
+          period_end: number | undefined;
+          course_name: string | undefined;
+          username: string;
+          expiry_date: number | undefined;
+          status: "active" | "inactive" | "removed";
+        }[];
 
         return {
-          id: student_order._id,
-          amount: student_order.amount,
-          order_id: student_order.order_id,
-          order_type: student_order.order_type,
-          username: student.username,
-          expiry_date: student.expiry_date,
-          status: student.status,
+          user_id: user._id,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name,
+          amount: order.total_amount,
+          order_id: order._id,
+          created_date: order._creationTime,
+          status: order.status,
+          order_number: order.order_number,
+          subscription_id: order.subscription_id,
+          stripe_invoice_id: order.stripe_invoice_id,
+          currency: order.currency,
+          period_start: order.period_start,
+          period_end: order.period_end,
+          student_orders: validStudentOrders,
         };
-      }));
-
-      // Filter out null values
-      const validStudentOrders = studentOrdersWithData.filter((so) => so !== null) as {
-        id: Id<"student_order">;
-        amount: number;
-        order_id: Id<"full_order">;
-        order_type: "new" | "renewal" | "reactivation";
-        username: string;
-        expiry_date: number | undefined;
-        status: "active" | "inactive" | "removed";
-      }[];
-
-      return {
-        user_id: user._id,
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        amount: order.total_amount,
-        order_id: order._id,
-        created_date: order._creationTime,
-        order_number: order.order_number,
-        student_orders: validStudentOrders,
-      };
-    }));
+      }),
+    );
 
     // Filter out null values (orders without users)
     return result.filter((order) => order !== null);
-  }
+  },
 });
 
 export const getOrderById = authedQuery({
@@ -111,7 +157,7 @@ export const getOrderById = authedQuery({
       if (owner) requireUserAccess(ctx.user, owner);
     }
     return order;
-  }
+  },
 });
 
 /**
@@ -137,29 +183,43 @@ export const getOrderByIdWithStudentData = authedQuery({
       .collect();
 
     // Get student data for each student order
-    const studentOrdersWithData = await Promise.all(studentOrders.map(async (student_order) => {
-      const student = await ctx.db.get(student_order.student_id);
-      if (!student) {
-        return null;
-      }
+    const studentOrdersWithData = await Promise.all(
+      studentOrders.map(async (student_order) => {
+        const student = await ctx.db.get(student_order.student_id);
+        if (!student) {
+          return null;
+        }
 
-      return {
-        id: student_order._id,
-        amount: student_order.amount,
-        order_id: student_order.order_id,
-        order_type: student_order.order_type,
-        username: student.username,
-        expiry_date: student.expiry_date,
-        activation_id: student_order.activation_id,
-      };
-    }));
+        return {
+          id: student_order._id,
+          amount: student_order.amount,
+          order_id: student_order.order_id,
+          order_type: student_order.order_type,
+          billing_model: student_order.billing_model ?? "annual_purchase",
+          subscription_id: student_order.subscription_id,
+          period_start: student_order.period_start,
+          period_end: student_order.period_end,
+          course_name: student_order.course_name,
+          username: student.username,
+          expiry_date: student_order.period_end ?? student.expiry_date,
+          activation_id: student_order.activation_id,
+        };
+      }),
+    );
 
     // Filter out null values
-    const validStudentOrders = studentOrdersWithData.filter((so) => so !== null) as {
+    const validStudentOrders = studentOrdersWithData.filter(
+      (so) => so !== null,
+    ) as {
       id: Id<"student_order">;
       amount: number;
       order_id: Id<"full_order">;
       order_type: "new" | "renewal" | "reactivation";
+      billing_model: "annual_purchase" | "monthly_subscription";
+      subscription_id: Id<"subscription"> | undefined;
+      period_start: number | undefined;
+      period_end: number | undefined;
+      course_name: string | undefined;
       username: string;
       expiry_date: number | undefined;
       activation_id: Id<"activation_code"> | undefined;
@@ -169,12 +229,17 @@ export const getOrderByIdWithStudentData = authedQuery({
       order_id: order._id,
       total_amount: order.total_amount,
       order_number: order.order_number,
+      subscription_id: order.subscription_id,
+      stripe_invoice_id: order.stripe_invoice_id,
+      currency: order.currency,
+      period_start: order.period_start,
+      period_end: order.period_end,
       created_date: order._creationTime,
       status: order.status,
       user_id: order.user_id,
       student_orders: validStudentOrders,
     };
-  }
+  },
 });
 
 /**
@@ -204,12 +269,17 @@ export const getOrderByIdWithUserAndStudentData = adminQuery({
           amount: so.amount,
           order_id: so.order_id,
           order_type: so.order_type,
+          billing_model: so.billing_model ?? "annual_purchase",
+          subscription_id: so.subscription_id,
+          period_start: so.period_start,
+          period_end: so.period_end,
+          course_name: so.course_name,
           username: student.username,
-          expiry_date: student.expiry_date,
+          expiry_date: so.period_end ?? student.expiry_date,
           status: student.status,
           activation_id: so.activation_id,
         };
-      })
+      }),
     );
 
     const validStudentOrders = studentOrdersWithData.filter(Boolean) as {
@@ -217,6 +287,11 @@ export const getOrderByIdWithUserAndStudentData = adminQuery({
       amount: number;
       order_id: Id<"full_order">;
       order_type: "new" | "renewal" | "reactivation";
+      billing_model: "annual_purchase" | "monthly_subscription";
+      subscription_id: Id<"subscription"> | undefined;
+      period_start: number | undefined;
+      period_end: number | undefined;
+      course_name: string | undefined;
       username: string;
       expiry_date: number | undefined;
       status: "active" | "inactive" | "removed";
@@ -226,6 +301,11 @@ export const getOrderByIdWithUserAndStudentData = adminQuery({
     return {
       order_id: order._id,
       order_number: order.order_number,
+      subscription_id: order.subscription_id,
+      stripe_invoice_id: order.stripe_invoice_id,
+      currency: order.currency,
+      period_start: order.period_start,
+      period_end: order.period_end,
       created_date: order._creationTime,
       status: order.status,
       total_amount: order.total_amount,
@@ -243,14 +323,16 @@ export const getOrderByStripeId = authedQuery({
   handler: async (ctx, args) => {
     const order = await ctx.db
       .query("full_order")
-      .withIndex("by_stripe_order_id", (q) => q.eq("stripe_order_id", args.stripe_id))
+      .withIndex("by_stripe_order_id", (q) =>
+        q.eq("stripe_order_id", args.stripe_id),
+      )
       .first();
     if (order) {
       const owner = await ctx.db.get(order.user_id);
       if (owner) requireUserAccess(ctx.user, owner);
     }
     return order;
-  }
+  },
 });
 
 /**
@@ -271,53 +353,74 @@ export const getOrdersByUserId = authedQuery({
       .collect();
 
     // For each order, get student order data
-    const result = await Promise.all(orders.map(async (order) => {
-      // Get student orders for this order
-      const studentOrders = await ctx.db
-        .query("student_order")
-        .withIndex("by_order_id", (q) => q.eq("order_id", order._id))
-        .collect();
+    const result = await Promise.all(
+      orders.map(async (order) => {
+        // Get student orders for this order
+        const studentOrders = await ctx.db
+          .query("student_order")
+          .withIndex("by_order_id", (q) => q.eq("order_id", order._id))
+          .collect();
 
-      // Get student data for each student order
-      const studentOrdersWithData = await Promise.all(studentOrders.map(async (student_order) => {
-        const student = await ctx.db.get(student_order.student_id);
-        if (!student) {
-          return null;
-        }
+        // Get student data for each student order
+        const studentOrdersWithData = await Promise.all(
+          studentOrders.map(async (student_order) => {
+            const student = await ctx.db.get(student_order.student_id);
+            if (!student) {
+              return null;
+            }
+
+            return {
+              id: student_order._id,
+              amount: student_order.amount,
+              order_id: student_order.order_id,
+              order_type: student_order.order_type,
+              billing_model: student_order.billing_model ?? "annual_purchase",
+              subscription_id: student_order.subscription_id,
+              period_start: student_order.period_start,
+              period_end: student_order.period_end,
+              course_name: student_order.course_name,
+              username: student.username,
+              activation_id: student_order.activation_id,
+            };
+          }),
+        );
+
+        // Filter out null values
+        const validStudentOrders = studentOrdersWithData.filter(
+          (so) => so !== null,
+        ) as {
+          id: Id<"student_order">;
+          amount: number;
+          order_id: Id<"full_order">;
+          order_type: "new" | "renewal" | "reactivation";
+          billing_model: "annual_purchase" | "monthly_subscription";
+          subscription_id: Id<"subscription"> | undefined;
+          period_start: number | undefined;
+          period_end: number | undefined;
+          course_name: string | undefined;
+          username: string;
+          activation_id: Id<"activation_code"> | undefined;
+        }[];
 
         return {
-          id: student_order._id,
-          amount: student_order.amount,
-          order_id: student_order.order_id,
-          order_type: student_order.order_type,
-          username: student.username,
-          activation_id: student_order.activation_id,
+          order_id: order._id,
+          total_amount: order.total_amount,
+          order_number: order.order_number,
+          subscription_id: order.subscription_id,
+          stripe_invoice_id: order.stripe_invoice_id,
+          currency: order.currency,
+          period_start: order.period_start,
+          period_end: order.period_end,
+          created_date: order._creationTime,
+          status: order.status,
+          student_orders: validStudentOrders,
         };
-      }));
-
-      // Filter out null values
-      const validStudentOrders = studentOrdersWithData.filter((so) => so !== null) as {
-        id: Id<"student_order">;
-        amount: number;
-        order_id: Id<"full_order">;
-        order_type: "new" | "renewal" | "reactivation";
-        username: string;
-        activation_id: Id<"activation_code"> | undefined;
-      }[];
-
-      return {
-        order_id: order._id,
-        total_amount: order.total_amount,
-        order_number: order.order_number,
-        created_date: order._creationTime,
-        status: order.status,
-        student_orders: validStudentOrders,
-      };
-    }));
+      }),
+    );
 
     // Sort by created_date descending (most recent first)
     return result.sort((a, b) => b.created_date - a.created_date);
-  }
+  },
 });
 
 export const getOrderByIdInternal = internalQuery({

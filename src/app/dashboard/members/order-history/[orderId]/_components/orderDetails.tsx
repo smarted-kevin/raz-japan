@@ -1,4 +1,9 @@
 "use client";
+import {
+  PaymentPeriod,
+  InvoiceReference,
+  type PaymentSnapshot,
+} from "~/components/billing/paymentPeriod";
 
 import { useTranslations } from "next-intl";
 import {
@@ -12,7 +17,7 @@ import {
 import { dateDisplayFormat, formatYen } from "~/lib/formatters";
 import type { Id } from "@/convex/_generated/dataModel";
 
-type StudentOrderData = {
+type StudentOrderData = PaymentSnapshot & {
   id: Id<"student_order">;
   amount: number;
   order_id: Id<"full_order">;
@@ -25,6 +30,7 @@ type StudentOrderData = {
 type OrderData = {
   order_id: Id<"full_order">;
   total_amount: number;
+  stripe_invoice_id?: string;
   order_number: string | undefined;
   created_date: number;
   status: "created" | "pending" | "fulfilled" | "canceled" | undefined;
@@ -44,47 +50,67 @@ export function OrderDetails({ order }: { order: OrderData }) {
     <div className="space-y-6 print:space-y-4">
       {/* Order Header */}
       <div className="space-y-2 print:mb-4 print:border-b print:pb-4">
-        <div className="flex justify-between items-start">
+        <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-xl font-bold print:text-2xl">{t("order_receipt")}</h2>
-            <p className="text-sm text-muted-foreground mt-1 print:text-base print:text-black">
-              {t("order_number")}: <span className="font-medium">{order.order_number ?? "N/A"}</span>
+            <h2 className="text-xl font-bold print:text-2xl">
+              {t("order_receipt")}
+            </h2>
+            <p className="text-muted-foreground mt-1 text-sm print:text-base print:text-black">
+              {t("order_number")}:{" "}
+              <span className="font-medium">{order.order_number ?? "N/A"}</span>
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground print:text-base print:text-black">{t("order_date")}</p>
-            <p className="font-medium print:text-lg">{dateDisplayFormat(order.created_date)}</p>
+            <p className="text-muted-foreground text-sm print:text-base print:text-black">
+              {t("order_date")}
+            </p>
+            <p className="font-medium print:text-lg">
+              {dateDisplayFormat(order.created_date)}
+            </p>
           </div>
         </div>
       </div>
 
+      <InvoiceReference invoiceId={order.stripe_invoice_id} />
       {/* Students Table */}
-      <div className="border rounded-lg overflow-hidden print:border print:rounded">
+      <div className="overflow-hidden rounded-lg border print:rounded print:border">
         <Table>
           <TableHeader className="bg-primary-foreground print:bg-gray-100">
             <TableRow className="print:border-b">
-              <TableHead className="print:font-bold print:text-black">{t("username")}</TableHead>
-              <TableHead className="print:font-bold print:text-black">{t("expiry_date")}</TableHead>
-              <TableHead className="text-right print:font-bold print:text-black">{t("price")}</TableHead>
+              <TableHead className="print:font-bold print:text-black">
+                {t("username")}
+              </TableHead>
+              <TableHead className="print:font-bold print:text-black">
+                {t("expiry_date")}
+              </TableHead>
+              <TableHead className="text-right print:font-bold print:text-black">
+                {t("price")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {order.student_orders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center text-muted-foreground py-8 print:text-black">
+                <TableCell
+                  colSpan={3}
+                  className="text-muted-foreground py-8 text-center print:text-black"
+                >
                   {t("no_students_in_order")}
                 </TableCell>
               </TableRow>
             ) : (
               order.student_orders.map((student_order) => (
                 <TableRow key={student_order.id} className="print:border-b">
-                  <TableCell className="font-medium print:text-black">{student_order.username}</TableCell>
+                  <TableCell className="font-medium print:text-black">
+                    {student_order.username}
+                    <PaymentPeriod payment={student_order} />
+                  </TableCell>
                   <TableCell className="print:text-black">
                     {student_order.expiry_date
                       ? dateDisplayFormat(student_order.expiry_date)
                       : "N/A"}
                   </TableCell>
-                  <TableCell className="text-right print:text-black print:font-medium">
+                  <TableCell className="text-right print:font-medium print:text-black">
                     {formatYen(student_order.amount)}
                   </TableCell>
                 </TableRow>
@@ -97,7 +123,7 @@ export function OrderDetails({ order }: { order: OrderData }) {
       {/* Order Total */}
       <div className="flex justify-end print:mt-6">
         <div className="w-full max-w-md space-y-2 border-t pt-4 print:border-t-2 print:border-black">
-          <div className="flex justify-between items-center text-lg font-bold print:text-xl print:text-black">
+          <div className="flex items-center justify-between text-lg font-bold print:text-xl print:text-black">
             <span>{t("order_total")}</span>
             <span>{formatYen(displayTotal)}</span>
           </div>

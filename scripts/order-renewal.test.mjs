@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { isRenewable, compareStudentExpiry } from "../src/lib/dateCompare.ts";
+import { loadBilling } from "./billing-test-helpers.mjs";
 
 const now = Date.UTC(2026, 8, 8);
 const day = 86_400_000;
@@ -64,6 +65,8 @@ async function studentMutations() {
   runInNewContext(code, {
     exports,
     require: (name) => {
+      if (name === "../_generated/api")
+        return { internal: { subscriptions: { syncStudent: "syncStudent" } } };
       if (name === "../_generated/server")
         return { internalMutation: register };
       if (name === "convex/values")
@@ -71,6 +74,7 @@ async function studentMutations() {
       if (name === "../lib/auth")
         return { adminMutation: register, authedMutation: register };
       if (name === "./full_order") return {};
+      if (name === "../lib/billing") return loadBilling().load("lib/billing");
       throw new Error(`Unexpected import ${name}`);
     },
   });
@@ -84,6 +88,7 @@ for (const status of ["removed", "inactive"]) {
     const before = Date.now();
     await mutations.reactivateStudent.handler(
       {
+        scheduler: { runAfter: async () => {} },
         db: {
           get: async () => record,
           patch: async (_id, changes) => Object.assign(record, changes),
@@ -103,6 +108,7 @@ test("renewal of an active but expired account starts from today", async () => {
   const before = Date.now();
   await mutations.renewStudent.handler(
     {
+      scheduler: { runAfter: async () => {} },
       db: {
         get: async () => record,
         patch: async (_id, changes) => Object.assign(record, changes),
@@ -121,6 +127,7 @@ test("early renewal preserves remaining subscription time", async () => {
   const record = { status: "active", expiry_date: expiry };
   await mutations.renewStudent.handler(
     {
+      scheduler: { runAfter: async () => {} },
       db: {
         get: async () => record,
         patch: async (_id, changes) => Object.assign(record, changes),

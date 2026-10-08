@@ -3,7 +3,7 @@ import { PublicAuthPageShell } from "~/components/layout/public-auth-page-shell"
 import ForgotPassword from "./ForgotPassword";
 
 export const metadata: Metadata = {
-  title: "Forgot password | Raz-Japan",
+  title: "Forgot password | Raz-Plus Japan",
 };
 
 export default function ForgotPasswordPage() {

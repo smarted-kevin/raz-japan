@@ -1,3 +1,4 @@
+import { BillingIssues } from "~/components/billing/billingIssues";
 import { api } from "@/convex/_generated/api";
 import { fetchQuery } from "convex/nextjs";
 import { redirect } from "next/navigation";
@@ -80,15 +81,31 @@ export default async function Page() {
   let stats: DashboardStats | null = null;
 
   if (isOrgAdmin) {
-    const userDetails = await fetchQuery(api.queries.users.getUserRoleByAuthId, { userId: user._id }, { token });
+    const userDetails = await fetchQuery(
+      api.queries.users.getUserRoleByAuthId,
+      { userId: user._id },
+      { token },
+    );
     if (userDetails.org_id) {
-      orgStats = await fetchQuery(api.queries.dashboard.getDashboardStatsByOrganization, {
-        org_id: userDetails.org_id as Id<"organization">,
-      }, { token });
+      orgStats = await fetchQuery(
+        api.queries.dashboard.getDashboardStatsByOrganization,
+        {
+          org_id: userDetails.org_id as Id<"organization">,
+        },
+        { token },
+      );
     }
   } else {
-    const dashboardQuery = (api.queries as unknown as { dashboard: { getDashboardStats: Parameters<typeof fetchQuery>[0] } }).dashboard.getDashboardStats;
-    stats = (await fetchQuery(dashboardQuery, {}, { token })) as DashboardStats | null;
+    const dashboardQuery = (
+      api.queries as unknown as {
+        dashboard: { getDashboardStats: Parameters<typeof fetchQuery>[0] };
+      }
+    ).dashboard.getDashboardStats;
+    stats = (await fetchQuery(
+      dashboardQuery,
+      {},
+      { token },
+    )) as DashboardStats | null;
   }
 
   if (!stats && !orgStats) {
@@ -100,7 +117,12 @@ export default async function Page() {
   }
 
   if (stats) {
-    return <AdminDashboard stats={stats} />;
+    return (
+      <div className="space-y-6">
+        <BillingIssues />
+        <AdminDashboard stats={stats} />
+      </div>
+    );
   }
 
   return null;

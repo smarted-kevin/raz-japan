@@ -149,10 +149,10 @@ export default function StudentTable({
         cell: () => null,
       },
     ],
-    [t, tc]
+    [t, tc],
   );
 
-  const [studentRows, setStudentRows] = useState(students);
+  const studentRows = students;
   const [status, setStatus] = useState("active");
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -162,26 +162,19 @@ export default function StudentTable({
   const handleRemoveStudent = useCallback(
     async (args: Parameters<typeof removeStudent>[0]) => {
       await removeStudent(args);
-      setStudentRows((current) =>
-        current.map((student) =>
-          student.id === args.student_id
-            ? { ...student, status: args.status }
-            : student
-        )
-      );
       router.refresh();
     },
-    [removeStudent, router]
+    [removeStudent, router],
   );
 
   const filteredByStatus = useMemo(
     () => studentRows.filter((student) => student.status === status),
-    [studentRows, status]
+    [studentRows, status],
   );
 
   const classroomMap = useMemo(
     () => new Map(classrooms.map((c) => [c.classroom_name, c])),
-    [classrooms]
+    [classrooms],
   );
 
   const tableData = useMemo(
@@ -196,7 +189,7 @@ export default function StudentTable({
           organization: cr?.organization_name ?? "",
         };
       }),
-    [filteredByStatus, classroomMap]
+    [filteredByStatus, classroomMap],
   );
 
   const table = useReactTable({
@@ -264,7 +257,7 @@ export default function StudentTable({
                     <TableHead key={header.id}>
                       {flexRender(
                         header.column.columnDef.header,
-                        header.getContext()
+                        header.getContext(),
                       )}
                     </TableHead>
                   ))}

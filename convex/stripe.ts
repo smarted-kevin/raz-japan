@@ -1,427 +1,479 @@
-
 "use node";
 
 import { v } from "convex/values";
 import { action, internalAction } from "./_generated/server";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import type { FunctionReference } from "convex/server";
-
-type CheckoutSession = Stripe.Checkout.Session;
+import type { ActionCtx } from "./_generated/server";
+import { stripeClient, ensureCustomer } from "./lib/stripeBilling";
+import { billingModel, isAnnual, validatePrice } from "./lib/billing";
 
 // Read the same Stripe prices used by checkout; never create a session for a preview.
 export const getOrderPricing = action({
   args: { student_ids: v.array(v.id("student")) },
-  handler: async (ctx, args): Promise<{
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{
     newStudent: number;
     renewals: { id: Id<"student">; amount: number }[];
     currency: string;
   }> => {
-    if (!(await ctx.auth.getUserIdentity())) throw new Error("Not authenticated");
-    const students = await ctx.runQuery(api.queries.student.getRenewalStudentsWithClassroomAndCourse, {
-      ids: [...new Set(args.student_ids)],
-    });
-    const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
-    const product = await stripe.products.retrieve("prod_SXpH8diltRufBp");
-    const newPriceId = typeof product.default_price === "string" ? product.default_price : product.default_price?.id;
-    if (!newPriceId) throw new Error("Price unavailable");
-    const priceIds = [...new Set([newPriceId, ...students.map(student => {
-      if (!student.course.price || !student.course.stripe_price_id) throw new Error("Price unavailable");
-      return student.course.stripe_price_id;
-    })])];
-    const prices = await Promise.all(priceIds.map(id => stripe.prices.retrieve(id)));
+    if (!(await ctx.auth.getUserIdentity()))
+      throw new Error("Not authenticated");
+    const students = await ctx.runQuery(
+      api.queries.student.getRenewalStudentsWithClassroomAndCourse,
+      {
+        ids: [...new Set(args.student_ids)],
+      },
+    );
+    const stripe = stripeClient();
+    const newPriceId = (await defaultAnnualPrice(stripe)).id;
+    const priceIds = [
+      ...new Set([
+        newPriceId,
+        ...students.map((student) => {
+          if (
+            !isAnnual(student.course) ||
+            !student.course.price ||
+            !student.course.stripe_price_id
+          )
+            throw new Error("Price unavailable");
+          return student.course.stripe_price_id;
+        }),
+      ]),
+    ];
+    const prices = await Promise.all(
+      priceIds.map((id) => stripe.prices.retrieve(id)),
+    );
     const amount = (id: string) => {
-      const price = prices.find(item => item.id === id);
+      const price = prices.find((item) => item.id === id);
       // This store charges JPY, whose Stripe amounts are already whole yen.
-      if (!price || price.currency !== "jpy" || price.unit_amount === null) throw new Error("Price unavailable");
+      if (
+        !price ||
+        !price.active ||
+        price.recurring ||
+        price.currency !== "jpy" ||
+        price.unit_amount === null
+      )
+        throw new Error("Price unavailable");
       return price.unit_amount;
     };
     return {
       newStudent: amount(newPriceId),
-      renewals: students.map(student => ({ id: student.student.id!, amount: amount(student.course.stripe_price_id!) })),
+      renewals: students.map((student) => ({
+        id: student.student.id!,
+        amount: amount(student.course.stripe_price_id!),
+      })),
       currency: "JPY",
     };
   },
 });
 
-/*
-checkout action does the following:
-1. Get cart object from convex
-2. Creates document in "full_order" table with cart data
-3. Creates stripe checkout session
-4. Updates "full_order" document with stripe order id and mark as "pending"
-*/
+async function defaultAnnualPrice(stripe: Stripe) {
+  const product = await stripe.products.retrieve(
+    process.env.STRIPE_ANNUAL_PRODUCT_ID ?? "prod_SXpH8diltRufBp",
+  );
+  const id =
+    typeof product.default_price === "string"
+      ? product.default_price
+      : product.default_price?.id;
+  if (!id) throw new Error("Annual price unavailable");
+  return validateAnnualPrice(await stripe.prices.retrieve(id));
+}
+
+function validateAnnualPrice(price: Stripe.Price) {
+  if (
+    !price.active ||
+    price.currency !== "jpy" ||
+    price.recurring ||
+    price.unit_amount === null
+  )
+    throw new Error("Annual Stripe price mismatch");
+  validatePrice(price.unit_amount);
+  return price;
+}
+
 export const checkout = action({
   args: { cart_id: v.id("cart") },
-  handler: async (ctx, { cart_id }) => {
-    
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-
-    const user = await ctx.runQuery(api.queries.users.getStripeUserInfoByAuthId, { userId: identity.subject });
-
-    // Resolve and authorize the cart before making any Stripe API calls or
-    // creating customer/order records. A cart id supplied by the browser is
-    // never trusted as proof of ownership.
-    const cart = await ctx.runQuery(internal.queries.cart.getCartById, { id: cart_id });
-    if (!cart) {
-      throw new Error("Cart not found");
-    }
-    if (cart.user_id !== user.user_id) {
+  handler: async (ctx, args): Promise<string> => {
+    const payer = await ctx.runQuery(internal.billingStore.payer, {});
+    const cart = await ctx.runQuery(internal.queries.cart.getCartById, {
+      id: args.cart_id,
+    });
+    if (!cart || cart.user_id !== payer._id)
       throw new Error("Cart access denied");
-    }
-    
-    //URL and stripe key needed for stripe session
-    const domain = process.env.SITE_URL ?? "http://localhost:3000";
-    const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
-    
-    let stripeCustomerId = user.stripe_id;
-
-    if (!stripeCustomerId || stripeCustomerId == "") {
-      const customer = await stripe.customers.create({
-        name: user.first_name + " " + user.last_name,
-        email: user.email,
-        metadata: {
-          user_id: user.user_id,
-        },
-      });
-      stripeCustomerId = customer.id;
-      await ctx.runMutation(internal.mutations.users.updateStripeId, {
-        userId: user.user_id,
-        stripe_id: stripeCustomerId,
-      });
-    }
-
-    const renewal_students = cart.renewal_students && 
-      cart.renewal_students.length > 0 ? 
-      await ctx.runQuery(api.queries.student.getRenewalStudentsWithClassroomAndCourse, 
-        { ids: cart.renewal_students as Id<"student">[] }) : 
-      [];
-
-    const line_items = [];
-    let total_price = 0;
-    
-    // add renewal student data to line_items array
-    if (renewal_students.length > 0) {
-      renewal_students.forEach((student) =>{
-        if (student.course.price) {
-          line_items.push({price: String(student.course.stripe_price_id), quantity: 1});
-          total_price += student.course.price;
-        }
-      });
-    }
-    //Get Raz-Japan product from Stripe
-    const product = await stripe.products.retrieve('prod_SXpH8diltRufBp');
-    const priceId = typeof product.default_price === 'string' ? product.default_price : product.default_price?.id;
-    const price = priceId ? await stripe.prices.retrieve(priceId) : null;
-
-    //Add new setudents to line_items array
-    if(cart.new_students > 0 && priceId) {
-      line_items.push({"price": priceId, "quantity": cart.new_students});
-      if (price?.unit_amount) {
-        total_price = total_price + (price.unit_amount * cart.new_students);
-      }
-    }
-
-     // 2. Create document in "full_order" table with cart data
-     const order = await ctx.runMutation(
-      internal.mutations.full_order.createFullOrder, 
-      {
-        user_id: user.user_id,
-        total_amount: total_price,
-        updated_date: Date.now(),
-        status: "created",
-        stripe_order_id: "",
-      }
-    )
-
-    if(!order) return "Something went wrong.";
-
-    // Get the created order to retrieve the order_number
-    const orderDetails = await ctx.runQuery(api.queries.full_order.getOrderById, {
-      id: order
-    });
-
-    //3. Creates stripe checkout session
-    const session: CheckoutSession = await stripe.checkout.sessions.create({
-      customer: stripeCustomerId,
-      line_items: line_items,
-      mode: "payment",
-      currency: "JPY",
-      success_url: domain + "/dashboard/members/checkout/success",
-      cancel_url: domain + "/dashboard/members",
-      metadata: {
-        cart_id: cart_id,
-        user: user.user_id,
-        order_number: orderDetails?.order_number ?? ""
-      }
-    });
-
-    if (!session) return "Something went wrong.";
-    
-
-    //4. Updates "full_order" document with stripe_order_id and mark as "pending"
-    await ctx.runMutation(
-      internal.mutations.full_order.updateWithStripeId,
-      {
-        stripe_order_id: session.id,
-        order_id: order
-      }
+    const students = await ctx.runQuery(
+      api.queries.student.getRenewalStudentsWithClassroomAndCourse,
+      { ids: [...new Set(cart.renewal_students ?? [])] },
     );
-
-    if (!session?.url) return null;
-    
+    const stripe = stripeClient();
+    const defaultPrice = await defaultAnnualPrice(stripe);
+    const ids = [
+      ...new Set([
+        defaultPrice.id,
+        ...students.map((s) => {
+          if (!s.course.stripe_price_id || !isAnnual(s.course))
+            throw new Error("Annual renewal unavailable");
+          return s.course.stripe_price_id;
+        }),
+      ]),
+    ];
+    const prices = await Promise.all(
+      ids.map(async (id) =>
+        validateAnnualPrice(await stripe.prices.retrieve(id)),
+      ),
+    );
+    const order = await ctx.runMutation(
+      internal.annualBilling.prepareCheckout,
+      {
+        cart_id: args.cart_id,
+        new_price_id: defaultPrice.id,
+        prices: prices.map((p) => ({ price_id: p.id, amount: p.unit_amount! })),
+      },
+    );
+    if (
+      !order.stripe_order_id &&
+      order.updated_date < Date.now() - 24 * 60 * 60 * 1000
+    )
+      throw new Error(
+        "Pending checkout expired; wait for reconciliation before retrying",
+      );
+    const customer = await ensureCustomer(ctx, stripe, payer);
+    let session: Stripe.Checkout.Session;
+    if (order.stripe_order_id)
+      session = await stripe.checkout.sessions.retrieve(order.stripe_order_id);
+    else {
+      const snapshot = order.purchase_snapshot;
+      if (!snapshot) throw new Error("Purchase snapshot missing");
+      const quantities = new Map<string, number>();
+      for (const item of snapshot)
+        quantities.set(
+          item.stripe_price_id,
+          (quantities.get(item.stripe_price_id) ?? 0) + 1,
+        );
+      const site = process.env.SITE_URL;
+      if (!site) throw new Error("SITE_URL is required");
+      session = await stripe.checkout.sessions.create(
+        {
+          customer,
+          mode: "payment",
+          currency: "jpy",
+          payment_method_types: ["card"],
+          line_items: [...quantities].map(([price, quantity]) => ({
+            price,
+            quantity,
+          })),
+          metadata: {
+            order_id: order._id,
+            cart_id: cart._id,
+            order_number: order.order_number ?? "",
+          },
+          success_url: site + "/dashboard/members/checkout/success",
+          cancel_url: site + "/dashboard/members",
+        },
+        { idempotencyKey: "annual-checkout:" + order._id },
+      );
+      await ctx.runMutation(internal.mutations.full_order.updateWithStripeId, {
+        order_id: order._id,
+        stripe_order_id: session.id,
+      });
+    }
+    if (session.status !== "open" || !session.url)
+      throw new Error("Checkout is no longer open");
     return session.url;
-  }
-})
+  },
+});
 
-/*  
-fulfill internal action does the following:
-1. Confirm webhook return from Stripe
-2. Mark order as "fulfilled" in DB
-3. Create ordered_student documents for each student
-4. Run internal mutations to update student info
-*/
 export const fulfill = internalAction({
   args: { signature: v.string(), payload: v.string() },
-  handler: async (ctx, { signature, payload }) => {
-    const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
-
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{
+    success: boolean;
+    error?: string;
+    invalid_signature?: boolean;
+  }> => {
+    const stripe = stripeClient();
+    let event: Stripe.Event;
     try {
-      const event = await stripe.webhooks.constructEventAsync(
-        payload,
-        signature,
-        webhookSecret
+      const secret = process.env.STRIPE_WEBHOOK_SECRET;
+      if (!secret) throw new Error("Webhook secret missing");
+      event = await stripe.webhooks.constructEventAsync(
+        args.payload,
+        args.signature,
+        secret,
       );
-      //1. Confirm webhook return from Stripe
-      if (event.type === "checkout.session.completed") {
-        const stripeId = (event.data.object as { id: string }).id;
-
-        //2. Atomically claim the order for fulfillment (idempotency guard).
-        // Stripe delivers events at least once and retries on failure, so a
-        // duplicate delivery for an already-fulfilled order must be a no-op.
-        const claim = await ctx.runMutation(
-          internal.mutations.full_order.claimOrderForFulfillment,
-          { stripe_id: stripeId }
-        );
-
-        if (claim.status === "not_found") {
-          // Fail loudly: acknowledging this would silently drop the purchase.
-          // Returning an error makes the failure visible and lets Stripe retry.
-          throw new Error(`No order found for Stripe session ${stripeId}`);
-        }
-
-        if (claim.status === "already_fulfilled") {
-          // Order was already fulfilled by a prior delivery. Acknowledge so
-          // Stripe stops retrying, but do not re-run fulfillment.
-          return { success: true };
-        }
-
-        const order = claim.order_id;
-
-        //3. Create ordered_student documents for each student
-        const cart = await ctx.runQuery(internal.queries.cart.getCartById, 
-          { id: event.data.object.metadata?.cart_id as Id<"cart"> }
-        );
-        const ordered_students = [];
-
-        if (!cart || cart == null) {
-          throw new Error(
-            `Cart not found for order ${order} (session ${stripeId}, cart_id ${event.data.object.metadata?.cart_id ?? "missing"})`
-          );
-        }
-
-        const cart_renewal = cart.renewal_students ?? [];
-        
-        const renewal_students = cart_renewal.length > 0 ? await ctx.runQuery(
-          internal.queries.student.getRenewalStudentsWithClassroomAndCourseInternal,
-          { ids: cart?.renewal_students as Id<"student">[] }
-        ) : [];
-
-        //4. Run internal mutations to update student info
-        if (renewal_students.length > 0) {
-          await Promise.all(renewal_students.map(async student => {
-            if((student.student.id == undefined) || (student.course.price == undefined)) {
-              console.warn(`fulfill: skipping renewal student with missing id/price for order ${order} (session ${stripeId})`);
-              return;
-            }
-            
-            const student_status = student.student.status;
-            const order_type = student_status == "removed" ? "reactivation" : "renewal";
-            const ordered_student = await ctx.runMutation(
-              internal.mutations.student_order.createStudentOrder,
-              { 
-                amount: student.course.price,
-                order_type: order_type,
-                order_id: order as Id<"full_order">,
-                student_id: student.student.id,
-                created_date: Date.now(),
-                updated_on: Date.now()
-              }
-            );
-            // Update expiry dates and status for renewal students
-            if (student_status == "active") {
-              const updated_student = await ctx.runMutation(
-                internal.mutations.student.renewStudent,
-                { student_id: student.student.id }
-              );
-              ordered_students.push(updated_student);
-
-            } else if (student_status == "inactive" || student_status == "removed") {
-              const updated_student = await ctx.runMutation(
-                internal.mutations.student.reactivateStudent,
-                { student_id: student.student.id }
-              );
-              ordered_students.push(updated_student);
-            } else return { success: false, error: "Something went wrong." }
-          
-          }));  
-        }
-        // Activate students for new students and create ordered students
-        if (cart.new_students && cart.new_students > 0 ) {
-
-          for(let i=0; i < cart.new_students; i++) {
-            // Get inactive student
-            const student = await ctx.runQuery(
-              internal.queries.student.getAvailableStudent, {}
-            );
-            // Create ordered_student object
-            if (student.student.id != undefined && student.course.price != undefined) {
-              const new_student_order = await ctx.runMutation(
-                internal.mutations.student_order.createStudentOrder,
-                {
-                  student_id: student.student.id,
-                  order_id: order as Id<"full_order">,
-                  amount: student.course.price ?? 4500,
-                  order_type: "new",
-                  created_date: Date.now(),
-                  updated_on: Date.now()
-                }
-              );
-
-              if (!new_student_order) return { success: false, error: "Something went wrong." };
-              // Activate student 
-              const activated_student = await ctx.runMutation(
-                internal.mutations.student.activateStudent,
-                { 
-                  student_id: student.student.id,
-                  user_id: cart.user_id
-                }
-              );
-
-              ordered_students.push(activated_student);
-            } else {
-              console.warn(`fulfill: no available inactive student for new-student slot ${i + 1}/${cart.new_students} on order ${order} (session ${stripeId})`);
-            }
-          }
-        }
-
-        // Send payment confirmation email
-        if (order) {
-          const orderDetails = await ctx.runQuery(
-            internal.queries.full_order.getOrderByIdInternal,
-            { id: order as Id<"full_order"> }
-          );
-
-          if (orderDetails) {
-            // Send email asynchronously - don't fail the webhook if email fails
-            try {
-              // Type assertion needed until Convex regenerates API types
-              const emailAction = (internal as {
-                email: {
-                  sendPaymentConfirmationEmail: FunctionReference<
-                    "action",
-                    "internal",
-                    {
-                      userId: Id<"userTable">;
-                      orderNumber: string;
-                      totalAmount: number;
-                    }
-                  >;
-                };
-              }).email.sendPaymentConfirmationEmail;
-              if (!orderDetails.order_number) {
-                throw new Error(`Order ${orderDetails._id} is missing its RAZ order number`);
-              }
-              await ctx.runAction(emailAction, {
-                userId: orderDetails.user_id,
-                orderNumber: orderDetails.order_number,
-                totalAmount: orderDetails.total_amount,
-              });
-            } catch (emailError) {
-              // Log error but don't fail the webhook
-              console.error("Failed to send payment confirmation email:", emailError);
-            }
-          }
-        }
-        
-      }
-    } catch (err) {
-      console.error(err);
-      return { success: false, error: (err as { message: string }).message}
+    } catch {
+      return {
+        success: false,
+        error: "Invalid webhook signature",
+        invalid_signature: true,
+      };
     }
-    return { success: true };
+    try {
+      if (
+        event.type === "checkout.session.completed" ||
+        event.type === "checkout.session.expired"
+      ) {
+        const session = await stripe.checkout.sessions.retrieve(
+          event.data.object.id,
+        );
+        if (session.mode === "payment") {
+          if (!session.metadata?.order_id && !session.metadata?.cart_id)
+            return { success: true };
+          if (session.status === "expired" && session.metadata?.order_id) {
+            await ctx.runMutation(internal.annualBilling.expireOrder, {
+              order_id: session.metadata.order_id as Id<"full_order">,
+              session_id: session.id,
+            });
+          } else if (
+            session.status === "complete" &&
+            session.payment_status === "paid"
+          ) {
+            const customer =
+              typeof session.customer === "string"
+                ? session.customer
+                : session.customer?.id;
+            if (
+              !customer ||
+              session.amount_total === null ||
+              session.currency !== "jpy"
+            )
+              throw new Error("Invalid annual payment");
+            const order = await ctx.runMutation(
+              internal.annualBilling.fulfillOrder,
+              {
+                session_id: session.id,
+                order_id: session.metadata?.order_id as
+                  | Id<"full_order">
+                  | undefined,
+                cart_id: session.metadata?.cart_id as Id<"cart"> | undefined,
+                customer_id: customer,
+                amount: session.amount_total,
+              },
+            );
+            if (order) {
+              const details = await ctx.runQuery(
+                internal.queries.full_order.getOrderByIdInternal,
+                { id: order },
+              );
+              if (details?.order_number)
+                await ctx.scheduler.runAfter(
+                  0,
+                  internal.email.sendPaymentConfirmationEmail,
+                  {
+                    userId: details.user_id,
+                    orderNumber: details.order_number,
+                    totalAmount: details.total_amount,
+                  },
+                );
+            }
+          }
+        } else
+          await ctx.runAction(internal.subscriptions.handleEvent, {
+            event_json: JSON.stringify(event),
+          });
+      } else
+        await ctx.runAction(internal.subscriptions.handleEvent, {
+          event_json: JSON.stringify(event),
+        });
+      return { success: true };
+    } catch {
+      // Retryable response; never log the payload, customer data, or Stripe secrets.
+      return {
+        success: false,
+        error: "Stripe event processing failed; retry required",
+      };
+    }
+  },
+});
+
+async function requireGlobalAdmin(ctx: ActionCtx) {
+  const caller = await ctx.runQuery(internal.billingStore.payer, {});
+  if (caller.role !== "admin" && caller.role !== "god")
+    throw new Error("Global admin access required");
+}
+
+async function provisionCourse(
+  ctx: ActionCtx,
+  courseId: Id<"course">,
+): Promise<void> {
+  const course = await ctx.runQuery(api.queries.course.getCourseById, {
+    id: courseId,
+  });
+  if (!course) throw new Error("Course missing");
+  const revision = course.provisioning_revision ?? 1;
+  const stripe = stripeClient();
+  try {
+    let product: Stripe.Product | undefined = course.stripe_product_id
+      ? await stripe.products.retrieve(course.stripe_product_id)
+      : undefined;
+    if (!product) {
+      // Recover catalog objects even after Stripe's idempotency-key retention window.
+      for await (const candidate of stripe.products.list({ limit: 100 })) {
+        if (candidate.metadata.course_id === course._id) {
+          product = candidate;
+          break;
+        }
+      }
+    }
+    product ??= await stripe.products.create(
+      { name: course.course_name, metadata: { course_id: course._id } },
+      { idempotencyKey: "course-product:" + course._id },
+    );
+    await ctx.runMutation(internal.mutations.course.saveProduct, {
+      course_id: course._id,
+      product_id: product.id,
+    });
+    const price = course.pending_price ?? course.price;
+    let stripePrice: Stripe.Price | undefined;
+    for await (const candidate of stripe.prices.list({
+      product: product.id,
+      limit: 100,
+    })) {
+      if (
+        candidate.metadata.course_id === course._id &&
+        candidate.metadata.revision === String(revision)
+      ) {
+        if (
+          !candidate.active ||
+          candidate.unit_amount !== price ||
+          candidate.currency !== "jpy" ||
+          (isAnnual(course)
+            ? !!candidate.recurring
+            : candidate.recurring?.interval !== "month" ||
+              candidate.recurring.interval_count !== 1)
+        )
+          throw new Error("Provisioned Stripe price mismatch");
+        stripePrice = candidate;
+        break;
+      }
+    }
+    stripePrice ??= await stripe.prices.create(
+      {
+        product: product.id,
+        currency: "jpy",
+        unit_amount: price,
+        ...(isAnnual(course)
+          ? {}
+          : { recurring: { interval: "month" as const, interval_count: 1 } }),
+        metadata: { course_id: course._id, revision: String(revision) },
+      },
+      { idempotencyKey: "course-price:" + course._id + ":" + revision },
+    );
+    await stripe.products.update(
+      product.id,
+      { default_price: stripePrice.id },
+      { idempotencyKey: "course-default-price:" + course._id + ":" + revision },
+    );
+    await ctx.runMutation(internal.mutations.course.updateCourseWithStripe, {
+      course_id: course._id,
+      stripe_product_id: product.id,
+      stripe_price_id: stripePrice.id,
+      revision,
+      price,
+    });
+  } catch (error) {
+    await ctx.runMutation(internal.mutations.course.provisioningFailed, {
+      course_id: course._id,
+      revision,
+    });
+    throw error;
   }
-})
+}
 
 export const createProduct = action({
   args: {
     course_name: v.string(),
-    price: v.number()
+    price: v.number(),
+    billing_model: v.optional(billingModel),
+    parent_course_id: v.optional(v.id("course")),
   },
-  handler: async (ctx, {course_name, price}) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) {
-      throw new Error("Not authenticated");
+  handler: async (
+    ctx,
+    args,
+  ): Promise<
+    | { success: true; course_id: Id<"course"> }
+    | { success: false; error: string }
+  > => {
+    await requireGlobalAdmin(ctx);
+    validatePrice(args.price);
+    const name = args.course_name.trim();
+    if (!name) throw new Error("Course name required");
+    try {
+      const id = await ctx.runMutation(internal.mutations.course.createCourse, {
+        ...args,
+        course_name: name,
+      });
+      await provisionCourse(ctx, id);
+      return { success: true, course_id: id };
+    } catch {
+      return {
+        success: false,
+        error:
+          "Course creation failed; retry the same request or inspect billing issues",
+      };
     }
+  },
+});
 
-    const caller = await ctx.runQuery(api.queries.users.getUserRoleByAuthId, {
-      userId: identity.subject,
+export const updateCoursePricing = action({
+  args: { course_id: v.id("course"), price: v.number() },
+  handler: async (
+    ctx,
+    args,
+  ): Promise<{ success: true; course_id: Id<"course"> }> => {
+    await requireGlobalAdmin(ctx);
+    validatePrice(args.price);
+    const course = await ctx.runQuery(api.queries.course.getCourseById, {
+      id: args.course_id,
     });
-    if (caller.role !== "admin" && caller.role !== "god") {
-      throw new Error("Unauthorized: Global admin access required");
+    if (course && !course.stripe_product_id && course.stripe_price_id) {
+      const price = await stripeClient().prices.retrieve(
+        course.stripe_price_id,
+      );
+      const productId =
+        typeof price.product === "string" ? price.product : price.product.id;
+      await ctx.runMutation(internal.mutations.course.saveProduct, {
+        course_id: course._id,
+        product_id: productId,
+      });
     }
+    await ctx.runMutation(internal.mutations.course.beginPriceUpdate, args);
+    await provisionCourse(ctx, args.course_id);
+    return { success: true, course_id: args.course_id };
+  },
+});
 
-    const course = await ctx.runMutation(internal.mutations.course.createCourse,
-      { 
-        course_name: course_name,
-        price: price
-      }
-    ) as { course_id?: Id<"course">; error?: string };
-    if(!course) return "Someting went wrong.";
-    
-    const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
-
-    const stripeProduct: Stripe.Product = await stripe.products.create({
-      name: course_name,
-      metadata: {
-        course_id: course as Id<"course">
-      }
-    });
-    if(!stripeProduct) return "No product created.";
-
-    const stripePrice = await stripe.prices.create({
-      currency: 'jpy',
-      unit_amount: price,
-      product: stripeProduct.id,
-    });
-    if(!stripePrice) return "No price created.";
-
-    await ctx.runMutation(internal.mutations.course.updateCourseWithStripe, {
-      course_id: course as Id<"course">,
-      stripe_product_id: stripeProduct.id,
-      stripe_price_id: stripePrice.id
-    });
-    
-    
+export const retryCourseProvisioning = action({
+  args: { course_id: v.id("course") },
+  handler: async (ctx, args): Promise<{ success: true }> => {
+    await requireGlobalAdmin(ctx);
+    await provisionCourse(ctx, args.course_id);
     return { success: true };
+  },
+});
 
-  }
-})
+export const updateCourseDetails = action({
+  args: { course_id: v.id("course"), course_name: v.string() },
+  handler: async (ctx, args): Promise<{ success: true }> => {
+    await requireGlobalAdmin(ctx);
+    const course = await ctx.runMutation(api.mutations.course.editCourse, {
+      id: args.course_id,
+      course_name: args.course_name,
+    });
+    if (typeof course === "string" || !course)
+      throw new Error("Course unavailable");
+    if (course.stripe_product_id)
+      await stripeClient().products.update(course.stripe_product_id, {
+        name: course.course_name,
+      });
+    return { success: true };
+  },
+});
 
 /*
 updateMemberInfo action does the following:
@@ -444,7 +496,9 @@ export const updateMemberInfo = action({
     }
 
     // Get current user information
-    const user = await ctx.runQuery(api.queries.users.getUserById, { id: userId });
+    const user = await ctx.runQuery(api.queries.users.getUserById, {
+      id: userId,
+    });
     if (!user) {
       throw new Error("User not found");
     }
@@ -464,8 +518,8 @@ export const updateMemberInfo = action({
 
     // If user has a stripe_id, update Stripe customer
     if (user.stripe_id) {
-      const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
-      
+      const stripe = stripeClient();
+
       const updateData: {
         name?: string;
         email?: string;
@@ -517,12 +571,18 @@ export const adminUpdateUserInfo = action({
     const caller = await ctx.runQuery(api.queries.users.getUserRoleByAuthId, {
       userId: identity.subject,
     });
-    if (!ALLOWED_ADMIN_ROLES.includes(caller.role as (typeof ALLOWED_ADMIN_ROLES)[number])) {
+    if (
+      !ALLOWED_ADMIN_ROLES.includes(
+        caller.role as (typeof ALLOWED_ADMIN_ROLES)[number],
+      )
+    ) {
       throw new Error("Unauthorized: Admin access required");
     }
 
     // Get target user information
-    const user = await ctx.runQuery(api.queries.users.getUserById, { id: userId });
+    const user = await ctx.runQuery(api.queries.users.getUserById, {
+      id: userId,
+    });
     if (!user) {
       throw new Error("User not found");
     }
@@ -537,8 +597,13 @@ export const adminUpdateUserInfo = action({
     });
 
     // If user has a stripe_id, update Stripe customer (name/email only)
-    if (user.stripe_id && (first_name !== undefined || last_name !== undefined || email !== undefined)) {
-      const stripe = new Stripe(process.env.STRIPE_SANDBOX_SECRET_KEY!);
+    if (
+      user.stripe_id &&
+      (first_name !== undefined ||
+        last_name !== undefined ||
+        email !== undefined)
+    ) {
+      const stripe = stripeClient();
 
       const updateData: {
         name?: string;

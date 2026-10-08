@@ -26,7 +26,7 @@ export default async function MemberLayout({
     <NextIntlClientProvider>
       <ConvexClientProvider>
         <div className="raz-brand min-h-screen bg-gradient-to-b from-[#fff8fc] to-white">
-          <PublicNavBar branded />
+          <PublicNavBar branded showAudienceBanner={false} />
           <div className="container mx-auto min-w-0 px-4 pt-6 pb-8 sm:px-6">
             {children}
           </div>

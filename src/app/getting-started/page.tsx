@@ -17,9 +17,9 @@ import { Card, CardContent } from "~/components/ui/card";
 import { isMemberSignupEnabled } from "~/lib/member-signup";
 
 export const metadata = {
-  title: "Getting Started | Raz-Japan",
+  title: "Getting Started | Raz-Plus Japan",
   description:
-    "Learn how to create an account, add students, and start reading with Raz-Japan",
+    "Learn how to create an account, add students, and start reading with Raz-Plus Japan",
 };
 
 export default async function GettingStartedPage() {

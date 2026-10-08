@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
+import { loadBilling } from './billing-test-helpers.mjs';
 
 function load(path, imports) {
   const exports = {};
@@ -29,6 +30,7 @@ const queries = load('../convex/queries/users.ts', {
   'convex/values': values, '../lib/auth': auth, '../_generated/server': { internalQuery: register },
 });
 const mutations = load('../convex/mutations/users.ts', {
+  '../lib/billing': loadBilling().load('lib/billing'),
   'convex/values': values, '../lib/auth': auth, '../_generated/server': { internalMutation: register },
 });
 const god = { _id: 'god-id', auth_id: 'god-auth', role: 'god', org_id: 'org-a', email: 'private@example.com' };
@@ -95,6 +97,8 @@ const stripe = load('../convex/stripe.ts', {
   './_generated/server': { action: register, internalAction: register },
   './_generated/api': { api: { queries: { users: { getUserById: 'target', getUserRoleByAuthId: 'caller' } } }, internal: {} },
   stripe: { default: class { constructor() { assert.fail('Unauthorized Stripe call'); } } },
+  './lib/stripeBilling': { stripeClient: () => assert.fail('Unauthorized Stripe call') },
+  './lib/billing': loadBilling().load('lib/billing'),
 });
 test('admin profile edits reject god targets before any database or Stripe write', async () => {
   const ctx = context('admin');
@@ -106,6 +110,7 @@ test('admin profile edits reject god targets before any database or Stripe write
 });
 
 const relatedImports = {
+  '../lib/billing': loadBilling().load('lib/billing'),
   'convex/values': values, '../lib/auth': auth, '../_generated/server': { internalQuery: register },
 };
 const orderQueries = load('../convex/queries/full_order.ts', relatedImports);

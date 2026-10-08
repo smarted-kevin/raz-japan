@@ -1,4 +1,8 @@
 "use client";
+import {
+  PaymentPeriod,
+  type PaymentSnapshot,
+} from "~/components/billing/paymentPeriod";
 
 import { useTranslations } from "next-intl";
 import {
@@ -9,19 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "~/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { dateDisplayFormat, formatYen, capitalize } from "~/lib/formatters";
 import type { Id } from "@/convex/_generated/dataModel";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
-type StudentOrderData = {
+type StudentOrderData = PaymentSnapshot & {
   id: Id<"student_order">;
   amount: number;
   order_id: Id<"full_order">;
@@ -50,7 +49,9 @@ export function UserOrdersSection({
 }) {
   const t = useTranslations("dashboard.admin.users");
   const tc = useTranslations("dashboard.admin.common");
-  const displayedOrders = orders.slice(0, ORDERS_LIMIT);
+  const displayedOrders = [...orders]
+    .sort((a, b) => b.created_date - a.created_date)
+    .slice(0, ORDERS_LIMIT);
   const hasMore = orders.length > ORDERS_LIMIT;
 
   return (
@@ -63,14 +64,14 @@ export function UserOrdersSection({
           <Button variant="outline" size="sm" asChild>
             <Link href={`/dashboard/admin/users/${userId}/orders`}>
               {tc("see_all")}
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <ChevronRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
         )}
       </CardHeader>
       <CardContent>
         {orders.length === 0 ? (
-          <p className="text-muted-foreground text-sm py-4">
+          <p className="text-muted-foreground py-4 text-sm">
             {t("no_orders_for_user")}
           </p>
         ) : (
@@ -88,7 +89,7 @@ export function UserOrdersSection({
               <TableBody>
                 {displayedOrders.map((order) => {
                   const displayTotal = order.student_orders.some(
-                    (so) => so.activation_id
+                    (so) => so.activation_id,
                   )
                     ? 0
                     : order.total_amount;
@@ -100,16 +101,21 @@ export function UserOrdersSection({
                       <TableCell>
                         <Link
                           href={`/dashboard/admin/orders/${order.order_id}`}
-                          className="text-primary hover:underline font-medium"
+                          className="text-primary font-medium hover:underline"
                         >
                           {order.order_number ?? tc("na")}
                         </Link>
+                        {order.student_orders
+                          .filter(
+                            (so) => so.billing_model === "monthly_subscription",
+                          )
+                          .map((so) => (
+                            <PaymentPeriod key={so.id} payment={so} />
+                          ))}
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs">
-                          {order.status
-                            ? capitalize(order.status)
-                            : tc("na")}
+                        <span className="bg-muted inline-flex items-center rounded-full px-2 py-0.5 text-xs">
+                          {order.status ? capitalize(order.status) : tc("na")}
                         </span>
                       </TableCell>
                       <TableCell className="text-right">

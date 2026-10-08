@@ -6,9 +6,9 @@ import { publicSiteContainerClassName } from "~/lib/public-layout";
 import { cn } from "~/lib/utils";
 
 export const metadata = {
-  title: "Specified Commercial Transaction Act | Raz-Japan",
+  title: "Specified Commercial Transaction Act | Raz-Plus Japan",
   description:
-    "Specified Commercial Transaction Act disclosure for Raz-Japan online purchases",
+    "Specified Commercial Transaction Act disclosure for Raz-Plus Japan online purchases",
 };
 
 export default async function SCTAPage() {

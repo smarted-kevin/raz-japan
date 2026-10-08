@@ -52,7 +52,9 @@ export default function AddClassroomDialog({
   const form = useForm<NewClassroomForm>({
     defaultValues: {
       classroom_name: "",
-      course_name: courses[0]?.course_name,
+      course_name: courses.find(
+        (c) => c.billing_model !== "monthly_subscription",
+      )?.course_name,
       organization_name: orgs[0]?.organization_name,
       student_count: 36,
     },
@@ -75,7 +77,9 @@ export default function AddClassroomDialog({
         <Button>{t("add_classroom")}</Button>
       </DialogTrigger>
       <DialogContent>
-        <DialogTitle className="font-bold">{t("add_new_classroom")}</DialogTitle>
+        <DialogTitle className="font-bold">
+          {t("add_new_classroom")}
+        </DialogTitle>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-y-4">
@@ -85,7 +89,7 @@ export default function AddClassroomDialog({
                 name="classroom_name"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{t("classroom_name")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
@@ -100,7 +104,7 @@ export default function AddClassroomDialog({
                 name="course_name"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{tc("course")}</FormLabel>
                       <FormControl>
                         <Select
@@ -111,11 +115,16 @@ export default function AddClassroomDialog({
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {courses.map((c) => (
-                              <SelectItem key={c._id} value={c.course_name}>
-                                {c.course_name}
-                              </SelectItem>
-                            ))}
+                            {courses
+                              .filter(
+                                (c) =>
+                                  c.billing_model !== "monthly_subscription",
+                              )
+                              .map((c) => (
+                                <SelectItem key={c._id} value={c.course_name}>
+                                  {c.course_name}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -129,7 +138,7 @@ export default function AddClassroomDialog({
                 name="organization_name"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{tc("organization")}</FormLabel>
                       <FormControl>
                         <Select
@@ -161,7 +170,7 @@ export default function AddClassroomDialog({
                 name="student_count"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{t("num_students")}</FormLabel>
                       <FormControl>
                         <Input
