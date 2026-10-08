@@ -53,7 +53,7 @@ export function MemberStudentRow({
         )}
       </TableCell>
       {showMonthlySubscription && (
-        <TableCell className="min-w-52 align-top">
+        <TableCell className="min-w-52">
           <MonthlySubscriptionCell studentId={student.id} data={billing} />
         </TableCell>
       )}

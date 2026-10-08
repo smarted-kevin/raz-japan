@@ -229,6 +229,8 @@ export default defineSchema({
   }).index("by_counter_name", ["counter_name"]),
 
   monthly_checkout: defineTable({
+    batch_id: v.optional(v.id("monthly_checkout_batch")),
+    stripe_subscription_id: v.optional(v.string()),
     user_id: v.id("userTable"),
     course_id: v.id("course"),
     student_id: v.id("student"),
@@ -249,8 +251,47 @@ export default defineSchema({
     .index("by_user_course", ["user_id", "course_id"])
     .index("by_course", ["course_id"])
     .index("by_student", ["student_id"])
+    .index("by_batch", ["batch_id"])
     .index("by_session", ["stripe_session_id"])
     .index("by_status_expiry", ["status", "expires_at"]),
+
+  monthly_checkout_batch: defineTable({
+    user_id: v.id("userTable"),
+    selection_key: v.string(),
+    selections: v.array(
+      v.object({
+        student_id: v.id("student"),
+        course_id: v.id("course"),
+        course_name: v.string(),
+        stripe_price_id: v.string(),
+        price: v.number(),
+        annual_expires_at: v.number(),
+      }),
+    ),
+    total: v.number(),
+    created_at: v.number(),
+    expires_at: v.number(),
+    status: v.union(
+      v.literal("reserved"),
+      v.literal("open"),
+      v.literal("paid"),
+      v.literal("completed"),
+      v.literal("expired"),
+    ),
+    stripe_session_id: v.optional(v.string()),
+    stripe_customer_id: v.optional(v.string()),
+    stripe_payment_intent_id: v.optional(v.string()),
+    stripe_payment_method_id: v.optional(v.string()),
+    paid_at: v.optional(v.number()),
+    paid_through: v.optional(v.number()),
+    order_id: v.optional(v.id("full_order")),
+    error: v.optional(v.string()),
+    next_reconcile_at: v.number(),
+  })
+    .index("by_user", ["user_id"])
+    .index("by_session", ["stripe_session_id"])
+    .index("by_payment", ["stripe_payment_intent_id"])
+    .index("by_reconcile", ["next_reconcile_at"]),
 
   subscription: defineTable({
     organization_id: v.optional(v.id("organization")),

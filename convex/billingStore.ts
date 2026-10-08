@@ -15,6 +15,7 @@ import {
   DAY_MS,
   GRACE_MS,
   isAnnual,
+  validatePrice,
 } from "./lib/billing";
 import { generateOrderNumber } from "./mutations/full_order";
 import type { Doc, Id } from "./_generated/dataModel";
@@ -36,6 +37,308 @@ async function hasSubscriptionAccess(
 }
 
 export const payer = internalQuery({ args: {}, handler: getAuthenticatedUser });
+
+export const reserveBatch = internalMutation({
+  args: {
+    selections: v.array(
+      v.object({ student_id: v.id("student"), course_id: v.id("course") }),
+    ),
+  },
+  handler: async (ctx, { selections }) => {
+    const user = await getAuthenticatedUser(ctx);
+    if (process.env.MONTHLY_SUBSCRIPTIONS_ENABLED !== "true")
+      throw new Error("Monthly checkout is disabled");
+    if (
+      !selections.length ||
+      selections.length > 100 ||
+      new Set(selections.map((s) => s.student_id)).size !== selections.length
+    )
+      throw new Error("Invalid student selection");
+    const sorted = selections
+      .map(({ student_id, course_id }) => ({ student_id, course_id }))
+      .sort((a, b) => a.student_id.localeCompare(b.student_id));
+    const key = JSON.stringify(sorted);
+    const batches = await ctx.db
+      .query("monthly_checkout_batch")
+      .withIndex("by_user", (q) => q.eq("user_id", user._id))
+      .collect();
+    const existing = batches.find(
+      (b) => b.selection_key === key && ["reserved", "open"].includes(b.status),
+    );
+    const snapshot = [];
+    let expiry = Date.now() + DAY_MS;
+    for (const selection of sorted) {
+      const student = await ctx.db.get(selection.student_id);
+      const course = await ctx.db.get(selection.course_id);
+      const base = student ? await studentCourse(ctx, student) : null;
+      if (
+        !student ||
+        student.user_id !== user._id ||
+        user.status === "inactive" ||
+        student.status !== "active" ||
+        !student.expiry_date ||
+        student.expiry_date <= Date.now() + 31 * 60 * 1000 ||
+        !base ||
+        !isAnnual(base)
+      )
+        throw new Error("An active owned annual enrollment is required");
+      if (
+        !course ||
+        isAnnual(course) ||
+        course.parent_course_id !== base._id ||
+        course.status !== "active" ||
+        course.provisioning_state !== "ready" ||
+        !course.stripe_price_id
+      )
+        throw new Error("Monthly course unavailable");
+      validatePrice(course.price);
+      const subscriptions = await ctx.db
+        .query("subscription")
+        .withIndex("by_student", (q) => q.eq("student_id", student._id))
+        .collect();
+      const attempts = await ctx.db
+        .query("monthly_checkout")
+        .withIndex("by_student", (q) => q.eq("student_id", student._id))
+        .collect();
+      if (
+        subscriptions.some((s) => blocksAddon(s)) ||
+        attempts.some(
+          (a) =>
+            ["reserved", "open"].includes(a.status) &&
+            (!existing || a.batch_id !== existing._id),
+        )
+      )
+        throw new Error("Student already subscribed or has a pending checkout");
+      snapshot.push({
+        ...selection,
+        course_name: course.course_name,
+        stripe_price_id: course.stripe_price_id,
+        price: course.price,
+        annual_expires_at: student.expiry_date,
+      });
+      expiry = Math.min(expiry, student.expiry_date);
+    }
+    if (existing) return existing;
+    const total = snapshot.reduce((sum, s) => sum + s.price, 0);
+    validatePrice(total);
+    const id = await ctx.db.insert("monthly_checkout_batch", {
+      user_id: user._id,
+      selection_key: key,
+      selections: snapshot,
+      total,
+      status: "reserved",
+      created_at: Date.now(),
+      expires_at: expiry,
+      next_reconcile_at: Date.now() + 60 * 60 * 1000,
+    });
+    for (const s of snapshot)
+      await ctx.db.insert("monthly_checkout", {
+        batch_id: id,
+        user_id: user._id,
+        student_id: s.student_id,
+        course_id: s.course_id,
+        stripe_price_id: s.stripe_price_id,
+        price: s.price,
+        status: "reserved",
+        created_at: Date.now(),
+        expires_at: expiry,
+      });
+    return (await ctx.db.get(id))!;
+  },
+});
+
+export const batch = internalQuery({
+  args: { id: v.id("monthly_checkout_batch") },
+  handler: async (ctx, { id }) => ({
+    batch: await ctx.db.get(id),
+    attempts: await ctx.db
+      .query("monthly_checkout")
+      .withIndex("by_batch", (q) => q.eq("batch_id", id))
+      .collect(),
+  }),
+});
+
+export const saveBatchSession = internalMutation({
+  args: {
+    id: v.id("monthly_checkout_batch"),
+    session_id: v.string(),
+    customer_id: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const b = await ctx.db.get(args.id);
+    if (
+      !b ||
+      b.status === "expired" ||
+      (b.stripe_session_id && b.stripe_session_id !== args.session_id)
+    )
+      throw new Error("Batch session mismatch");
+    await ctx.db.patch(b._id, {
+      stripe_session_id: args.session_id,
+      stripe_customer_id: args.customer_id,
+      status: b.status === "reserved" ? "open" : b.status,
+    });
+  },
+});
+
+export const recordBatchPayment = internalMutation({
+  args: {
+    id: v.id("monthly_checkout_batch"),
+    session_id: v.string(),
+    customer_id: v.string(),
+    payment_intent_id: v.string(),
+    payment_method_id: v.string(),
+    amount: v.number(),
+    paid_at: v.number(),
+    paid_through: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const b = await ctx.db.get(args.id);
+    const payer = b ? await ctx.db.get(b.user_id) : null;
+    if (
+      !b ||
+      b.status === "expired" ||
+      b.stripe_session_id !== args.session_id ||
+      payer?.stripe_id !== args.customer_id ||
+      b.total !== args.amount ||
+      args.paid_through <= args.paid_at
+    )
+      throw new Error("Batch payment mismatch");
+    if (
+      b.stripe_payment_intent_id &&
+      b.stripe_payment_intent_id !== args.payment_intent_id
+    )
+      throw new Error("Batch payment changed");
+    if (b.order_id) return;
+    const orderId = await ctx.db.insert("full_order", {
+      user_id: b.user_id,
+      total_amount: b.total,
+      stripe_order_id: args.session_id,
+      currency: "jpy",
+      period_start: args.paid_at,
+      period_end: args.paid_through,
+      status: "fulfilled",
+      updated_date: Date.now(),
+      order_number: await generateOrderNumber(ctx),
+    });
+    for (const s of b.selections)
+      await ctx.db.insert("student_order", {
+        student_id: s.student_id,
+        course_id: s.course_id,
+        course_name: s.course_name,
+        amount: s.price,
+        order_id: orderId,
+        order_type: "new",
+        billing_model: "monthly_subscription",
+        period_start: args.paid_at,
+        period_end: args.paid_through,
+        created_date: Date.now(),
+        updated_on: Date.now(),
+      });
+    await ctx.db.patch(b._id, {
+      status: "paid",
+      order_id: orderId,
+      stripe_payment_intent_id: args.payment_intent_id,
+      stripe_payment_method_id: args.payment_method_id,
+      paid_at: args.paid_at,
+      paid_through: args.paid_through,
+      next_reconcile_at: Date.now(),
+    });
+  },
+});
+
+export const updateBatchRecovery = internalMutation({
+  args: {
+    id: v.id("monthly_checkout_batch"),
+    expired: v.optional(v.boolean()),
+    error: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const b = await ctx.db.get(args.id);
+    if (!b) throw new Error("Batch missing");
+    const attempts = await ctx.db
+      .query("monthly_checkout")
+      .withIndex("by_batch", (q) => q.eq("batch_id", b._id))
+      .collect();
+    if (args.expired && !b.paid_at) {
+      for (const a of attempts)
+        await ctx.db.patch(a._id, { status: "expired" });
+      await ctx.db.patch(b._id, {
+        status: "expired",
+        next_reconcile_at: Number.MAX_SAFE_INTEGER,
+        error: undefined,
+      });
+      return;
+    }
+    const complete = attempts.every((a) => a.status === "completed");
+    await ctx.db.patch(b._id, {
+      status: complete ? "completed" : b.status,
+      error: complete ? undefined : args.error,
+      next_reconcile_at: complete
+        ? Number.MAX_SAFE_INTEGER
+        : Date.now() + 60 * 60 * 1000,
+    });
+  },
+});
+
+export const pendingBatches = internalQuery({
+  args: { member: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    if (args.member) {
+      const user = await getAuthenticatedUser(ctx);
+      return (
+        await ctx.db
+          .query("monthly_checkout_batch")
+          .withIndex("by_user", (q) => q.eq("user_id", user._id))
+          .collect()
+      ).filter((b) => ["reserved", "open"].includes(b.status));
+    }
+    return ctx.db
+      .query("monthly_checkout_batch")
+      .withIndex("by_reconcile", (q) => q.lte("next_reconcile_at", Date.now()))
+      .take(25);
+  },
+});
+
+export const batchStatus = authedQuery({
+  args: { id: v.id("monthly_checkout_batch") },
+  handler: async (ctx, { id }) => {
+    const b = await ctx.db.get(id);
+    if (!b || b.user_id !== ctx.user._id)
+      throw new Error("Checkout access denied");
+    const subscriptions = await ctx.db
+      .query("subscription")
+      .withIndex("by_user", (q) => q.eq("user_id", ctx.user._id))
+      .collect();
+    const attempts = await ctx.db
+      .query("monthly_checkout")
+      .withIndex("by_batch", (q) => q.eq("batch_id", id))
+      .collect();
+    return {
+      status: b.status,
+      paid: !!b.paid_at,
+      error: !!b.error,
+      selections: b.selections.map((s) => ({
+        student_id: s.student_id,
+        course_id: s.course_id,
+      })),
+      students: await Promise.all(
+        attempts.map(async (a) => {
+          const row = subscriptions.find(
+            (s) => s.checkout_attempt_id === a._id,
+          );
+          return {
+            student_id: a.student_id,
+            student_name: (await ctx.db.get(a.student_id))?.username ?? "",
+            course_name:
+              b.selections.find((s) => s.student_id === a.student_id)
+                ?.course_name ?? "",
+            subscription: row ? await subscriptionView(ctx, row) : null,
+          };
+        }),
+      ),
+    };
+  },
+});
 
 export const memberPendingAttempts = internalQuery({
   args: {},
@@ -88,6 +391,7 @@ export const reserve = internalMutation({
       (a) => a.status === "reserved" || a.status === "open",
     );
     if (pending) {
+      if (pending.batch_id) throw new Error("Student has a batch checkout");
       if (pending.user_id !== user._id || pending.course_id !== course_id)
         throw new Error("Student already has a pending add-on checkout");
       return pending;
@@ -273,18 +577,24 @@ export const memberBilling = authedQuery({
       .withIndex("by_user_id", (q) => q.eq("user_id", ctx.user._id))
       .collect();
     const enrollments = await Promise.all(
-      students.map(async (student) => ({
-        ...student,
-        base_course_id: (await studentCourse(ctx, student))?._id,
-        enrollment_active:
-          student.status === "active" &&
-          (student.expiry_date ?? 0) > Date.now() &&
-          ctx.user.status !== "inactive",
-        eligible:
-          student.status === "active" &&
-          (student.expiry_date ?? 0) > Date.now() + 31 * 60 * 1000 &&
-          ctx.user.status !== "inactive",
-      })),
+      students.map(async (student) => {
+        const base = await studentCourse(ctx, student);
+        const annual = !!base && isAnnual(base);
+        return {
+          ...student,
+          base_course_id: base?._id,
+          enrollment_active:
+            annual &&
+            student.status === "active" &&
+            (student.expiry_date ?? 0) > Date.now() &&
+            ctx.user.status !== "inactive",
+          eligible:
+            annual &&
+            student.status === "active" &&
+            (student.expiry_date ?? 0) > Date.now() + 31 * 60 * 1000 &&
+            ctx.user.status !== "inactive",
+        };
+      }),
     );
     const courses = (await ctx.db.query("course").collect()).filter(
       (c) =>
@@ -309,9 +619,30 @@ export const memberBilling = authedQuery({
           a.user_id === ctx.user._id &&
           (a.status === "reserved" || a.status === "open"),
       );
+    const selectableStudents = enrollments.map((student) => {
+      const compatible = courses.filter(
+        (c) => c.parent_course_id === student.base_course_id,
+      );
+      const reason = !student.eligible
+        ? student.enrollment_active
+          ? "near_expiry"
+          : "annual_required"
+        : rows.some((s) => s.student_id === student._id && blocksAddon(s))
+          ? "already_subscribed"
+          : attempts.some((a) => a.student_id === student._id)
+            ? "pending_checkout"
+            : compatible.length === 0
+              ? "no_addons"
+              : null;
+      return {
+        ...student,
+        eligibility_reason: reason,
+        compatible_course_ids: compatible.map((c) => c._id),
+      };
+    });
     return {
       enabled: process.env.MONTHLY_SUBSCRIPTIONS_ENABLED === "true",
-      students: enrollments,
+      students: selectableStudents,
       courses,
       subscriptions: await Promise.all(
         rows.map(async (row) => ({
@@ -572,7 +903,9 @@ export const applySubscription = internalMutation({
         student_id: attempt.student_id,
         course_id: attempt.course_id,
         price: attempt.price,
-        paid_through: 0,
+        paid_through: attempt.batch_id
+          ? ((await ctx.db.get(attempt.batch_id))?.paid_through ?? 0)
+          : 0,
         payment_failed: false,
         access_deadline: 0,
         next_reconcile_at: Date.now() + DAY_MS,
@@ -584,6 +917,22 @@ export const applySubscription = internalMutation({
     }
     if (row.checkout_attempt_id !== attempt._id)
       throw new Error("Subscription attempt mismatch");
+    if (attempt.batch_id) {
+      const batch = await ctx.db.get(attempt.batch_id);
+      if (!batch?.paid_through || !batch.order_id)
+        throw new Error("Batch payment missing");
+      const lines = await ctx.db
+        .query("student_order")
+        .withIndex("by_order_id", (q) => q.eq("order_id", batch.order_id!))
+        .collect();
+      const line = lines.find((l) => l.student_id === attempt.student_id);
+      if (!line || (line.subscription_id && line.subscription_id !== row._id))
+        throw new Error("Batch order mapping mismatch");
+      await ctx.db.patch(line._id, { subscription_id: row._id });
+      await ctx.db.patch(attempt._id, {
+        stripe_subscription_id: s.stripe_subscription_id,
+      });
+    }
     // An older in-flight retrieval must not roll back a more recent lifecycle observation.
     if (args.observed_at >= row.updated_at) {
       await ctx.db.patch(row._id, {
@@ -766,6 +1115,14 @@ export const billingIssues = authedQuery({
   handler: async (ctx) => {
     if (ctx.user.role !== "admin" && ctx.user.role !== "god")
       throw new Error("Global admin access required");
+    const batchIssues = (
+      await ctx.db
+        .query("monthly_checkout_batch")
+        .withIndex("by_reconcile", (q) =>
+          q.lt("next_reconcile_at", Number.MAX_SAFE_INTEGER),
+        )
+        .take(100)
+    ).filter((b) => b.error);
     const issues = {
       courses: [
         ...(await ctx.db
@@ -804,9 +1161,12 @@ export const billingIssues = authedQuery({
       .take(100);
     const permitted = new Set<Id<"userTable">>();
     for (const id of new Set(
-      [...issues.subscriptions, ...issues.checkouts, ...tasks].map(
-        (row) => row.user_id,
-      ),
+      [
+        ...issues.subscriptions,
+        ...issues.checkouts,
+        ...batchIssues,
+        ...tasks,
+      ].map((row) => row.user_id),
     )) {
       const payer = await ctx.db.get(id);
       if (payer && canAccessUser(ctx.user, payer)) permitted.add(id);
@@ -816,7 +1176,9 @@ export const billingIssues = authedQuery({
       subscriptions: issues.subscriptions.filter((row) =>
         permitted.has(row.user_id),
       ),
-      checkouts: issues.checkouts.filter((row) => permitted.has(row.user_id)),
+      checkouts: [...issues.checkouts, ...batchIssues].filter((row) =>
+        permitted.has(row.user_id),
+      ),
       activation_tasks_count: tasks.filter((row) => permitted.has(row.user_id))
         .length,
     };
