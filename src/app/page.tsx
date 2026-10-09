@@ -306,6 +306,90 @@ export default async function HomePage() {
               </CardContent>
             </Card>
           </div>
+          <div className="mx-auto mt-16 max-w-5xl border-t border-[#edacd5] pt-12">
+            <div className="mb-10 text-center">
+              <div className="mb-6 flex flex-wrap items-center justify-center gap-4 md:gap-6">
+                <div className="relative aspect-[2.5/1] w-64 overflow-hidden md:w-80">
+                  <Image
+                    src={LANDING_IMAGES.remLogo}
+                    alt={t("rem_logo_alt")}
+                    width={2000}
+                    height={2000}
+                    sizes="(min-width: 768px) 320px, 256px"
+                    className="absolute top-1/2 h-auto w-full -translate-y-1/2"
+                  />
+                </div>
+                <span className="rounded-full border border-[#d99aa7] bg-[#fbe8ed] px-4 py-2 text-sm font-bold tracking-wider text-[#812333]">
+                  {t("rem_coming_soon")}
+                </span>
+              </div>
+              <h3 className="text-2xl font-bold tracking-tight text-balance md:text-3xl">
+                {t("rem_title")}
+              </h3>
+              <p className="mt-3 text-[#6f3157]">{t("rem_billed_monthly")}</p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {(["basic", "standard", "premium"] as const).map((plan) => {
+                const recommended = plan === "standard";
+
+                return (
+                  <div key={plan} className="flex flex-col">
+                    <div className="mb-3 flex h-7 items-center justify-center">
+                      {recommended && (
+                        <span className="rounded-full bg-[#812333] px-4 py-1 text-sm font-semibold text-white">
+                          {t("rem_recommended")}
+                        </span>
+                      )}
+                    </div>
+                    <Card
+                      className={cn(
+                        "h-full border-2 shadow-lg",
+                        recommended
+                          ? "border-[#d99aa7] bg-[#fbe8ed] text-gray-900 shadow-[#812333]/10"
+                          : "border-[#edacd5] bg-white/95 text-gray-900 shadow-[#8f1f69]/10",
+                      )}
+                    >
+                      <CardContent className="p-6 md:p-8">
+                        <h4 className="text-xl font-bold">
+                          {t(`rem_${plan}_name`)}
+                        </h4>
+                        <p className="mt-5 flex flex-wrap items-baseline gap-2">
+                          <span className="text-4xl font-bold tracking-tight">
+                            {t(`rem_${plan}_amount`)}
+                          </span>
+                          <span className="text-sm">{t("rem_per_month")}</span>
+                        </p>
+                        <ul
+                          className={cn(
+                            "mt-6 space-y-4 border-t pt-6",
+                            recommended
+                              ? "border-[#e9bec8]"
+                              : "border-gray-100",
+                          )}
+                        >
+                          {([1, 2, 3] as const).map((feature) => (
+                            <li
+                              key={feature}
+                              className="flex items-start gap-3"
+                            >
+                              <CheckCircle2
+                                aria-hidden="true"
+                                className="mt-0.5 h-5 w-5 shrink-0 text-[#812333]"
+                              />
+                              <span className="text-sm leading-relaxed">
+                                {t(`rem_placeholder_${feature}`)}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </section>
 
