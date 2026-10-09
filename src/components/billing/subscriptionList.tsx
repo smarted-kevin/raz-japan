@@ -69,39 +69,97 @@ function SubscriptionCard({ row, admin }: { row: Row; admin: boolean }) {
         : "processing";
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className={admin ? undefined : "gap-3"}>
         <CardTitle>
           {row.course_name} · {row.student_name}
         </CardTitle>
+        {!admin && (
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <p className="text-muted-foreground">
+              <span className="text-foreground font-semibold">
+                {formatYen(row.price)}
+              </span>{" "}
+              {t("per_month")}
+            </p>
+            <span className="bg-muted rounded-full px-3 py-1 text-xs font-medium">
+              {t(state === "payment_trouble" ? "needs_attention" : state)}
+            </span>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-3">
-        <p>
-          {formatYen(row.price)} {t("per_month")} · {t(state)}
-        </p>
-        <p>
-          {t("paid_through")}:{" "}
-          {row.paid_through ? dateDisplayFormat(row.paid_through) : t("none")}
-        </p>
-        {row.next_billing_at && (
+        {admin ? (
+          <>
+            <p>
+              {formatYen(row.price)} {t("per_month")} · {t(state)}
+            </p>
+          </>
+        ) : (
+          <>
+            <dl className="grid gap-4 border-y py-4 text-sm sm:grid-cols-2">
+              {row.next_billing_at && (
+                <div className="space-y-1">
+                  <dt className="text-muted-foreground">
+                    {t("member_next_payment")}
+                  </dt>
+                  <dd className="font-medium tabular-nums">
+                    {dateDisplayFormat(row.next_billing_at)}
+                  </dd>
+                </div>
+              )}
+              <div className="space-y-1">
+                <dt className="text-muted-foreground">
+                  {t("member_paid_through")}
+                </dt>
+                <dd className="font-medium tabular-nums">
+                  {row.paid_through
+                    ? dateDisplayFormat(row.paid_through)
+                    : t("none")}
+                </dd>
+              </div>
+            </dl>
+            {row.has_access && !row.platform_enabled && (
+              <p className="text-muted-foreground text-sm">
+                {t("member_activation_pending")}
+              </p>
+            )}
+            {row.payment_failed && (
+              <p className="text-sm">{t("payment_trouble")}</p>
+            )}
+          </>
+        )}
+        {admin && (
+          <p>
+            {t("paid_through")}:{" "}
+            {row.paid_through ? dateDisplayFormat(row.paid_through) : t("none")}
+          </p>
+        )}
+        {admin && row.next_billing_at && (
           <p>
             {t("next_payment")}: {dateDisplayFormat(row.next_billing_at)}
           </p>
         )}
-        <p>
-          {t("annual_expiry")}:{" "}
-          {row.annual_expiry ? dateDisplayFormat(row.annual_expiry) : t("none")}
-        </p>
-        <p>
-          {t(
-            row.has_access
-              ? row.platform_enabled
-                ? "platform_enabled"
-                : "activation_pending"
-              : row.platform_enabled
-                ? "deactivation_pending"
-                : "platform_disabled",
-          )}
-        </p>
+        {admin && (
+          <p>
+            {t("annual_expiry")}:{" "}
+            {row.annual_expiry
+              ? dateDisplayFormat(row.annual_expiry)
+              : t("none")}
+          </p>
+        )}
+        {admin && (
+          <p>
+            {t(
+              row.has_access
+                ? row.platform_enabled
+                  ? "platform_enabled"
+                  : "activation_pending"
+                : row.platform_enabled
+                  ? "deactivation_pending"
+                  : "platform_disabled",
+            )}
+          </p>
+        )}
         {row.cancel_at_period_end && (
           <p>
             {t("cancellation_scheduled", {
@@ -109,11 +167,35 @@ function SubscriptionCard({ row, admin }: { row: Row; admin: boolean }) {
             })}
           </p>
         )}
-        {!row.cancel_at_period_end && row.renewal_stop_at && !ended && (
-          <p>
-            {t("annual_stop", { date: dateDisplayFormat(row.renewal_stop_at) })}
-          </p>
-        )}
+        {!row.cancel_at_period_end &&
+          row.renewal_stop_at &&
+          !ended &&
+          (admin ? (
+            <p>
+              {t("annual_stop", {
+                date: dateDisplayFormat(row.renewal_stop_at),
+              })}
+            </p>
+          ) : (
+            <details className="text-muted-foreground text-sm">
+              <summary className="focus-visible:ring-ring cursor-pointer rounded-sm py-1 focus-visible:ring-2 focus-visible:outline-none">
+                {t("member_renewal_details")}
+              </summary>
+              <div className="space-y-2 pt-2 leading-relaxed">
+                <p>
+                  {t("annual_expiry")}:{" "}
+                  {row.annual_expiry
+                    ? dateDisplayFormat(row.annual_expiry)
+                    : t("none")}
+                </p>
+                <p>
+                  {t("member_annual_stop", {
+                    date: dateDisplayFormat(row.renewal_stop_at),
+                  })}
+                </p>
+              </div>
+            </details>
+          ))}
         {row.payment_failed && row.has_access && row.grace_deadline && (
           <p>
             {t("grace_until", {

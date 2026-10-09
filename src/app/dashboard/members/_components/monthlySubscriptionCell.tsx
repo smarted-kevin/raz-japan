@@ -80,7 +80,7 @@ export function MonthlySubscriptionCell({
             disabled={busy}
             onClick={() => void openPortal()}
           >
-            {t("manage_payment")}
+            {t("member_manage_payment")}
           </Button>
         </DialogContent>
       </Dialog>
