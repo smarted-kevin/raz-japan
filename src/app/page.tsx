@@ -354,7 +354,8 @@ export default async function HomePage() {
                         <h4 className="text-xl font-bold">
                           {t(`rem_${plan}_name`)}
                         </h4>
-                        <p className="mt-5 flex flex-wrap items-baseline gap-2">
+                        {/* Keep add-on prices hidden until launch. */}
+                        <p className="mt-5 hidden flex-wrap items-baseline gap-2">
                           <span className="text-4xl font-bold tracking-tight">
                             {t(`rem_${plan}_amount`)}
                           </span>
