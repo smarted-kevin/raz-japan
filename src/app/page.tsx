@@ -632,11 +632,11 @@ export default async function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#651348] bg-[#351027] py-12 text-white">
+      <footer className="border-t border-[#e6cadd] bg-[#f5e6ef] py-12 text-[#351027]">
         <div className={publicSiteContainerClassName}>
           <div className="grid gap-8 md:grid-cols-4">
             <div className="md:col-span-2">
-              <div className="mb-4 inline-flex items-center gap-4 rounded-lg bg-white p-3">
+              <div className="mb-4 inline-flex items-center gap-4">
                 <Image
                   src={LANDING_IMAGES.smartEdLogo}
                   alt="SmartEd"
@@ -654,7 +654,7 @@ export default async function HomePage() {
                   className="h-auto w-20 sm:w-24"
                 />
               </div>
-              <p className="mb-4 max-w-md text-sm leading-relaxed text-gray-400">
+              <p className="mb-4 max-w-md text-sm leading-relaxed text-gray-600">
                 {t("footer_tagline")}
               </p>
             </div>
@@ -665,7 +665,7 @@ export default async function HomePage() {
                 <li>
                   <Link
                     href="#getting-started"
-                    className="text-gray-400 transition-colors hover:text-white"
+                    className="text-gray-600 transition-colors hover:text-[#a92379]"
                   >
                     {t("footer_getting_started")}
                   </Link>
@@ -673,7 +673,7 @@ export default async function HomePage() {
                 <li>
                   <Link
                     href="#pricing"
-                    className="text-gray-400 transition-colors hover:text-white"
+                    className="text-gray-600 transition-colors hover:text-[#a92379]"
                   >
                     {t("footer_pricing")}
                   </Link>
@@ -681,7 +681,7 @@ export default async function HomePage() {
                 <li>
                   <Link
                     href="#about"
-                    className="text-gray-400 transition-colors hover:text-white"
+                    className="text-gray-600 transition-colors hover:text-[#a92379]"
                   >
                     {t("about_us")}
                   </Link>
@@ -689,7 +689,7 @@ export default async function HomePage() {
                 <li>
                   <Link
                     href="#contact"
-                    className="text-gray-400 transition-colors hover:text-white"
+                    className="text-gray-600 transition-colors hover:text-[#a92379]"
                   >
                     {t("contact_title")}
                   </Link>
@@ -703,7 +703,7 @@ export default async function HomePage() {
                 <li>
                   <Link
                     href="#"
-                    className="text-gray-400 transition-colors hover:text-white"
+                    className="text-gray-600 transition-colors hover:text-[#a92379]"
                   >
                     {t("privacy_policy")}
                   </Link>
@@ -711,7 +711,7 @@ export default async function HomePage() {
                 <li>
                   <Link
                     href="#"
-                    className="text-gray-400 transition-colors hover:text-white"
+                    className="text-gray-600 transition-colors hover:text-[#a92379]"
                   >
                     {t("terms_of_service")}
                   </Link>
@@ -719,7 +719,7 @@ export default async function HomePage() {
                 <li>
                   <Link
                     href="/scta"
-                    className="text-gray-400 transition-colors hover:text-white"
+                    className="text-gray-600 transition-colors hover:text-[#a92379]"
                   >
                     {t("scta_link")}
                   </Link>
@@ -728,7 +728,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="mt-8 border-t border-white/10 pt-8 text-center text-sm text-gray-400">
+          <div className="mt-8 border-t border-[#e6cadd] pt-8 text-center text-sm text-gray-600">
             <p>{t("copyright")}</p>
           </div>
         </div>
