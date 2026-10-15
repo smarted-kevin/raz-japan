@@ -636,12 +636,24 @@ export default async function HomePage() {
         <div className={publicSiteContainerClassName}>
           <div className="grid gap-8 md:grid-cols-4">
             <div className="md:col-span-2">
-              <Link href="/" className="mb-4 flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#c83192]">
-                  <BookOpen className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-xl font-bold">Raz-Plus Japan</span>
-              </Link>
+              <div className="mb-4 inline-flex items-center gap-4 rounded-lg bg-white p-3">
+                <Image
+                  src={LANDING_IMAGES.smartEdLogo}
+                  alt="SmartEd"
+                  width={702}
+                  height={201}
+                  sizes="(min-width: 640px) 176px, 144px"
+                  className="h-auto w-36 sm:w-44"
+                />
+                <Image
+                  src={LANDING_IMAGES.sproutEnglishTokyoLogo}
+                  alt="Sprout English Tokyo"
+                  width={500}
+                  height={500}
+                  sizes="(min-width: 640px) 96px, 80px"
+                  className="h-auto w-20 sm:w-24"
+                />
+              </div>
               <p className="mb-4 max-w-md text-sm leading-relaxed text-gray-400">
                 {t("footer_tagline")}
               </p>
