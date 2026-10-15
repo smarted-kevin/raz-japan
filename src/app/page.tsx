@@ -632,7 +632,7 @@ export default async function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-[#e6cadd] bg-[#f5e6ef] py-12 text-[#351027]">
+      <footer className="border-t border-[#e6cadd] bg-[#e5dce2] py-12 text-[#351027]">
         <div className={publicSiteContainerClassName}>
           <div className="grid gap-8 md:grid-cols-4">
             <div className="md:col-span-2">
