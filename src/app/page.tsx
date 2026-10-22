@@ -399,6 +399,10 @@ export default async function HomePage() {
                 );
               })}
             </div>
+            <ul className="mt-8 list-disc space-y-3 pl-5 text-sm leading-relaxed font-semibold text-[#6f3157]">
+              <li>{t("rem_account_note")}</li>
+              <li>{t("rem_lessons_note")}</li>
+            </ul>
           </div>
         </div>
       </section>
