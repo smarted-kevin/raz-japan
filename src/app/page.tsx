@@ -326,7 +326,6 @@ export default async function HomePage() {
               <h3 className="text-2xl font-bold tracking-tight text-balance md:text-3xl">
                 {t("rem_title")}
               </h3>
-              <p className="mt-3 text-[#6f3157]">{t("rem_billed_monthly")}</p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
@@ -354,6 +353,12 @@ export default async function HomePage() {
                         <h4 className="text-xl font-bold">
                           {t(`rem_${plan}_name`)}
                         </h4>
+                        <p className="mt-2 text-sm font-semibold text-[#812333]">
+                          {t(`rem_${plan}_billing`)}
+                        </p>
+                        <p className="mt-4 text-sm leading-relaxed">
+                          {t(`rem_${plan}_description`)}
+                        </p>
                         {/* Keep add-on prices hidden until launch. */}
                         <p className="mt-5 hidden flex-wrap items-baseline gap-2">
                           <span className="text-4xl font-bold tracking-tight">
@@ -361,7 +366,7 @@ export default async function HomePage() {
                           </span>
                           <span className="text-sm">{t("rem_per_month")}</span>
                         </p>
-                        <ul
+                        <div
                           className={cn(
                             "mt-6 space-y-4 border-t pt-6",
                             recommended
@@ -369,27 +374,35 @@ export default async function HomePage() {
                               : "border-gray-100",
                           )}
                         >
-                          {([1, 2, 3] as const).map((feature) => (
-                            <li
-                              key={feature}
-                              className="flex items-start gap-3"
-                            >
-                              <CheckCircle2
-                                aria-hidden="true"
-                                className="mt-0.5 h-5 w-5 shrink-0 text-[#812333]"
-                              />
-                              <span className="text-sm leading-relaxed">
-                                {t(`rem_placeholder_${feature}`)}
-                              </span>
-                            </li>
-                          ))}
-                        </ul>
+                          {plan !== "basic" && (
+                            <p className="text-sm leading-relaxed whitespace-pre-line">
+                              {t(`rem_${plan}_includes`)}
+                            </p>
+                          )}
+                          <ul className="space-y-4">
+                            {(plan === "premium"
+                              ? ([1, 2, 3, 4, 5] as const)
+                              : ([1, 2, 3] as const)
+                            ).map((feature) => (
+                              <li
+                                key={feature}
+                                className="text-sm leading-relaxed"
+                              >
+                                {t(`rem_${plan}_feature_${feature}`)}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       </CardContent>
                     </Card>
                   </div>
                 );
               })}
             </div>
+            <ul className="mt-8 list-disc space-y-3 pl-5 text-sm leading-relaxed font-semibold text-[#6f3157]">
+              <li>{t("rem_account_note")}</li>
+              <li>{t("rem_lessons_note")}</li>
+            </ul>
           </div>
         </div>
       </section>
