@@ -11,6 +11,8 @@ const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!, {
 });
 
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
+  // Mount only in RootLayout: a nested provider's cleanup clears auth on this
+  // shared client when navigating away, including for queries outside its tree.
   return (
     <ConvexBetterAuthProvider client={convex} authClient={authClient}>
       {children}

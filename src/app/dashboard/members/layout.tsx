@@ -1,4 +1,3 @@
-import { ConvexClientProvider } from "~/app/ConvexClientProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { PublicNavBar } from "~/components/ui/nav/publicNavBar";
 import { redirect } from "next/navigation";
@@ -24,14 +23,12 @@ export default async function MemberLayout({
 
   return (
     <NextIntlClientProvider>
-      <ConvexClientProvider>
-        <div className="raz-brand min-h-screen bg-gradient-to-b from-[#fff8fc] to-white">
-          <PublicNavBar branded showAudienceBanner={false} />
-          <div className="container mx-auto min-w-0 px-4 pt-6 pb-8 sm:px-6">
-            {children}
-          </div>
+      <div className="raz-brand min-h-screen bg-gradient-to-b from-[#fff8fc] to-white">
+        <PublicNavBar branded showAudienceBanner={false} />
+        <div className="container mx-auto min-w-0 px-4 pt-6 pb-8 sm:px-6">
+          {children}
         </div>
-      </ConvexClientProvider>
+      </div>
     </NextIntlClientProvider>
   );
 }
