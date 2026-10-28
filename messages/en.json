@@ -259,6 +259,7 @@
   "dashboard": {
     "admin": {
       "nav": {
+        "organizations": "Organizations",
         "home": "Home",
         "users": "Users",
         "students": "Students",
@@ -274,6 +275,22 @@
         "expand_sidebar": "Expand sidebar",
         "collapse_sidebar": "Collapse sidebar",
         "open_menu": "Open menu"
+      },
+      "organizations": {
+        "edit": "Edit",
+        "edit_organization": "Edit Organization",
+        "edit_named_organization": "Edit {name}",
+        "updated": "Organization updated successfully.",
+        "not_found": "This organization no longer exists. Refresh the page and try again.",
+        "title": "Organizations",
+        "add_organization": "Add Organization",
+        "add_new_organization": "Add New Organization",
+        "organization_name": "Organization Name",
+        "name_required": "Please enter an organization name.",
+        "duplicate_name": "An organization with this name already exists.",
+        "saving": "Adding...",
+        "created": "Organization added successfully.",
+        "empty": "No organizations yet. Add an organization to get started."
       },
       "common": {
         "na": "N/A",

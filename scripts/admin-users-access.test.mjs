@@ -63,6 +63,7 @@ for (const component of ['navLinks', 'sidebarNav']) {
       const links = nav({ role }).props.children;
       assert.equal(links.some(link => link.props.href === '/dashboard/admin/users'), role !== 'user');
       assert.equal(links.some(link => link.props.href === '/dashboard/admin/billing'), false);
+      assert.equal(links.some(link => link.props.href === '/dashboard/admin/organizations'), role === 'god');
     });
   }
 }

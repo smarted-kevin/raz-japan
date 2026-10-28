@@ -259,6 +259,7 @@
   "dashboard": {
     "admin": {
       "nav": {
+        "organizations": "組織",
         "home": "ホーム",
         "users": "ユーザ",
         "students": "生徒",
@@ -274,6 +275,22 @@
         "expand_sidebar": "サイドバーを展開",
         "collapse_sidebar": "サイドバーを折りたたむ",
         "open_menu": "メニューを開く"
+      },
+      "organizations": {
+        "edit": "編集",
+        "edit_organization": "組織を編集",
+        "edit_named_organization": "{name}を編集",
+        "updated": "組織を更新しました。",
+        "not_found": "この組織はすでに削除されています。ページを再読み込みして、もう一度お試しください。",
+        "title": "組織",
+        "add_organization": "組織を追加",
+        "add_new_organization": "新しい組織を追加",
+        "organization_name": "組織名",
+        "name_required": "組織名を入力してください。",
+        "duplicate_name": "この名前の組織はすでに登録されています。",
+        "saving": "追加中...",
+        "created": "組織を追加しました。",
+        "empty": "組織がまだ登録されていません。新しい組織を追加してください。"
       },
       "common": {
         "na": "該当なし",

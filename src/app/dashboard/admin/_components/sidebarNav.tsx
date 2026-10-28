@@ -11,6 +11,7 @@ import {
   BookOpen,
   ShoppingCart,
   Key,
+  Building2,
 } from "lucide-react";
 import { cn } from "~/lib/utils";
 
@@ -25,6 +26,7 @@ interface SidebarNavProps {
 const iconMap = {
   home: Home,
   users: Users,
+  organizations: Building2,
   students: GraduationCap,
   classrooms: School,
   courses: BookOpen,
@@ -59,6 +61,12 @@ export default function SidebarNav({
       href: "/dashboard/admin/users",
       roles: ["admin", "org_admin", "god"],
       icon: "users",
+    },
+    {
+      name: t("organizations"),
+      href: "/dashboard/admin/organizations",
+      roles: ["god"],
+      icon: "organizations",
     },
     {
       name: t("students"),

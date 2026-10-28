@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
 import { loadBilling } from './billing-test-helpers.mjs';
+import { adminAc, userAc } from 'better-auth/plugins/admin/access';
 
 function load(path, imports) {
   const exports = {};
@@ -147,11 +148,41 @@ const { createAuthAdminGuard } = load('../convex/lib/authAdminGuard.ts', {
   },
 });
 const authAdminGuard = createAuthAdminGuard(async () => [god.auth_id]);
+const { authAdminOptions } = load('../convex/lib/authAdminOptions.ts', {
+  'better-auth/plugins/admin/access': { adminAc, userAc },
+});
+
+test('Better Auth grants create permission to god and admin only', () => {
+  for (const role of ['god', 'admin', 'org_admin', 'user']) {
+    assert.equal(authAdminOptions.roles[role].authorize({ user: ['create'] }).success,
+      role === 'god' || role === 'admin');
+  }
+});
 function httpContext(path, body = {}, query = {}) {
   return { path, body, query, context: { internalAdapter: {
     findUserById: async id => id === god._id ? god : member,
     findSession: async () => ({ user: god }),
   } } };
+}
+
+for (const callerRole of ['god', 'admin', 'org_admin', 'user']) {
+  test(`${callerRole} creation permissions validate target roles and overrides`, async () => {
+    const allowed = callerRole === 'god' ? ['user', 'admin', 'org_admin'] : callerRole === 'admin' ? ['user'] : [];
+    for (const role of [undefined, 'user', 'admin', 'org_admin', 'god', 'admin,god', 'user,admin', ['user'], ['admin', 'god'], 'unknown', null]) {
+      for (const body of [{ role }, { data: { role } }, { role: 'user', data: { role } }]) {
+        const ctx = { ...httpContext('/admin/create-user', body), callerRole };
+        const effectiveRole = role ?? 'user';
+        // An explicit null in data overrides the plugin's default and is invalid.
+        const valid = allowed.includes(effectiveRole) && !(role === null && body.data);
+        if (valid) assert.equal(await authAdminGuard(ctx), undefined);
+        else await assert.rejects(authAdminGuard(ctx), /FORBIDDEN/);
+      }
+    }
+    // A safe data override must not hide a prohibited top-level request.
+    if (callerRole === 'admin') {
+      await assert.rejects(authAdminGuard({ ...httpContext('/admin/create-user', { role: 'admin', data: { role: 'user' } }), callerRole }), /FORBIDDEN/);
+    }
+  });
 }
 test('auth HTTP endpoints block direct reads, edits, deletion, impersonation, and password/session changes', async () => {
   for (const endpoint of ['update-user', 'set-role', 'remove-user', 'ban-user', 'unban-user', 'impersonate-user', 'set-user-password', 'list-user-sessions', 'revoke-user-sessions']) {
