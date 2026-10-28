@@ -4,6 +4,8 @@ import { test } from 'node:test';
 import { runInNewContext } from 'node:vm';
 import ts from 'typescript';
 import { loadBilling } from './billing-test-helpers.mjs';
+import { adminAc, userAc } from 'better-auth/plugins/admin/access';
+import { z } from 'zod';
 
 function load(path, imports) {
   const exports = {};
@@ -147,11 +149,138 @@ const { createAuthAdminGuard } = load('../convex/lib/authAdminGuard.ts', {
   },
 });
 const authAdminGuard = createAuthAdminGuard(async () => [god.auth_id]);
+
+function loadOrganizationAssignment(role, { findUser, updateRole } = {}) {
+  return load('../src/app/dashboard/admin/_actions/users.ts', {
+    zod: { z },
+    '@/convex/_generated/api': { api: {
+      auth: { getCurrentUser: 'current-user' },
+      queries: { users: { getUserByEmail: 'user-by-email' } },
+      mutations: { users: { updateUserRole: 'update-role' } },
+    } },
+    '~/lib/auth-server': { getToken: async () => role === 'no token' ? undefined : 'session-token' },
+    'convex/nextjs': {
+      fetchQuery: async (query, args, options) => {
+        assert.equal(options.token, 'session-token');
+        if (query === 'current-user') return role === 'no session' ? null : { role };
+        assert.equal(query, 'user-by-email');
+        assert.ok(findUser, 'Unauthorized user lookup');
+        return findUser(args);
+      },
+      fetchMutation: async (mutation, args, options) => {
+        assert.equal(mutation, 'update-role');
+        assert.equal(options.token, 'session-token');
+        assert.ok(updateRole, 'Unauthorized role mutation');
+        return updateRole(args);
+      },
+    },
+  }).assignOrgAdminOrganizationForCreatedUser;
+}
+
+test('god can create an organization administrator and assign its organization', async () => {
+  const email = 'new-org-admin@example.com';
+  await authAdminGuard({
+    ...httpContext('/admin/create-user', { email, role: 'org_admin' }),
+    callerRole: 'god',
+  });
+
+  let createdUser;
+  const ctx = {
+    user: god,
+    db: {
+      insert: async (table, record) => {
+        assert.equal(table, 'userTable');
+        createdUser = { _id: 'created-user', ...record };
+        return createdUser._id;
+      },
+      get: async id => {
+        assert.equal(id, createdUser._id);
+        return createdUser;
+      },
+      patch: async (id, changes) => {
+        assert.equal(id, createdUser._id);
+        createdUser = { ...createdUser, ...changes };
+      },
+    },
+  };
+  await mutations.createUser.handler(ctx, {
+    auth_id: 'created-auth-user', first_name: 'New', last_name: 'Admin',
+    email, role: 'org_admin', status: 'active', updated_at: Date.now(),
+  });
+  assert.equal(createdUser.org_id, undefined);
+
+  const assignOrganization = loadOrganizationAssignment('god', {
+    findUser: args => {
+      assert.equal(args.email, email);
+      return createdUser;
+    },
+    updateRole: args => mutations.updateUserRole.handler(ctx, args),
+  });
+  const result = await assignOrganization({ email, org_id: 'org-b' });
+  assert.equal(result.success, true);
+  assert.equal(createdUser.role, 'org_admin');
+  assert.equal(createdUser.org_id, 'org-b');
+  assert.equal(createdUser.auth_id, 'created-auth-user');
+});
+
+test('admin retains organization assignment access', async () => {
+  let assigned = false;
+  const assignOrganization = loadOrganizationAssignment('admin', {
+    findUser: () => ({ _id: 'created-user' }),
+    updateRole: args => {
+      assert.equal(args.userId, 'created-user');
+      assert.equal(args.role, 'org_admin');
+      assert.equal(args.org_id, 'org-b');
+      assigned = true;
+    },
+  });
+  assert.equal((await assignOrganization({ email: 'new@example.com', org_id: 'org-b' })).success, true);
+  assert.equal(assigned, true);
+});
+
+for (const role of ['user', 'org_admin', 'no session', 'no token']) {
+  test(`organization assignment rejects ${role} before looking up or changing the account`, async () => {
+    const result = await loadOrganizationAssignment(role)({ email: 'new@example.com', org_id: 'org-b' });
+    assert.equal(result.success, false);
+    assert.equal(result.error, role === 'no token' ? 'Not authenticated' : 'Admin access required');
+  });
+}
+
+const { authAdminOptions } = load('../convex/lib/authAdminOptions.ts', {
+  'better-auth/plugins/admin/access': { adminAc, userAc },
+});
+
+test('Better Auth grants create permission to god and admin only', () => {
+  for (const role of ['god', 'admin', 'org_admin', 'user']) {
+    assert.equal(authAdminOptions.roles[role].authorize({ user: ['create'] }).success,
+      role === 'god' || role === 'admin');
+  }
+});
 function httpContext(path, body = {}, query = {}) {
   return { path, body, query, context: { internalAdapter: {
     findUserById: async id => id === god._id ? god : member,
     findSession: async () => ({ user: god }),
   } } };
+}
+
+for (const callerRole of ['god', 'admin', 'org_admin', 'user']) {
+  test(`${callerRole} creation permissions validate target roles and overrides`, async () => {
+    const allowed = callerRole === 'god' ? ['user', 'admin', 'org_admin'] : callerRole === 'admin' ? ['user'] : [];
+    for (const role of [undefined, 'user', 'admin', 'org_admin', 'god', 'admin,god', 'user,admin', ['user'], ['admin', 'god'], 'unknown', null]) {
+      for (const body of [{ role }, { data: { role } }, { role: 'user', data: { role } }]) {
+        const ctx = { ...httpContext('/admin/create-user', body), callerRole };
+        const effectiveRole = role ?? 'user';
+        // An explicit null in data overrides the plugin's default and is invalid.
+        const valid = allowed.includes(effectiveRole) && !(role === null && body.data);
+        if (valid) assert.equal(await authAdminGuard(ctx), undefined);
+        else await assert.rejects(authAdminGuard(ctx), /FORBIDDEN/);
+      }
+    }
+    // A safe data override must not hide a prohibited top-level request.
+    if (callerRole === 'admin') {
+      await assert.rejects(authAdminGuard({ ...httpContext('/admin/create-user', { role: 'admin', data: { role: 'user' } }), callerRole }), /FORBIDDEN/);
+    }
+  });
 }
 test('auth HTTP endpoints block direct reads, edits, deletion, impersonation, and password/session changes', async () => {
   for (const endpoint of ['update-user', 'set-role', 'remove-user', 'ban-user', 'unban-user', 'impersonate-user', 'set-user-password', 'list-user-sessions', 'revoke-user-sessions']) {

@@ -8,6 +8,7 @@ import { admin } from "better-auth/plugins";
 import authSchema from "./betterAuth/schema";
 import { requireActionCtx } from "@convex-dev/better-auth/utils";
 import { createAuthAdminGuard } from "./lib/authAdminGuard";
+import { authAdminOptions } from "./lib/authAdminOptions";
 
 type CreatedAuthUser = {
   id: string;
@@ -55,7 +56,7 @@ const options = {
   //...config options
   plugins: [
     //...plugins
-    admin() 
+    admin(authAdminOptions)
   ]
 } satisfies BetterAuthOptions;
 export const authComponent = createClient<DataModel, typeof authSchema>(

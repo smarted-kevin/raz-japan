@@ -6,7 +6,6 @@ import { getToken } from "~/lib/auth-server";
 import { getTranslations } from "next-intl/server";
 
 export default async function UsersPage() {
-
   const token = await getToken();
   if (!token) redirect("/sign-in");
   const user = await fetchQuery(api.auth.getCurrentUser, {}, { token });
@@ -22,9 +21,11 @@ export default async function UsersPage() {
   return (
     <>
       <main className="flex min-h-screen flex-col gap-y-6 p-4 sm:p-6 md:p-8 lg:p-12 xl:p-24">
-        <h1 className="font-bold text-2xl">{t("title")}</h1>
-        {users && <UserTable users={users} orgs={orgs} /> }
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        {users && (
+          <UserTable users={users} orgs={orgs} callerRole={user.role} />
+        )}
       </main>
     </>
-  )
+  );
 }

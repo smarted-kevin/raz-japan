@@ -44,9 +44,11 @@ import type { Doc } from "@/convex/_generated/dataModel";
 export default function UserTable({
   users,
   orgs,
+  callerRole,
 }: {
   users: UserWithStudentData[];
   orgs: Doc<"organization">[];
+  callerRole: string;
 }) {
   const t = useTranslations("dashboard.admin.users");
   const tc = useTranslations("dashboard.admin.common");
@@ -59,7 +61,7 @@ export default function UserTable({
       org_admin: tc("role_org_admins"),
       all: tc("all"),
     }),
-    [tc]
+    [tc],
   );
 
   const columns: ColumnDef<UserWithStudentData>[] = useMemo(
@@ -140,7 +142,7 @@ export default function UserTable({
         accessorFn: (row) => row.students.length,
       },
     ],
-    [tc]
+    [tc],
   );
 
   const [openState, setOpenState] = useState(false);
@@ -168,33 +170,33 @@ export default function UserTable({
   const roleFilter = useMemo(
     () =>
       (columnFilters.find((f) => f.id === "role")?.value as string) ?? "all",
-    [columnFilters]
+    [columnFilters],
   );
 
   const statusFilter = useMemo(
     () =>
       (columnFilters.find((f) => f.id === "status")?.value as string) ??
       "active",
-    [columnFilters]
+    [columnFilters],
   );
 
   const handleRoleFilterChange = useCallback(
     (value: string) => {
       table.getColumn("role")?.setFilterValue(value);
     },
-    [table]
+    [table],
   );
 
   const handleStatusFilterChange = useCallback(
     (value: string) => {
       table.getColumn("status")?.setFilterValue(value);
     },
-    [table]
+    [table],
   );
 
   return (
-    <div className="space-y-4 w-full min-w-0">
-      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4 w-full items-stretch sm:items-center">
+    <div className="w-full min-w-0 space-y-4">
+      <div className="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
         <Select value={roleFilter} onValueChange={handleRoleFilterChange}>
           <SelectTrigger className="w-full sm:w-[200px]">
             <SelectValue>{roleLabels[roleFilter]}</SelectValue>
@@ -218,18 +220,21 @@ export default function UserTable({
           </SelectContent>
         </Select>
 
-        <div className="w-full sm:w-auto sm:ml-auto">
-          <AddUserDialog
-            orgs={orgs}
-            openState={openState}
-            setOpenState={setOpenState}
-          />
+        <div className="w-full sm:ml-auto sm:w-auto">
+          {(callerRole === "god" || callerRole === "admin") && (
+            <AddUserDialog
+              callerRole={callerRole}
+              orgs={orgs}
+              openState={openState}
+              setOpenState={setOpenState}
+            />
+          )}
         </div>
       </div>
 
       {table.getRowModel().rows.length > 0 ? (
         <>
-          <div className="w-full min-w-0 -mx-4 sm:mx-0 overflow-x-auto">
+          <div className="-mx-4 w-full min-w-0 overflow-x-auto sm:mx-0">
             <Table>
               <TableHeader className="bg-primary-foreground">
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -238,7 +243,7 @@ export default function UserTable({
                       <TableHead key={header.id}>
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                       </TableHead>
                     ))}
@@ -253,7 +258,7 @@ export default function UserTable({
             </Table>
           </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between px-2">
+          <div className="flex flex-col gap-4 px-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-muted-foreground text-sm">
               {t("total_users", {
                 count: table.getFilteredRowModel().rows.length,

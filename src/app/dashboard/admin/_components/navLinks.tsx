@@ -31,6 +31,11 @@ export default function NavLinks({ role }: NavLinksProps) {
       roles: ["admin", "org_admin", "god"],
     },
     {
+      name: t("organizations"),
+      href: "/dashboard/admin/organizations",
+      roles: ["god"],
+    },
+    {
       name: t("students"),
       href: "/dashboard/admin/students",
       roles: ["admin", "org_admin", "god"],

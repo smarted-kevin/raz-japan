@@ -48,10 +48,12 @@ type Userform = {
 
 export default function AddUserDialog({
   orgs,
+  callerRole,
   openState,
   setOpenState,
 }: {
   orgs: Doc<"organization">[];
+  callerRole: "god" | "admin";
   openState: boolean;
   setOpenState: (open: boolean) => void;
 }) {
@@ -77,7 +79,7 @@ export default function AddUserDialog({
           message: tc("organization_required"),
           path: ["org_id"],
         }),
-    [tc]
+    [tc],
   );
 
   const form = useForm<Userform>({
@@ -108,7 +110,7 @@ export default function AddUserDialog({
       }
       setOpenState(open);
     },
-    [form, setOpenState]
+    [form, setOpenState],
   );
 
   async function onSubmit({
@@ -178,7 +180,7 @@ export default function AddUserDialog({
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{tc("first_name")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
@@ -193,7 +195,7 @@ export default function AddUserDialog({
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{tc("last_name")}</FormLabel>
                       <FormControl>
                         <Input type="text" {...field} />
@@ -208,7 +210,7 @@ export default function AddUserDialog({
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{tc("email")}</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
@@ -223,7 +225,7 @@ export default function AddUserDialog({
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <div className="flex gap-x-4 items-center">
+                    <div className="flex items-center gap-x-4">
                       <FormLabel>{tc("password")}</FormLabel>
                       <FormControl>
                         <Input type="password" {...field} />
@@ -249,14 +251,23 @@ export default function AddUserDialog({
                           <RadioGroupItem value="user" id="user" />
                           <Label htmlFor="user">{tc("role_user")}</Label>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="admin" id="admin" />
-                          <Label htmlFor="admin">{tc("role_admin")}</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="org_admin" id="org_admin" />
-                          <Label htmlFor="org_admin">{tc("role_org_admin")}</Label>
-                        </div>
+                        {callerRole === "god" && (
+                          <>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="admin" id="admin" />
+                              <Label htmlFor="admin">{tc("role_admin")}</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem
+                                value="org_admin"
+                                id="org_admin"
+                              />
+                              <Label htmlFor="org_admin">
+                                {tc("role_org_admin")}
+                              </Label>
+                            </div>
+                          </>
+                        )}
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
@@ -269,7 +280,7 @@ export default function AddUserDialog({
                   name="org_id"
                   render={({ field }) => (
                     <FormItem>
-                      <div className="flex gap-x-4 items-center">
+                      <div className="flex items-center gap-x-4">
                         <FormLabel>{tc("organization")}</FormLabel>
                         <FormControl>
                           <Select

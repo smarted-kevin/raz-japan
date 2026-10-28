@@ -23,7 +23,7 @@ function wait(ms: number): Promise<void> {
 }
 
 export async function assignOrgAdminOrganizationForCreatedUser(
-  formData: AssignOrgAdminOrganizationForm
+  formData: AssignOrgAdminOrganizationForm,
 ): Promise<{ success: true } | { success: false; error: string }> {
   const parsed = assignOrgAdminOrganizationSchema.safeParse(formData);
   if (!parsed.success) {
@@ -39,7 +39,10 @@ export async function assignOrgAdminOrganizationForCreatedUser(
   }
 
   const currentUser = await fetchQuery(api.auth.getCurrentUser, {}, { token });
-  if (!currentUser || currentUser.role !== "admin") {
+  if (
+    !currentUser ||
+    (currentUser.role !== "admin" && currentUser.role !== "god")
+  ) {
     return { success: false, error: "Admin access required" };
   }
 
@@ -50,7 +53,7 @@ export async function assignOrgAdminOrganizationForCreatedUser(
       const user = await fetchQuery(
         api.queries.users.getUserByEmail,
         { email },
-        { token }
+        { token },
       );
 
       if (!user) {
@@ -64,7 +67,7 @@ export async function assignOrgAdminOrganizationForCreatedUser(
           role: "org_admin",
           org_id,
         },
-        { token }
+        { token },
       );
       return { success: true };
     } catch (caught) {

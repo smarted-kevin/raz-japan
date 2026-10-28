@@ -1,4 +1,8 @@
-import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
+import {
+  APIError,
+  createAuthMiddleware,
+  getSessionFromCtx,
+} from "better-auth/api";
 
 function hasGodRole(user: unknown): boolean {
   if (!user || typeof user !== "object" || !("role" in user)) return false;
@@ -6,50 +10,87 @@ function hasGodRole(user: unknown): boolean {
 }
 
 /** Protect superusers on Better Auth's HTTP API as well as the Convex API. */
-export const createAuthAdminGuard = (getGodAuthIds: () => Promise<string[]>) => createAuthMiddleware(async (ctx) => {
-  if (!ctx.path?.startsWith("/admin/")) return;
+export const createAuthAdminGuard = (getGodAuthIds: () => Promise<string[]>) =>
+  createAuthMiddleware(async (ctx) => {
+    if (!ctx.path?.startsWith("/admin/")) return;
 
-  const session = await getSessionFromCtx(ctx);
-  if (!session) return;
-  const godAuthIds = await getGodAuthIds();
-  if (godAuthIds.includes(session.user.id)) return;
-
-  const deny = () => {
-    throw new APIError("FORBIDDEN", { message: "User access denied" });
-  };
-  const adapter = ctx.context.internalAdapter;
-  const targetId = ctx.body?.userId ?? ctx.query?.userId ?? ctx.query?.id;
-  if (typeof targetId === "string") {
-    const target = await adapter.findUserById(targetId);
-    if (godAuthIds.includes(targetId) || hasGodRole(target)) deny();
-  }
-  if (typeof ctx.body?.sessionToken === "string") {
-    const targetSession = await adapter.findSession(ctx.body.sessionToken);
-    if (targetSession && (godAuthIds.includes(targetSession.user.id) || hasGodRole(targetSession.user))) deny();
-  }
-
-  // Prevent promoting an accessible account and then using it to bypass the guard.
-  for (const role of [ctx.body?.role, ctx.body?.data?.role]) {
-    const roles = Array.isArray(role) ? role : typeof role === "string" ? role.split(",") : [];
-    if (roles.includes("god")) deny();
-  }
-
-  if (ctx.path === "/admin/list-users") {
-    // Apply the restriction before pagination and counting, preserving search filters.
-    const excludeGod = { field: "role", operator: "ne" as const, value: "god" };
-    const restrictions = [excludeGod, ...godAuthIds.map((id) => ({
-      field: "id", operator: "ne" as const, value: id,
-    }))];
-    return {
-      context: {
-        internalAdapter: {
-          ...adapter,
-          listUsers: (limit, offset, sortBy, where) =>
-            adapter.listUsers(limit, offset, sortBy, [...(where ?? []), ...restrictions]),
-          countTotalUsers: (where) =>
-            adapter.countTotalUsers([...(where ?? []), ...restrictions]),
-        } satisfies typeof adapter,
-      },
+    const session = await getSessionFromCtx(ctx);
+    if (!session) return;
+    const godAuthIds = await getGodAuthIds();
+    const deny = () => {
+      throw new APIError("FORBIDDEN", { message: "User access denied" });
     };
-  }
-});
+    const isGod = godAuthIds.includes(session.user.id);
+
+    if (ctx.path === "/admin/create-user") {
+      const allowedRoles = isGod ? ["user", "admin", "org_admin"] : ["user"];
+      if (!isGod && session.user.role !== "admin") deny();
+      // Better Auth spreads data after the top-level role. Validate both so a
+      // crafted request cannot override the role or create a multi-role account.
+      for (const role of [ctx.body?.role ?? "user", ctx.body?.data?.role]) {
+        if (
+          role !== undefined &&
+          (typeof role !== "string" || !allowedRoles.includes(role))
+        )
+          deny();
+      }
+    }
+
+    if (isGod) return;
+    const adapter = ctx.context.internalAdapter;
+    const targetId = ctx.body?.userId ?? ctx.query?.userId ?? ctx.query?.id;
+    if (typeof targetId === "string") {
+      const target = await adapter.findUserById(targetId);
+      if (godAuthIds.includes(targetId) || hasGodRole(target)) deny();
+    }
+    if (typeof ctx.body?.sessionToken === "string") {
+      const targetSession = await adapter.findSession(ctx.body.sessionToken);
+      if (
+        targetSession &&
+        (godAuthIds.includes(targetSession.user.id) ||
+          hasGodRole(targetSession.user))
+      )
+        deny();
+    }
+
+    // Prevent promoting an accessible account and then using it to bypass the guard.
+    for (const role of [ctx.body?.role, ctx.body?.data?.role]) {
+      const roles = Array.isArray(role)
+        ? role
+        : typeof role === "string"
+          ? role.split(",")
+          : [];
+      if (roles.includes("god")) deny();
+    }
+
+    if (ctx.path === "/admin/list-users") {
+      // Apply the restriction before pagination and counting, preserving search filters.
+      const excludeGod = {
+        field: "role",
+        operator: "ne" as const,
+        value: "god",
+      };
+      const restrictions = [
+        excludeGod,
+        ...godAuthIds.map((id) => ({
+          field: "id",
+          operator: "ne" as const,
+          value: id,
+        })),
+      ];
+      return {
+        context: {
+          internalAdapter: {
+            ...adapter,
+            listUsers: (limit, offset, sortBy, where) =>
+              adapter.listUsers(limit, offset, sortBy, [
+                ...(where ?? []),
+                ...restrictions,
+              ]),
+            countTotalUsers: (where) =>
+              adapter.countTotalUsers([...(where ?? []), ...restrictions]),
+          } satisfies typeof adapter,
+        },
+      };
+    }
+  });
