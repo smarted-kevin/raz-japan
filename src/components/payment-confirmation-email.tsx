@@ -59,28 +59,28 @@ export function PaymentConfirmationEmail({
 
             <Section style={orderDetails}>
               <Text style={label}>Order Details:</Text>
-              <Row>
-                <Column>
+              <Row style={orderRow}>
+                <Column width="40%">
                   <Text style={detailLabel}>Order ID:</Text>
                 </Column>
-                <Column>
+                <Column width="60%" align="left">
                   <Text style={detailValue}>{orderId}</Text>
                 </Column>
               </Row>
-              <Row>
-                <Column>
+              <Row style={orderRow}>
+                <Column width="40%">
                   <Text style={detailLabel}>Total Amount:</Text>
                 </Column>
-                <Column>
+                <Column width="60%" align="left">
                   <Text style={detailValue}>{formattedAmount}</Text>
                 </Column>
               </Row>
               {orderDate && (
-                <Row>
-                  <Column>
+                <Row style={orderRow}>
+                  <Column width="40%">
                     <Text style={detailLabel}>Order Date:</Text>
                   </Column>
-                  <Column>
+                  <Column width="60%" align="left">
                     <Text style={detailValue}>{orderDate}</Text>
                   </Column>
                 </Row>
@@ -238,6 +238,10 @@ const orderDetails = {
   borderRadius: "8px",
   padding: "20px",
   margin: "24px 0",
+};
+
+const orderRow = {
+  tableLayout: "fixed" as const,
 };
 
 const label = {
