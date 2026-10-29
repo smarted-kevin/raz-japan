@@ -36,7 +36,18 @@ export const createAuthAdminGuard = (getGodAuthIds: () => Promise<string[]>) =>
       }
     }
 
-    if (isGod) return;
+    if (isGod) {
+      // userTable is authoritative for superuser access. Better Auth performs
+      // its own permission check after this hook, using the session's role.
+      // Promotions can leave an existing auth record/session with an old role.
+      if (session.user.role !== "god") {
+        ctx.context.session = {
+          ...session,
+          user: { ...session.user, role: "god" },
+        };
+      }
+      return;
+    }
     const adapter = ctx.context.internalAdapter;
     const targetId = ctx.body?.userId ?? ctx.query?.userId ?? ctx.query?.id;
     if (typeof targetId === "string") {
