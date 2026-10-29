@@ -427,3 +427,43 @@ export const getOrderByIdInternal = internalQuery({
   args: { id: v.id("full_order") },
   handler: async (ctx, args) => ctx.db.get(args.id),
 });
+
+// Credentials are only available internally, for the recipient's fulfilled order.
+export const getPaymentEmailStudents = internalQuery({
+  args: { orderNumber: v.string(), userId: v.id("userTable") },
+  handler: async (ctx, args) => {
+    const order = await ctx.db
+      .query("full_order")
+      .withIndex("by_order_number", (q) =>
+        q.eq("order_number", args.orderNumber),
+      )
+      .first();
+    if (
+      !order ||
+      order.user_id !== args.userId ||
+      order.status !== "fulfilled"
+    ) {
+      throw new Error("Fulfilled order not found for email recipient");
+    }
+    const items = await ctx.db
+      .query("student_order")
+      .withIndex("by_order_id", (q) => q.eq("order_id", order._id))
+      .collect();
+    const students = await Promise.all(
+      items.map(async (item) => {
+        const student = await ctx.db.get(item.student_id);
+        if (!student || student.user_id !== order.user_id) return null;
+        const classroom = student.classroom_id
+          ? await ctx.db.get(student.classroom_id)
+          : null;
+        return {
+          classroomName: classroom?.classroom_name,
+          username: student.username,
+          password: student.password,
+          expiryDate: item.period_end ?? student.expiry_date,
+        };
+      }),
+    );
+    return students.filter((student) => student !== null);
+  },
+});
