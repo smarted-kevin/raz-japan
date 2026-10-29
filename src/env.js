@@ -13,7 +13,12 @@ export const env = createEnv({
     STRIPE_SECRET_KEY: z.string().optional(),
     MONTHLY_SUBSCRIPTIONS_ENABLED: z.enum(["true", "false"]).default("false"),
     STRIPE_BILLING_PORTAL_CONFIGURATION_ID: z.string().optional(),
-    STRIPE_ANNUAL_PRODUCT_ID: z.string().optional(),
+    // Required by annual billing on Convex; Next.js does not execute that code.
+    STRIPE_ANNUAL_PRODUCT_ID: z
+      .string()
+      .trim()
+      .regex(/^prod_[A-Za-z0-9]+$/)
+      .optional(),
     MEMBER_SIGNUP_ENABLED: z.enum(["true", "false"]).default("false"),
     //STRIPE_WEBHOOK_SECRET: z.string(),
     SITE_URL: z.string(),

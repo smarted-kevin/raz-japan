@@ -721,6 +721,96 @@ function fakeStripe() {
   };
 }
 
+test("annual preview and checkout require explicit Convex product configuration before Stripe requests", async () => {
+  for (const productId of [undefined, "", "   ", "price_wrong"]) {
+    const stripe = fakeStripe();
+    stripe.products.retrieve = async () =>
+      assert.fail("Unexpected product lookup");
+    const db = fixture();
+    db.add("cart", "cart", { user_id: "user", new_students: 1 });
+    const runtime = loadBilling({
+      stripe,
+      env: { STRIPE_ANNUAL_PRODUCT_ID: productId },
+    });
+    const actions = runtime.load("stripe");
+    const ctx = runtime.context(db);
+    await assert.rejects(
+      actions.getOrderPricing.handler(ctx, { student_ids: [] }),
+      /Set STRIPE_ANNUAL_PRODUCT_ID on this Convex deployment/,
+    );
+    await assert.rejects(
+      actions.checkout.handler(ctx, { cart_id: "cart" }),
+      /Set STRIPE_ANNUAL_PRODUCT_ID on this Convex deployment/,
+    );
+    assert.equal(db.table("full_order").length, 0);
+    assert.equal(stripe.calls.length, 0);
+  }
+});
+
+test("annual preview and checkout use the configured product and its mapped course price", async () => {
+  const stripe = fakeStripe();
+  const lookups = [];
+  stripe.products.retrieve = async (id) => {
+    lookups.push(id);
+    return { id, default_price: "price_live" };
+  };
+  stripe.priceMap.set("price_live", {
+    id: "price_live",
+    active: true,
+    currency: "jpy",
+    unit_amount: 4500,
+  });
+  const db = fixture();
+  await db.patch("annual", {
+    stripe_product_id: "prod_liveAnnual",
+    stripe_price_id: "price_live",
+  });
+  db.add("cart", "cart", { user_id: "user", new_students: 1 });
+  const runtime = loadBilling({
+    stripe,
+    env: { STRIPE_ANNUAL_PRODUCT_ID: "prod_liveAnnual" },
+  });
+  const actions = runtime.load("stripe");
+  const ctx = runtime.context(db);
+  const preview = await actions.getOrderPricing.handler(ctx, {
+    student_ids: [],
+  });
+  assert.equal(preview.newStudent, 4500);
+  await actions.checkout.handler(ctx, { cart_id: "cart" });
+  assert.deepEqual(lookups, ["prod_liveAnnual", "prod_liveAnnual"]);
+  const session = stripe.calls.find(([kind]) => kind === "checkout")[1];
+  assert.equal(session.line_items[0].price, "price_live");
+  assert.equal(session.line_items[0].quantity, 1);
+  assert.equal(db.table("full_order")[0].total_amount, 4500);
+});
+
+test("annual product lookup explains account/mode mismatches and preserves other Stripe errors", async () => {
+  const stripe = fakeStripe();
+  const runtime = loadBilling({ stripe });
+  const actions = runtime.load("stripe");
+  const ctx = runtime.context(fixture());
+  const missing = Object.assign(new Error("No such product"), {
+    code: "resource_missing",
+  });
+  stripe.products.retrieve = async () => {
+    throw missing;
+  };
+  await assert.rejects(
+    actions.getOrderPricing.handler(ctx, { student_ids: [] }),
+    (error) =>
+      /account, and test\/live mode/.test(error.message) &&
+      error.cause === missing,
+  );
+  const network = new Error("Stripe unavailable");
+  stripe.products.retrieve = async () => {
+    throw network;
+  };
+  await assert.rejects(
+    actions.getOrderPricing.handler(ctx, { student_ids: [] }),
+    (error) => error === network,
+  );
+});
+
 test("course creation provisions monthly and annual prices; replacement pricing leaves subscribers unchanged", async () => {
   const stripe = fakeStripe();
   const db = fixture();

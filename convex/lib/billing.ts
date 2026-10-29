@@ -9,6 +9,15 @@ export const billingModel = v.union(
 export const GRACE_MS = 7 * 24 * 60 * 60 * 1000;
 export const DAY_MS = 24 * 60 * 60 * 1000;
 
+export function annualProductId() {
+  const id = process.env.STRIPE_ANNUAL_PRODUCT_ID?.trim();
+  if (!id || !/^prod_[A-Za-z0-9]+$/.test(id))
+    throw new Error(
+      "Set STRIPE_ANNUAL_PRODUCT_ID on this Convex deployment to an annual product in the same Stripe account and mode as the server secret key",
+    );
+  return id;
+}
+
 export function nextMonthlyBoundary(timestamp: number) {
   const date = new Date(timestamp);
   const month = date.getUTCMonth() + 1;
