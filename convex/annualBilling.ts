@@ -14,6 +14,17 @@ import { generateOrderNumber } from "./mutations/full_order";
 
 type Purchase = NonNullable<Doc<"full_order">["purchase_snapshot"]>[number];
 
+async function checkoutDetails(ctx: MutationCtx, order: Doc<"full_order">) {
+  const usernames = await Promise.all(
+    (order.purchase_snapshot ?? []).map(async (item) => {
+      const student = await ctx.db.get(item.student_id);
+      if (!student) throw new Error("Order student missing");
+      return student.username;
+    }),
+  );
+  return { ...order, student_usernames: usernames };
+}
+
 async function snapshotCart(
   ctx: MutationCtx,
   cart: Doc<"cart">,
@@ -104,7 +115,7 @@ export const prepareCheckout = internalMutation({
     const pending = orders.find(
       (o) => o.status === "created" || o.status === "pending",
     );
-    if (pending) return pending;
+    if (pending) return checkoutDetails(ctx, pending);
     const snapshot = await snapshotCart(
       ctx,
       cart,
@@ -123,7 +134,7 @@ export const prepareCheckout = internalMutation({
     });
     for (const item of snapshot)
       await ctx.db.patch(item.student_id, { annual_order_id: id });
-    return (await ctx.db.get(id))!;
+    return checkoutDetails(ctx, (await ctx.db.get(id))!);
   },
 });
 
