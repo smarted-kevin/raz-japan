@@ -6,6 +6,10 @@ import ts from 'typescript';
 import { loadBilling } from './billing-test-helpers.mjs';
 import { adminAc, userAc } from 'better-auth/plugins/admin/access';
 import { z } from 'zod';
+import { admin } from 'better-auth/plugins';
+import * as authApi from 'better-auth/api';
+import { betterAuth } from 'better-auth';
+import { memoryAdapter } from 'better-auth/adapters/memory';
 
 function load(path, imports) {
   const exports = {};
@@ -249,6 +253,94 @@ for (const role of ['user', 'org_admin', 'no session', 'no token']) {
 const { authAdminOptions } = load('../convex/lib/authAdminOptions.ts', {
   'better-auth/plugins/admin/access': { adminAc, userAc },
 });
+
+const { createAuthAdminGuard: realCreateAuthAdminGuard } = load('../convex/lib/authAdminGuard.ts', {
+  'better-auth/api': authApi,
+});
+
+for (const sessionRole of ['god', 'admin', 'user', 'org_admin']) {
+  test(`Better Auth create-user endpoint permits a verified god with session role ${sessionRole}`, async () => {
+    const ctx = {
+      path: '/admin/create-user',
+      body: { email: 'created@example.com', name: 'Created User', password: 'Example-password-123!', role: 'org_admin' },
+      headers: new Headers(),
+      context: {
+        session: { user: { id: god.auth_id, role: sessionRole }, session: { id: 'session' } },
+        internalAdapter: {
+          findUserByEmail: async () => null,
+          createUser: async user => ({ id: 'created-auth-id', ...user }),
+          linkAccount: async account => { assert.equal(account.userId, 'created-auth-id'); },
+        },
+        password: { hash: async () => 'test-password-hash' },
+      },
+    };
+    const result = await realCreateAuthAdminGuard(async () => [god.auth_id])(ctx);
+    if (result?.context) Object.assign(ctx.context, result.context);
+    const created = await admin(authAdminOptions).endpoints.createUser(ctx);
+    assert.equal(created.user.role, 'org_admin');
+    assert.equal(created.user.email, ctx.body.email);
+  });
+}
+
+test('the HTTP auth pipeline creates an ordinary user from an existing stale god session', async () => {
+  const now = new Date();
+  const db = {
+    user: [{ id: god.auth_id, name: 'God', email: 'caller@example.com', role: 'user', emailVerified: true, createdAt: now, updatedAt: now }],
+    session: [], account: [], verification: [],
+  };
+  let verifiedGod = true;
+  const auth = betterAuth({
+    baseURL: 'http://localhost:3000',
+    secret: 'test-only-secret-for-auth-regression-tests',
+    database: memoryAdapter(db),
+    emailAndPassword: { enabled: true },
+    plugins: [admin(authAdminOptions)],
+    hooks: { before: realCreateAuthAdminGuard(async () => verifiedGod ? [god.auth_id] : []) },
+    logger: { disabled: true },
+  });
+  const context = await auth.$context;
+  await context.internalAdapter.linkAccount({
+    userId: god.auth_id, accountId: god.auth_id, providerId: 'credential',
+    password: await context.password.hash('Caller-password-123!'),
+  });
+  const signedIn = await auth.api.signInEmail({
+    body: { email: 'caller@example.com', password: 'Caller-password-123!' },
+    asResponse: true,
+  });
+  assert.equal(signedIn.status, 200);
+  const cookie = signedIn.headers.get('set-cookie');
+  const response = await auth.handler(new Request('http://localhost:3000/api/auth/admin/create-user', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: 'http://localhost:3000', cookie: cookie.split(';')[0] },
+    body: JSON.stringify({ email: 'ordinary@example.com', name: 'Ordinary User', password: 'Example-password-123!', role: 'user' }),
+  }));
+  const result = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(result));
+  assert.equal(result.user.role, 'user');
+  assert.equal(db.user.length, 2);
+  assert.equal(db.user[0].role, 'user', 'The role override must remain request-local');
+
+  // Removing the stored god role must immediately revoke creation access,
+  // including when the same signed-in session is reused.
+  verifiedGod = false;
+  const denied = await auth.handler(new Request('http://localhost:3000/api/auth/admin/create-user', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', origin: 'http://localhost:3000', cookie: cookie.split(';')[0] },
+    body: JSON.stringify({ email: 'denied@example.com', name: 'Denied User', password: 'Example-password-123!', role: 'user' }),
+  }));
+  assert.equal(denied.status, 403);
+  assert.equal(db.user.length, 2);
+});
+
+for (const sessionRole of ['god', 'admin', 'user', 'org_admin']) {
+  test(`an unverified ${sessionRole} session cannot create an administrator`, async () => {
+    await assert.rejects(realCreateAuthAdminGuard(async () => [])({
+      path: '/admin/create-user',
+      body: { role: 'org_admin' },
+      context: { session: { user: { id: 'ordinary-auth-id', role: sessionRole } } },
+    }), /User access denied/);
+  });
+}
 
 test('Better Auth grants create permission to god and admin only', () => {
   for (const role of ['god', 'admin', 'org_admin', 'user']) {
