@@ -88,8 +88,10 @@ async function defaultAnnualPrice(stripe: Stripe) {
       "code" in error &&
       error.code === "resource_missing"
     )
-      throw new Error(
-        "STRIPE_ANNUAL_PRODUCT_ID is unavailable to the server Stripe key; verify the product, account, and test/live mode on this Convex deployment",
+      throw Object.assign(
+        new Error(
+          "STRIPE_ANNUAL_PRODUCT_ID is unavailable to the server Stripe key; verify the product, account, and test/live mode on this Convex deployment",
+        ),
         { cause: error },
       );
     throw error;
