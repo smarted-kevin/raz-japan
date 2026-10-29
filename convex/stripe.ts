@@ -7,7 +7,12 @@ import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import type { ActionCtx } from "./_generated/server";
 import { stripeClient, ensureCustomer } from "./lib/stripeBilling";
-import { billingModel, isAnnual, validatePrice } from "./lib/billing";
+import {
+  annualProductId,
+  billingModel,
+  isAnnual,
+  validatePrice,
+} from "./lib/billing";
 
 // Read the same Stripe prices used by checkout; never create a session for a preview.
 export const getOrderPricing = action({
@@ -72,9 +77,23 @@ export const getOrderPricing = action({
 });
 
 async function defaultAnnualPrice(stripe: Stripe) {
-  const product = await stripe.products.retrieve(
-    process.env.STRIPE_ANNUAL_PRODUCT_ID ?? "prod_SXpH8diltRufBp",
-  );
+  const productId = annualProductId();
+  let product: Stripe.Product;
+  try {
+    product = await stripe.products.retrieve(productId);
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      error.code === "resource_missing"
+    )
+      throw new Error(
+        "STRIPE_ANNUAL_PRODUCT_ID is unavailable to the server Stripe key; verify the product, account, and test/live mode on this Convex deployment",
+        { cause: error },
+      );
+    throw error;
+  }
   const id =
     typeof product.default_price === "string"
       ? product.default_price

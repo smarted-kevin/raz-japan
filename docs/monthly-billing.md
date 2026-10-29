@@ -119,7 +119,8 @@ Set these on Convex:
 - `STRIPE_WEBHOOK_SECRET` for the correct event destination.
 - `SITE_URL` for trusted Checkout/Portal redirects.
 - `STRIPE_BILLING_PORTAL_CONFIGURATION_ID` for the account/mode.
-- `STRIPE_ANNUAL_PRODUCT_ID` for the annual cart; legacy fallback remains.
+- `STRIPE_ANNUAL_PRODUCT_ID` for the annual cart (required for annual billing;
+  there is no default product ID).
 - `MONTHLY_SUBSCRIPTIONS_ENABLED=false` until acceptance. Member UI reads the
   backend flag, so no public flag variable is needed.
 

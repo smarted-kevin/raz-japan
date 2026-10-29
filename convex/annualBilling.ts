@@ -4,7 +4,12 @@ import { internalMutation, internalQuery } from "./_generated/server";
 import type { MutationCtx } from "./_generated/server";
 import type { Doc, Id } from "./_generated/dataModel";
 import { getAuthenticatedUser } from "./lib/auth";
-import { availableStudents, isAnnual, studentCourse } from "./lib/billing";
+import {
+  annualProductId,
+  availableStudents,
+  isAnnual,
+  studentCourse,
+} from "./lib/billing";
 import { generateOrderNumber } from "./mutations/full_order";
 
 type Purchase = NonNullable<Doc<"full_order">["purchase_snapshot"]>[number];
@@ -162,11 +167,8 @@ export const fulfillOrder = internalMutation({
         throw new Error("Legacy order cart missing");
       const courses = await ctx.db.query("course").collect();
       const annual = courses.filter((c) => isAnnual(c) && c.stripe_price_id);
-      const newCourse = annual.find(
-        (c) =>
-          c.stripe_product_id ===
-          (process.env.STRIPE_ANNUAL_PRODUCT_ID ?? "prod_SXpH8diltRufBp"),
-      );
+      const productId = cart.new_students ? annualProductId() : undefined;
+      const newCourse = annual.find((c) => c.stripe_product_id === productId);
       if (!newCourse?.stripe_price_id && cart.new_students)
         throw new Error("Legacy annual course mapping missing");
       snapshot = await snapshotCart(

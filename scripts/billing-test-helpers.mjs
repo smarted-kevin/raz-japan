@@ -39,6 +39,7 @@ export function loadBilling({ stripe, env = {} } = {}) {
           MONTHLY_SUBSCRIPTIONS_ENABLED: "true",
           SITE_URL: "https://example.test",
           STRIPE_SECRET_KEY: "sk_test_fake",
+          STRIPE_ANNUAL_PRODUCT_ID: "prod_SXpH8diltRufBp",
           ...env,
         },
       },
