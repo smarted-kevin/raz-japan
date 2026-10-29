@@ -1,4 +1,5 @@
 import { v } from "convex/values";
+import { internal } from "./_generated/api";
 import { internalMutation, internalQuery } from "./_generated/server";
 import {
   authedQuery,
@@ -242,6 +243,9 @@ export const recordBatchPayment = internalMutation({
       paid_at: args.paid_at,
       paid_through: args.paid_through,
       next_reconcile_at: Date.now(),
+    });
+    await ctx.scheduler.runAfter(0, internal.stripe.syncOrderMetadata, {
+      order_id: orderId,
     });
   },
 });
@@ -1000,6 +1004,9 @@ export const applySubscription = internalMutation({
           period_end: invoice.period_end,
           created_date: Date.now(),
           updated_on: Date.now(),
+        });
+        await ctx.scheduler.runAfter(0, internal.stripe.syncOrderMetadata, {
+          order_id: orderId,
         });
         if (invoice.period_end >= row.paid_through)
           await ctx.db.patch(row._id, {

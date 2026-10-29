@@ -86,7 +86,12 @@ test("add-on checkout is reusable and rejects another payer's annual student", a
 });
 
 test("invoice before checkout activates once; duplicate events and invoices do not duplicate orders", async () => {
-  const { db, apply, snapshot } = await reservedFixture();
+  const { db, ctx, apply, snapshot } = await reservedFixture();
+  const metadataJobs = [];
+  ctx.scheduler.runAfter = async (_delay, ref, args) => {
+    if (ref.__path === "internal.stripe.syncOrderMetadata")
+      metadataJobs.push(args);
+  };
   const invoice = {
     id: "in_first",
     amount: 500,
@@ -100,6 +105,8 @@ test("invoice before checkout activates once; duplicate events and invoices do n
   await apply({ invoice, event_id: "evt_paid" });
   await apply({ invoice, event_id: "evt_other" });
   assert.equal(db.table("full_order").length, 1);
+  assert.equal(metadataJobs.length, 1);
+  assert.equal(metadataJobs[0].order_id, db.table("full_order")[0]._id);
   assert.equal(db.table("student_order").length, 1);
   assert.equal((await db.get("monthlystudent")).status, "active");
   assert.equal(db.table("subscription")[0].paid_through, snapshot.period_end);
@@ -914,6 +921,171 @@ test("annual preview and checkout use the configured product and its mapped cour
   assert.equal(session.line_items[0].price, "price_live");
   assert.equal(session.line_items[0].quantity, 1);
   assert.equal(db.table("full_order")[0].total_amount, 4500);
+  assert.equal(session.metadata.order_number, "RAZ-0001");
+  assert.equal(session.metadata.student_username, "annual");
+  assert.deepEqual(session.payment_intent_data.metadata, session.metadata);
+});
+
+test("checkout metadata includes new and renewal usernames and retries reuse the payment", async () => {
+  const stripe = fakeStripe();
+  stripe.products.retrieve = async (id) => ({
+    id,
+    default_price: "price_year",
+  });
+  stripe.priceMap.set("price_year", {
+    id: "price_year",
+    active: true,
+    currency: "jpy",
+    unit_amount: 4500,
+  });
+  const db = fixture();
+  db.add("student", "renewal", {
+    classroom_id: "annualroom",
+    user_id: "user",
+    status: "active",
+    username: "renewal-user",
+    expiry_date: Date.now(),
+  });
+  db.add("cart", "cart", {
+    user_id: "user",
+    new_students: 1,
+    renewal_students: ["renewal"],
+  });
+  const runtime = loadBilling({ stripe });
+  const ctx = runtime.context(db);
+  const actions = runtime.load("stripe");
+  const url = await actions.checkout.handler(ctx, { cart_id: "cart" });
+  assert.equal(await actions.checkout.handler(ctx, { cart_id: "cart" }), url);
+  const requests = stripe.calls.filter(([kind]) => kind === "checkout");
+  assert.equal(requests.length, 1);
+  const params = requests[0][1];
+  const order = db.table("full_order")[0];
+  assert.equal(params.metadata.order_number, order.order_number);
+  assert.equal(params.metadata.student_username, "renewal-user, annual");
+  assert.equal(params.metadata.order_id, order._id);
+  assert.equal(params.metadata.cart_id, "cart");
+  assert.deepEqual(params.payment_intent_data.metadata, params.metadata);
+});
+
+test("large orders preserve every username within Stripe metadata limits", () => {
+  const { studentUsernameMetadata } = loadBilling().load("lib/stripeBilling");
+  const usernames = Array.from({ length: 100 }, (_, i) => `student-${i}`);
+  const metadata = studentUsernameMetadata(usernames);
+  assert.ok(Object.keys(metadata).length > 1);
+  assert.ok(Object.values(metadata).every((value) => value.length <= 500));
+  assert.deepEqual(Object.values(metadata).join(", ").split(", "), usernames);
+  assert.ok(metadata.student_username);
+  assert.ok(metadata.student_username_2);
+});
+
+for (const kind of ["checkout", "invoice"]) {
+  test(`monthly ${kind} metadata reaches the Stripe payment and charge`, async () => {
+    const db = fixture();
+    db.add("full_order", "paid-order", {
+      user_id: "user",
+      order_number: "RAZ-0042",
+      ...(kind === "checkout"
+        ? { stripe_order_id: "cs_paid" }
+        : { stripe_invoice_id: "in_paid" }),
+    });
+    db.add("student_order", "paid-student", {
+      order_id: "paid-order",
+      student_id: "monthlystudent",
+    });
+    const updates = [];
+    const update = (kind) => async (id, params) => {
+      updates.push({ kind, id, params });
+    };
+    const stripe = {
+      checkout: {
+        sessions: {
+          retrieve: async () => ({
+            id: "cs_paid",
+            customer: "cus_test",
+            payment_intent: "pi_paid",
+          }),
+          update: update("checkout"),
+        },
+      },
+      invoices: {
+        retrieve: async () => ({ id: "in_paid", customer: "cus_test" }),
+        update: update("invoice"),
+      },
+      invoicePayments: {
+        list: ({ invoice, status }) => {
+          assert.equal(invoice, "in_paid");
+          assert.equal(status, "paid");
+          return {
+            async *[Symbol.asyncIterator]() {
+              yield { payment: { payment_intent: "pi_paid" } };
+            },
+          };
+        },
+      },
+      paymentIntents: {
+        retrieve: async () => ({
+          customer: "cus_test",
+          latest_charge: "ch_paid",
+        }),
+        update: update("payment"),
+      },
+      charges: { update: update("charge") },
+    };
+    const runtime = loadBilling({ stripe });
+    const ctx = runtime.context(db);
+    ctx.scheduler.runAfter = async () => assert.fail("Unexpected retry");
+    await runtime.load("stripe").syncOrderMetadata.handler(ctx, {
+      order_id: "paid-order",
+    });
+    assert.deepEqual(
+      updates.map((u) => u.kind),
+      [kind, "payment", "charge"],
+    );
+    for (const { params } of updates) {
+      assert.equal(params.metadata.order_number, "RAZ-0042");
+      assert.equal(params.metadata.student_username, "monthly");
+      assert.equal(params.metadata.order_id, "paid-order");
+    }
+  });
+}
+
+test("monthly metadata retries Stripe failures and rejects customer mismatches", async () => {
+  const db = fixture();
+  db.add("full_order", "paid-order", {
+    user_id: "user",
+    order_number: "RAZ-0042",
+    stripe_order_id: "cs_paid",
+  });
+  const stripe = {
+    checkout: {
+      sessions: {
+        retrieve: async () => ({ customer: "cus_foreign" }),
+        update: async () => assert.fail("Foreign checkout must not be updated"),
+      },
+    },
+  };
+  const runtime = loadBilling({ stripe });
+  const ctx = runtime.context(db);
+  const retries = [];
+  ctx.scheduler.runAfter = async (delay, ref, args) => {
+    retries.push({ delay, path: ref.__path, args });
+  };
+  const action = runtime.load("stripe").syncOrderMetadata;
+  await action.handler(ctx, { order_id: "paid-order" });
+  assert.equal(retries.length, 1);
+  assert.equal(retries[0].delay, 60_000);
+  assert.equal(retries[0].path, "internal.stripe.syncOrderMetadata");
+  assert.equal(retries[0].args.retry, 1);
+  await assert.rejects(
+    action.handler(ctx, { order_id: "paid-order", retry: 3 }),
+    /customer mismatch/,
+  );
+  stripe.checkout.sessions.retrieve = async () => {
+    throw new Error("Stripe unavailable");
+  };
+  await action.handler(ctx, { order_id: "paid-order", retry: 1 });
+  assert.equal(retries[1].delay, 120_000);
+  assert.equal(retries[1].args.retry, 2);
 });
 
 test("annual product lookup explains account/mode mismatches and preserves other Stripe errors", async () => {

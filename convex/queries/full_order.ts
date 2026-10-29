@@ -428,6 +428,28 @@ export const getOrderByIdInternal = internalQuery({
   handler: async (ctx, args) => ctx.db.get(args.id),
 });
 
+export const getStripeMetadataInternal = internalQuery({
+  args: { id: v.id("full_order") },
+  handler: async (ctx, { id }) => {
+    const order = await ctx.db.get(id);
+    if (!order?.order_number) throw new Error("Order number missing");
+    const payer = await ctx.db.get(order.user_id);
+    if (!payer?.stripe_id) throw new Error("Stripe customer missing");
+    const items = await ctx.db
+      .query("student_order")
+      .withIndex("by_order_id", (q) => q.eq("order_id", id))
+      .collect();
+    const usernames = await Promise.all(
+      items.map(async (item) => {
+        const student = await ctx.db.get(item.student_id);
+        if (!student) throw new Error("Order student missing");
+        return student.username;
+      }),
+    );
+    return { order, customer_id: payer.stripe_id, usernames };
+  },
+});
+
 // Credentials are only available internally, for the recipient's fulfilled order.
 export const getPaymentEmailStudents = internalQuery({
   args: { orderNumber: v.string(), userId: v.id("userTable") },

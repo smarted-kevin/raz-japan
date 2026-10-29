@@ -6,7 +6,11 @@ import type Stripe from "stripe";
 import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import type { ActionCtx } from "./_generated/server";
-import { stripeClient, ensureCustomer } from "./lib/stripeBilling";
+import {
+  stripeClient,
+  ensureCustomer,
+  studentUsernameMetadata,
+} from "./lib/stripeBilling";
 import {
   annualProductId,
   billingModel,
@@ -176,6 +180,12 @@ export const checkout = action({
         );
       const site = process.env.SITE_URL;
       if (!site) throw new Error("SITE_URL is required");
+      const metadata = {
+        order_id: order._id,
+        cart_id: cart._id,
+        order_number: order.order_number ?? "",
+        ...studentUsernameMetadata(order.student_usernames),
+      };
       session = await stripe.checkout.sessions.create(
         {
           customer,
@@ -186,11 +196,8 @@ export const checkout = action({
             price,
             quantity,
           })),
-          metadata: {
-            order_id: order._id,
-            cart_id: cart._id,
-            order_number: order.order_number ?? "",
-          },
+          metadata,
+          payment_intent_data: { metadata },
           success_url: site + "/dashboard/members/checkout/success",
           cancel_url: site + "/dashboard/members",
         },
@@ -204,6 +211,72 @@ export const checkout = action({
     if (session.status !== "open" || !session.url)
       throw new Error("Checkout is no longer open");
     return session.url;
+  },
+});
+
+function stripeObjectId(value: string | { id: string } | null | undefined) {
+  return typeof value === "string" ? value : value?.id;
+}
+
+// Monthly order numbers are assigned after payment. Enrich the existing Stripe
+// records separately so a metadata outage cannot roll back paid access.
+export const syncOrderMetadata = internalAction({
+  args: { order_id: v.id("full_order"), retry: v.optional(v.number()) },
+  handler: async (ctx, args) => {
+    try {
+      const { order, customer_id, usernames } = await ctx.runQuery(
+        internal.queries.full_order.getStripeMetadataInternal,
+        { id: args.order_id },
+      );
+      const metadata = {
+        order_id: order._id,
+        order_number: order.order_number!,
+        ...studentUsernameMetadata(usernames),
+      };
+      const stripe = stripeClient();
+      const paymentIds = new Set<string>();
+      if (order.stripe_order_id) {
+        const session = await stripe.checkout.sessions.retrieve(
+          order.stripe_order_id,
+        );
+        if (stripeObjectId(session.customer) !== customer_id)
+          throw new Error("Order customer mismatch");
+        await stripe.checkout.sessions.update(session.id, { metadata });
+        const paymentId = stripeObjectId(session.payment_intent);
+        if (paymentId) paymentIds.add(paymentId);
+      }
+      if (order.stripe_invoice_id) {
+        const invoice = await stripe.invoices.retrieve(order.stripe_invoice_id);
+        if (stripeObjectId(invoice.customer) !== customer_id)
+          throw new Error("Invoice customer mismatch");
+        await stripe.invoices.update(invoice.id!, { metadata });
+        for await (const payment of stripe.invoicePayments.list({
+          invoice: invoice.id!,
+          status: "paid",
+          limit: 100,
+        })) {
+          const paymentId = stripeObjectId(payment.payment.payment_intent);
+          if (paymentId) paymentIds.add(paymentId);
+        }
+      }
+      for (const paymentId of paymentIds) {
+        const payment = await stripe.paymentIntents.retrieve(paymentId);
+        if (stripeObjectId(payment.customer) !== customer_id)
+          throw new Error("Payment customer mismatch");
+        await stripe.paymentIntents.update(paymentId, { metadata });
+        // The charge was created before the monthly order number was assigned.
+        const chargeId = stripeObjectId(payment.latest_charge);
+        if (chargeId) await stripe.charges.update(chargeId, { metadata });
+      }
+    } catch (error) {
+      const retry = args.retry ?? 0;
+      if (retry >= 3) throw error;
+      await ctx.scheduler.runAfter(
+        60_000 * 2 ** retry,
+        internal.stripe.syncOrderMetadata,
+        { order_id: args.order_id, retry: retry + 1 },
+      );
+    }
   },
 });
 
