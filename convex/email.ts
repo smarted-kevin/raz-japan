@@ -22,9 +22,12 @@ export const sendPaymentConfirmationEmail = internalAction({
   handler: async (ctx, { userId, orderNumber, totalAmount }) => {
     try {
       // Get user information
-      const user = await ctx.runQuery(internal.queries.users.getUserByIdInternal, {
-        id: userId,
-      });
+      const user = await ctx.runQuery(
+        internal.queries.users.getUserByIdInternal,
+        {
+          id: userId,
+        },
+      );
 
       if (!user?.email) {
         console.error("User not found or email missing");
@@ -39,6 +42,10 @@ export const sendPaymentConfirmationEmail = internalAction({
       });
 
       // Render the email template
+      const students = await ctx.runQuery(
+        internal.queries.full_order.getPaymentEmailStudents,
+        { orderNumber, userId },
+      );
       const emailHtml = await render(
         PaymentConfirmationEmail({
           firstName: user.first_name ?? "Valued Customer",
@@ -46,7 +53,8 @@ export const sendPaymentConfirmationEmail = internalAction({
           totalAmount: totalAmount,
           currency: "JPY",
           orderDate: orderDate,
-        })
+          students,
+        }),
       );
 
       // Send email using Resend
@@ -61,7 +69,10 @@ export const sendPaymentConfirmationEmail = internalAction({
 
       if (error) {
         console.error("Error sending email:", error);
-        return { success: false, error: error.message || "Failed to send email" };
+        return {
+          success: false,
+          error: error.message || "Failed to send email",
+        };
       }
 
       console.log("Payment confirmation email sent successfully:", data);
