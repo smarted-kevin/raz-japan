@@ -579,6 +579,138 @@ test("annual fulfillment is atomic, immutable after cart edits, and idempotent",
   );
 });
 
+// Old checkout sessions have a paid order and cart, but no purchase snapshot.
+// Do not use prepareCheckout here: it would bypass legacy fulfillment entirely.
+function legacyAnnualFixture({
+  productId,
+  newStudents = 1,
+  amount = 4500,
+} = {}) {
+  const db = fixture();
+  db.add("cart", "legacycart", {
+    user_id: "user",
+    new_students: newStudents,
+    renewal_students: newStudents ? [] : ["annualstudent"],
+  });
+  db.add("full_order", "legacyorder", {
+    user_id: "user",
+    cart_id: "legacycart",
+    stripe_order_id: "cs_legacy",
+    total_amount: amount,
+    status: "pending",
+  });
+  const runtime = loadBilling({ env: { STRIPE_ANNUAL_PRODUCT_ID: productId } });
+  const ctx = runtime.context(db);
+  const annual = runtime.load("annualBilling");
+  return {
+    db,
+    fulfill: () =>
+      db.transaction(() =>
+        annual.fulfillOrder.handler(ctx, {
+          session_id: "cs_legacy",
+          cart_id: "legacycart",
+          customer_id: "cus_test",
+          amount,
+        }),
+      ),
+  };
+}
+
+test("legacy new-student fulfillment rejects missing or malformed product configuration without changing records", async () => {
+  for (const productId of [undefined, "", "   ", "price_wrong"]) {
+    const { db, fulfill } = legacyAnnualFixture({ productId });
+    assert.equal((await db.get("legacyorder")).purchase_snapshot, undefined);
+    const before = structuredClone(db.rows);
+    await assert.rejects(
+      fulfill(),
+      /Set STRIPE_ANNUAL_PRODUCT_ID on this Convex deployment/,
+    );
+    assert.deepEqual(db.rows, before);
+  }
+});
+
+test("legacy new-student fulfillment uses the configured course and persists an idempotent purchase snapshot", async () => {
+  const { db, fulfill } = legacyAnnualFixture({
+    productId: "prod_configuredAnnual",
+    amount: 6200,
+  });
+  // Leave the former default course and its inventory available as a decoy.
+  db.add("course", "configuredcourse", {
+    course_name: "Configured Annual",
+    price: 6200,
+    stripe_price_id: "price_configured",
+    stripe_product_id: "prod_configuredAnnual",
+    status: "active",
+  });
+  db.add("classroom", "configuredroom", {
+    course_id: "configuredcourse",
+    organization_id: "org",
+    status: "active",
+  });
+  db.add("student", "configuredstudent", {
+    classroom_id: "configuredroom",
+    status: "inactive",
+    username: "configured",
+  });
+  const untouchedStudent = await db.get("annualstudent");
+  assert.equal((await db.get("legacyorder")).purchase_snapshot, undefined);
+  assert.equal(await fulfill(), "legacyorder");
+  const order = await db.get("legacyorder");
+  assert.equal(order.status, "fulfilled");
+  assert.deepEqual(
+    order.purchase_snapshot.map((item) => ({ ...item })),
+    [
+      {
+        student_id: "configuredstudent",
+        course_id: "configuredcourse",
+        course_name: "Configured Annual",
+        stripe_price_id: "price_configured",
+        amount: 6200,
+        order_type: "new",
+      },
+    ],
+  );
+  const student = await db.get("configuredstudent");
+  assert.equal(student.user_id, "user");
+  assert.equal(student.status, "active");
+  assert.ok(student.expiry_date > Date.now() + 364 * day);
+  assert.deepEqual(await db.get("annualstudent"), untouchedStudent);
+  const [item] = db.table("student_order");
+  assert.equal(item.order_id, "legacyorder");
+  assert.equal(item.student_id, "configuredstudent");
+  assert.equal(item.course_id, "configuredcourse");
+  assert.equal(item.amount, 6200);
+  await db.patch("legacycart", { new_students: 99 });
+  assert.equal(await fulfill(), null);
+  assert.equal(db.table("student_order").length, 1);
+  assert.deepEqual(await db.get("legacyorder"), order);
+});
+
+test("legacy renewal-only fulfillment extends the owned student's access without product configuration", async () => {
+  const { db, fulfill } = legacyAnnualFixture({ newStudents: 0 });
+  const expiry = new Date(Date.UTC(2030, 5, 15, 12));
+  await db.patch("annualstudent", {
+    user_id: "user",
+    status: "active",
+    expiry_date: expiry.getTime(),
+  });
+  assert.equal((await db.get("legacyorder")).purchase_snapshot, undefined);
+  assert.equal(await fulfill(), "legacyorder");
+  const order = await db.get("legacyorder");
+  assert.equal(order.status, "fulfilled");
+  assert.equal(order.purchase_snapshot.length, 1);
+  assert.equal(order.purchase_snapshot[0].student_id, "annualstudent");
+  assert.equal(order.purchase_snapshot[0].order_type, "renewal");
+  const [item] = db.table("student_order");
+  assert.equal(item.order_id, "legacyorder");
+  assert.equal(item.order_type, "renewal");
+  assert.equal(item.period_start, expiry.getTime());
+  expiry.setUTCFullYear(expiry.getUTCFullYear() + 1);
+  assert.equal(item.period_end, expiry.getTime());
+  assert.equal((await db.get("annualstudent")).expiry_date, expiry.getTime());
+  assert.equal((await db.get("annualstudent")).user_id, "user");
+});
+
 test("annual checkout rejects monthly renewals and foreign cart ownership", async () => {
   const db = fixture();
   const runtime = loadBilling();
