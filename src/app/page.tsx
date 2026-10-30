@@ -672,7 +672,7 @@ export default async function HomePage() {
               </p>
             </div>
 
-            <div>
+            <div className="md:col-span-2 md:justify-self-center">
               <h3 className="mb-4 font-bold">{t("quick_links")}</h3>
               <ul className="space-y-2 text-sm">
                 <li>
@@ -705,28 +705,6 @@ export default async function HomePage() {
                     className="text-gray-600 transition-colors hover:text-[#a92379]"
                   >
                     {t("contact_title")}
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="mb-4 font-bold">{t("legal")}</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-600 transition-colors hover:text-[#a92379]"
-                  >
-                    {t("privacy_policy")}
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="#"
-                    className="text-gray-600 transition-colors hover:text-[#a92379]"
-                  >
-                    {t("terms_of_service")}
                   </Link>
                 </li>
                 <li>
