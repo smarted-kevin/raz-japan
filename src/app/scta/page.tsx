@@ -18,8 +18,6 @@ export default async function SCTAPage() {
     { labelKey: "seller", contentKeys: ["seller_detail"] },
     { labelKey: "store_director", contentKeys: ["store_director_detail"] },
     { labelKey: "address", contentKeys: ["address_detail"] },
-    { labelKey: "phone", contentKeys: ["phone_detail"] },
-    { labelKey: "fax", contentKeys: ["fax_detail"] },
     { labelKey: "email", contentKeys: ["email_detail"] },
     { labelKey: "url", contentKeys: ["url_detail"] },
     { labelKey: "ordering_method", contentKeys: ["ordering_method_detail"] },
@@ -33,21 +31,12 @@ export default async function SCTAPage() {
       ],
     },
     {
-      labelKey: "delivery",
-      contentKeys: ["delivery_school", "delivery_guest"],
-    },
-    {
       labelKey: "other_costs",
-      contentKeys: [
-        "other_costs_1",
-        "other_costs_2",
-        "other_costs_school",
-        "other_costs_guest",
-      ],
+      contentKeys: ["other_costs_1"],
     },
     {
       labelKey: "returns",
-      contentKeys: ["returns_1", "returns_2", "returns_3", "returns_4"],
+      contentKeys: ["returns_1"],
     },
   ];
 
