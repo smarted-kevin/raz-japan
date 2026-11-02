@@ -41,8 +41,9 @@ export function PublicNavBar({
             className="h-auto w-20 shrink-0 sm:w-32"
           />
           <span
+            style={{ fontFamily: '"Segoe UI", sans-serif' }}
             className={cn(
-              "bg-gradient-to-r bg-clip-text text-sm leading-none font-bold tracking-tight whitespace-nowrap text-transparent sm:text-xl sm:leading-none",
+              "-mb-[0.2em] bg-gradient-to-r bg-clip-text pb-[0.2em] text-sm leading-none font-bold tracking-tight whitespace-nowrap text-transparent sm:text-xl sm:leading-none",
               branded
                 ? "from-[#651348] via-[#92206c] to-[#c83192]"
                 : "from-blue-950 via-blue-900 to-indigo-700",
