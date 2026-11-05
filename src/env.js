@@ -9,6 +9,8 @@ export const env = createEnv({
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
     CONVEX_DEPLOYMENT: z.string(),
+    // Build-only on Vercel; scripts/vercel-build.mjs requires it in production.
+    CONVEX_DEPLOY_KEY: z.string().min(1).optional(),
     STRIPE_SANDBOX_SECRET_KEY: z.string(),
     STRIPE_SECRET_KEY: z.string().optional(),
     MONTHLY_SUBSCRIPTIONS_ENABLED: z.enum(["true", "false"]).default("false"),
@@ -44,6 +46,7 @@ export const env = createEnv({
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
     CONVEX_DEPLOYMENT: process.env.CONVEX_DEPLOYMENT,
+    CONVEX_DEPLOY_KEY: process.env.CONVEX_DEPLOY_KEY,
     STRIPE_SANDBOX_SECRET_KEY: process.env.STRIPE_SANDBOX_SECRET_KEY,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     MONTHLY_SUBSCRIPTIONS_ENABLED: process.env.MONTHLY_SUBSCRIPTIONS_ENABLED,

@@ -1,5 +1,44 @@
 **Things I want to work on next**
 
+## Automatic Convex deployment on Vercel
+
+`vercel.json` sets the build command to `pnpm build:vercel`, overriding the
+dashboard build command. When `VERCEL_ENV=production`, this runs:
+
+```bash
+pnpm exec convex deploy --cmd-url-env-var-name NEXT_PUBLIC_CONVEX_URL --cmd "pnpm build"
+```
+
+Convex builds Next.js with the target deployment URL, then pushes the functions,
+schema, and indexes from the same checkout. A missing key, failed build, or failed
+Convex deployment fails the Vercel build. Local `pnpm build` and Vercel preview
+builds do not deploy Convex; previews retain their configured backend URL.
+
+One-time setup:
+
+1. In the existing Convex project's **production deployment**, open Settings >
+   General and generate a production deploy key with `deployment:deploy` permission.
+2. In the Vercel project, add `CONVEX_DEPLOY_KEY` as a sensitive environment
+   variable scoped to **Production only**. Use the key for the same production
+   backend the live application uses. Never commit it or prefix it with
+   `NEXT_PUBLIC_`.
+3. Verify Vercel's Git production branch is the branch used for releases and
+   system environment variables are exposed (`VERCEL_ENV` must be available).
+   Retain the app's other required variables, including production
+   `CONVEX_DEPLOYMENT`, and configure backend secrets in Convex separately.
+4. Merge this configuration into the production branch, or redeploy that commit
+   as a production build. Confirm the logs show `convex deploy` and a successful
+   function push, and confirm the deployment in the Convex production dashboard.
+
+This takes effect on new builds; promoting a previously built preview without
+rebuilding does not run the production build hook. Frontend and backend releases
+are not atomic: if Vercel publishing fails after Convex deploys, the backend may
+already be updated. Keep backend changes compatible with the currently live app;
+rolling back Vercel alone does not roll back Convex functions.
+
+References: [Convex Vercel hosting guide](https://docs.convex.dev/production/hosting/vercel)
+and [Vercel buildCommand configuration](https://vercel.com/docs/project-configuration/vercel-json#buildcommand).
+
 ## Security deployment requirements
 
 - Set `SITE_URL` to the production HTTPS origin in both the Next.js and Convex environments.
