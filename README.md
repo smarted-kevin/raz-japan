@@ -48,6 +48,7 @@ and [Vercel buildCommand configuration](https://vercel.com/docs/project-configur
   after changing it.
 - Set the same randomly generated `CONTACT_RATE_LIMIT_SECRET` (at least 32 random bytes) in the Next.js and Convex environments. The public contact endpoint fails closed when it is missing.
 - Configure `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and `CONTACT_INQUIRY_TO_EMAIL` for transactional and contact email delivery.
+- Completed annual purchases, initial monthly checkout payments, and paid monthly invoices notify `raz@smarted.jp` with Bcc to `kevin@smarted.jp`. The notification includes the order number, purchase amount in JPY, and customer email. Deploy the Convex functions with `RESEND_API_KEY` and a verified `RESEND_FROM_EMAIL` configured in Convex. No new environment variables or migration are required.
 - After enabling email verification, existing accounts that have not yet verified will receive a verification link on their next sign-in attempt.
 
 *HP*
@@ -63,7 +64,7 @@ and [Vercel buildCommand configuration](https://vercel.com/docs/project-configur
 [ ] - Make new logo
 
 *BACKEND*
-[ ] - Send email to admin when new order is placed
+[x] - Send email to admin when new order is placed
 [x] - Individual order page in admin dashboard
 [x] - Printable order page for individual orders
 

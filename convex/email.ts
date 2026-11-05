@@ -7,8 +7,50 @@ import { render } from "@react-email/render";
 import { PaymentConfirmationEmail } from "../src/components/payment-confirmation-email";
 import { RenewalNoticeEmail } from "../src/components/renewal-notice-email";
 import { internal } from "./_generated/api";
+import { OrderNotificationEmail } from "../src/components/order-notification-email";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Scheduled atomically with fulfillment; recipients and order data are server-controlled.
+export const sendOrderNotificationEmail = internalAction({
+  args: { order_id: v.id("full_order") },
+  handler: async (ctx, { order_id }) => {
+    const order = await ctx.runQuery(
+      internal.queries.full_order.getOrderByIdInternal,
+      { id: order_id },
+    );
+    if (order?.status !== "fulfilled" || !order.order_number)
+      throw new Error("Fulfilled order not found");
+    const user = await ctx.runQuery(
+      internal.queries.users.getUserByIdInternal,
+      {
+        id: order.user_id,
+      },
+    );
+    if (!user?.email) throw new Error("Order customer email missing");
+
+    const html = await render(
+      OrderNotificationEmail({
+        orderNumber: order.order_number,
+        totalAmount: order.total_amount,
+        customerEmail: user.email,
+      }),
+    );
+    const { error } = await resend.emails.send(
+      {
+        from:
+          process.env.RESEND_FROM_EMAIL ??
+          "Raz-Plus Japan <onboarding@resend.dev>",
+        to: "raz@smarted.jp",
+        bcc: "kevin@smarted.jp",
+        subject: `Order completed - ${order.order_number}`,
+        html,
+      },
+      { idempotencyKey: `order-notification/${order_id}` },
+    );
+    if (error) throw new Error("Order notification delivery failed");
+  },
+});
 
 /**
  * Sends a payment confirmation email to the user

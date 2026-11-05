@@ -247,6 +247,9 @@ export const recordBatchPayment = internalMutation({
     await ctx.scheduler.runAfter(0, internal.stripe.syncOrderMetadata, {
       order_id: orderId,
     });
+    await ctx.scheduler.runAfter(0, internal.email.sendOrderNotificationEmail, {
+      order_id: orderId,
+    });
   },
 });
 
@@ -1008,6 +1011,13 @@ export const applySubscription = internalMutation({
         await ctx.scheduler.runAfter(0, internal.stripe.syncOrderMetadata, {
           order_id: orderId,
         });
+        await ctx.scheduler.runAfter(
+          0,
+          internal.email.sendOrderNotificationEmail,
+          {
+            order_id: orderId,
+          },
+        );
         if (invoice.period_end >= row.paid_through)
           await ctx.db.patch(row._id, {
             paid_through: invoice.period_end,
