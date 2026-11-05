@@ -245,6 +245,9 @@ export const fulfillOrder = internalMutation({
       status: "fulfilled",
       updated_date: now,
     });
+    await ctx.scheduler.runAfter(0, internal.email.sendOrderNotificationEmail, {
+      order_id: order._id,
+    });
     return order._id;
   },
 });

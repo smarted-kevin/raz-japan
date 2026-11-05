@@ -88,9 +88,12 @@ test("add-on checkout is reusable and rejects another payer's annual student", a
 test("invoice before checkout activates once; duplicate events and invoices do not duplicate orders", async () => {
   const { db, ctx, apply, snapshot } = await reservedFixture();
   const metadataJobs = [];
+  const notifications = [];
   ctx.scheduler.runAfter = async (_delay, ref, args) => {
     if (ref.__path === "internal.stripe.syncOrderMetadata")
       metadataJobs.push(args);
+    if (ref.__path === "internal.email.sendOrderNotificationEmail")
+      notifications.push(args);
   };
   const invoice = {
     id: "in_first",
@@ -107,7 +110,15 @@ test("invoice before checkout activates once; duplicate events and invoices do n
   assert.equal(db.table("full_order").length, 1);
   assert.equal(metadataJobs.length, 1);
   assert.equal(metadataJobs[0].order_id, db.table("full_order")[0]._id);
-  assert.equal(db.table("student_order").length, 1);
+  assert.equal(notifications.length, 1);
+  assert.equal(notifications[0].order_id, db.table("full_order")[0]._id);
+  await apply({
+    invoice: { ...invoice, id: "in_renewal" },
+    event_id: "evt_renewal",
+  });
+  assert.equal(notifications.length, 2);
+  assert.equal(notifications[1].order_id, db.table("full_order")[1]._id);
+  assert.equal(db.table("student_order").length, 2);
   assert.equal((await db.get("monthlystudent")).status, "active");
   assert.equal(db.table("subscription")[0].paid_through, snapshot.period_end);
   assert.equal(
@@ -117,7 +128,12 @@ test("invoice before checkout activates once; duplicate events and invoices do n
 });
 
 test("unpaid initial invoice grants no access; successful payment restores it", async () => {
-  const { db, apply, snapshot } = await reservedFixture();
+  const { db, ctx, apply, snapshot } = await reservedFixture();
+  const notifications = [];
+  ctx.scheduler.runAfter = async (_delay, ref, args) => {
+    if (ref.__path === "internal.email.sendOrderNotificationEmail")
+      notifications.push(args);
+  };
   const invoice = {
     id: "in_first",
     amount: 0,
@@ -128,12 +144,14 @@ test("unpaid initial invoice grants no access; successful payment restores it", 
     failed: true,
   };
   await apply({ invoice, event_type: "invoice.payment_action_required" });
+  assert.equal(notifications.length, 0);
   assert.equal((await db.get("monthlystudent")).status, "active");
   assert.equal(db.table("subscription")[0].grace_deadline, undefined);
   assert.equal((await storeAccess(db)).has_access, false);
   await apply({
     invoice: { ...invoice, amount: 500, paid: true, failed: false },
   });
+  assert.equal(notifications.length, 1);
   assert.equal((await db.get("monthlystudent")).status, "active");
 });
 
@@ -547,6 +565,11 @@ test("annual fulfillment is atomic, immutable after cart edits, and idempotent",
   const db = fixture();
   const runtime = loadBilling();
   const ctx = runtime.context(db);
+  const notifications = [];
+  ctx.scheduler.runAfter = async (_delay, ref, args) => {
+    if (ref.__path === "internal.email.sendOrderNotificationEmail")
+      notifications.push(args);
+  };
   const annual = runtime.load("annualBilling");
   db.add("cart", "cart", { user_id: "user", new_students: 1 });
   const order = await db.transaction(() =>
@@ -574,10 +597,13 @@ test("annual fulfillment is atomic, immutable after cart edits, and idempotent",
     /outage/,
   );
   assert.equal((await db.get(order._id)).status, "created");
+  assert.equal(notifications.length, 0);
   assert.equal((await db.get("annualstudent")).user_id, undefined);
   fail = false;
   await db.transaction(() => annual.fulfillOrder.handler(ctx, args));
   await db.transaction(() => annual.fulfillOrder.handler(ctx, args));
+  assert.equal(notifications.length, 1);
+  assert.equal(notifications[0].order_id, order._id);
   assert.equal(db.table("student_order").length, 1);
   assert.equal((await db.get(order._id)).status, "fulfilled");
   assert.equal((await db.get("annualstudent")).user_id, "user");

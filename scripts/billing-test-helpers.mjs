@@ -3,7 +3,7 @@ import { resolve, dirname } from "node:path";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 
-export function loadBilling({ stripe, env = {} } = {}) {
+export function loadBilling({ stripe, env = {}, mocks = {} } = {}) {
   const cache = new Map();
   const register = (definition) =>
     typeof definition === "function" ? { handler: definition } : definition;
@@ -44,6 +44,7 @@ export function loadBilling({ stripe, env = {} } = {}) {
         },
       },
       require: (name) => {
+        if (Object.hasOwn(mocks, name)) return mocks[name];
         if (name.includes("_generated/server"))
           return {
             internalMutation: register,

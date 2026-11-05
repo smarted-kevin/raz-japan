@@ -190,14 +190,19 @@ function setup() {
 test("paid batches schedule order metadata once despite duplicate payment events", async () => {
   const f = setup();
   const jobs = [];
+  const notifications = [];
   f.ctx.scheduler.runAfter = async (_delay, ref, args) => {
     if (ref.__path === "internal.stripe.syncOrderMetadata") jobs.push(args);
+    if (ref.__path === "internal.email.sendOrderNotificationEmail")
+      notifications.push(args);
   };
   await f.start(selections);
   await f.pay();
   await f.pay();
   assert.equal(jobs.length, 1);
   assert.equal(jobs[0].order_id, f.db.table("full_order")[0]._id);
+  assert.equal(notifications.length, 1);
+  assert.equal(notifications[0].order_id, f.db.table("full_order")[0]._id);
 });
 
 test("batch reservations are atomic, reusable, and exclude legacy and overlapping checkouts", async () => {
