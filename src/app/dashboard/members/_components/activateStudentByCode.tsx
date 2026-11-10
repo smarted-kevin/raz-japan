@@ -53,7 +53,7 @@ export default function ActivateStudentByCode({
       } else {
         setError(result.error ?? "Failed to activate student");
       }
-    } catch (err) {
+    } catch {
       setError("An error occurred while activating the student");
     } finally {
       setIsSubmitting(false);

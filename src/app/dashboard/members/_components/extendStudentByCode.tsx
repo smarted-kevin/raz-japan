@@ -60,7 +60,7 @@ export function ExtendStudentByCode({
       } else {
         setError(result.error ?? "Failed to extend student");
       }
-    } catch (err) {
+    } catch {
       setError("An error occurred while extending the student");
     } finally {
       setIsSubmitting(false);

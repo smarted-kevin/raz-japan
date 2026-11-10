@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
@@ -43,7 +43,6 @@ export default function AddStudentsDialog({
   setOpenState: (open: boolean) => void;
 }) {
   const t = useTranslations("dashboard.admin.classrooms");
-  const tc = useTranslations("dashboard.admin.common");
   const router = useRouter();
   const [error, setError] = React.useState<string>();
   const maxAllowed = 36 - currentStudentCount;
@@ -66,7 +65,7 @@ export default function AddStudentsDialog({
     },
   });
 
-  const studentCount = form.watch("student_count");
+  const studentCount = useWatch({ control: form.control, name: "student_count" });
 
   React.useEffect(() => {
     if (studentCount > maxAllowed) {

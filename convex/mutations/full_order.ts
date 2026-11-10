@@ -149,7 +149,7 @@ export const updateDateOrderPrice = internalMutation({
       return (total += student.amount);
     }, 0);
 
-    const updated_order = await ctx.db.patch(args.order_id, {
+    await ctx.db.patch(args.order_id, {
       total_amount: order_total ?? 0,
       updated_date: Date.now(),
     });

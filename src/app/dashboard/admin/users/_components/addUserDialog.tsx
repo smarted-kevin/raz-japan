@@ -3,7 +3,7 @@
 import * as React from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
@@ -94,7 +94,7 @@ export default function AddUserDialog({
     },
   });
 
-  const selectedRole = form.watch("role");
+  const selectedRole = useWatch({ control: form.control, name: "role" });
 
   React.useEffect(() => {
     if (selectedRole !== "org_admin") {

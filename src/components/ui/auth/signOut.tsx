@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { authClient } from "~/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
-import { cn } from "~/lib/utils";
 
 interface SignOutButtonProps {
   collapsed?: boolean;

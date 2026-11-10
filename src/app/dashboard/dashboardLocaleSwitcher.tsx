@@ -74,7 +74,6 @@ export default function DashboardLocaleSwitcher({ collapsed = false }: Dashboard
 }
 
 function LocaleButton({ locale }: { locale: Locale }) {
-  const curLocale = useLocale();
 
   return (
     <button

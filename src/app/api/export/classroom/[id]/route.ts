@@ -45,7 +45,7 @@ export async function GET(
         'X-Content-Type-Options': 'nosniff',
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Export failed' }, { status: 500 });
   }
 }

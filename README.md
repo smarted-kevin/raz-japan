@@ -1,5 +1,28 @@
 **Things I want to work on next**
 
+## Local checks and regression tests
+
+Use Node.js 22.23 or newer and pnpm. Run `pnpm check` for ESLint and TypeScript,
+`pnpm test` for the regression suite, and `pnpm build` for a production build.
+The tests use Node's built-in test runner and live in `scripts/*.test.mjs`.
+`pnpm test:watch` reruns tests as files change. `pnpm test:coverage` uses Node's
+experimental coverage reporting; the VM-based TypeScript test loaders do not
+provide source-mapped application coverage, so the report is not an application
+coverage threshold or a substitute for behavioral regression tests.
+
+Jest is no longer used by these commands. No tracked CI configuration invokes
+Jest. At the time of this change, GitHub exposed no Actions workflows, check
+runs, repository rulesets, or protection for `main`; the latest default-branch
+commit had only a Vercel status. The tracked Vercel build invokes
+`pnpm build:vercel`, which does not invoke Jest. This inspection does not cover
+untracked tooling or settings in external dashboards.
+
+The unused `jest`, `ts-jest`, and `@types/jest` dependencies, `jest.config.js`,
+and obsolete Jest/test-directory ignores have been removed. There were no Jest
+test files to migrate; the existing Node regression tests remain in place.
+Any independently maintained CI command that explicitly invokes Jest should
+use `pnpm test` instead.
+
 ## Automatic Convex deployment on Vercel
 
 `vercel.json` sets the build command to `pnpm build:vercel`, overriding the
