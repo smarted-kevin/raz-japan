@@ -20,7 +20,7 @@ import { Button } from "~/components/ui/button";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 
-export function ActivateDialog({ id }: { id: string }) {
+export function ActivateDialog({ id: _id }: { id: string }) {
   const t = useTranslations("dashboard.admin.students");
   const tc = useTranslations("dashboard.admin.common");
 

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -19,50 +18,43 @@ interface SidebarProps {
 export default function Sidebar({ role }: SidebarProps) {
   const t = useTranslations("dashboard.admin.layout");
   const { isCollapsed, setIsCollapsed } = useSidebar();
-  const [showTitle, setShowTitle] = useState(!isCollapsed);
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed, true); // Pass true to indicate manual toggle
   };
 
-  // Delay showing title until after transition completes
-  useEffect(() => {
-    if (isCollapsed) {
-      // Hide immediately when collapsing
-      setShowTitle(false);
-    } else {
-      // Show after transition completes (300ms)
-      const timer = setTimeout(() => {
-        setShowTitle(true);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [isCollapsed]);
-
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-primary flex flex-col transition-all duration-300 print:hidden",
-        isCollapsed ? "w-16" : "w-64"
+        "bg-primary fixed top-0 left-0 z-40 flex h-screen flex-col transition-all duration-300 print:hidden",
+        isCollapsed ? "w-16" : "w-64",
       )}
     >
       {/* Header */}
       <div
         className={cn(
-          "flex h-16 items-center border-b border-primary-foreground/10 transition-all duration-300",
-          isCollapsed ? "justify-center px-0" : "justify-between px-6"
+          "border-primary-foreground/10 flex h-16 items-center border-b transition-all duration-300",
+          isCollapsed ? "justify-center px-0" : "justify-between px-6",
         )}
       >
-        {showTitle && !isCollapsed && (
-          <h2 className="text-lg font-semibold text-white">{t("title")}</h2>
-        )}
+        <h2
+          aria-hidden={isCollapsed}
+          className={cn(
+            "overflow-hidden text-lg font-semibold whitespace-nowrap text-white transition-[opacity,visibility] duration-0",
+            isCollapsed
+              ? "invisible w-0 opacity-0 delay-0"
+              : "visible opacity-100 delay-300",
+          )}
+        >
+          {t("title")}
+        </h2>
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleCollapse}
           className={cn(
             "text-white hover:bg-white/20",
-            isCollapsed ? "mx-auto" : "ml-auto"
+            isCollapsed ? "mx-auto" : "ml-auto",
           )}
           aria-label={isCollapsed ? t("expand_sidebar") : t("collapse_sidebar")}
         >
@@ -75,10 +67,14 @@ export default function Sidebar({ role }: SidebarProps) {
       </div>
 
       {/* Language Toggle and Logout - Moved Higher */}
-      <div className={cn(
-        "border-b border-primary-foreground/10 p-3",
-        isCollapsed ? "flex flex-col items-center gap-2" : "flex items-center justify-between gap-3 px-4"
-      )}>
+      <div
+        className={cn(
+          "border-primary-foreground/10 border-b p-3",
+          isCollapsed
+            ? "flex flex-col items-center gap-2"
+            : "flex items-center justify-between gap-3 px-4",
+        )}
+      >
         <DashboardLocaleSwitcher collapsed={isCollapsed} />
         <SignOutButton collapsed={isCollapsed} />
       </div>

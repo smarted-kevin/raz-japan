@@ -52,6 +52,8 @@ export default function OrderTable({
     typeof api.queries.full_order.getOrdersWithUserAndStudentData
   >;
 }) {
+  "use no memo"; // TanStack Table v8 exposes mutable state that must not be compiler-memoized.
+
   const t = useTranslations("dashboard.admin.orders");
   const tc = useTranslations("dashboard.admin.common");
   const tb = useTranslations("billing");
@@ -160,6 +162,8 @@ export default function OrderTable({
     [orders, status, model],
   );
 
+  // This component opts out of React Compiler above; keep TanStack state reactive.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredOrders,
     columns,

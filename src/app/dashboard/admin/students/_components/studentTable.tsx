@@ -49,6 +49,8 @@ export default function StudentTable({
   students: StudentData[];
   classrooms: Classroom[];
 }) {
+  "use no memo"; // TanStack Table v8 exposes mutable state that must not be compiler-memoized.
+
   const t = useTranslations("dashboard.admin.students");
   const tc = useTranslations("dashboard.admin.common");
   const statusLabel = useAdminStatusLabel();
@@ -192,6 +194,8 @@ export default function StudentTable({
     [filteredByStatus, classroomMap],
   );
 
+  // This component opts out of React Compiler above; keep TanStack state reactive.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: tableData,
     columns,

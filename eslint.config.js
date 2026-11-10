@@ -39,5 +39,6 @@ export default defineConfig([
     "src/components/svg/*.jsx",
     "src/convex/_generated/*",
     "convex/_generated/**",
+    "convex/betterAuth/_generated/**",
   ]),
 ]);

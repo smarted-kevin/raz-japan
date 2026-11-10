@@ -11,15 +11,15 @@ interface HeroBannerBackgroundProps {
  * Full-bleed hero photo behind the banner (below lg). Hidden at lg+ where the portrait column is used.
  */
 export function HeroBannerBackground({ src, alt }: HeroBannerBackgroundProps) {
-  const [loaded, setLoaded] = useState(false);
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
 
   useEffect(() => {
     const img = new Image();
-    img.onload = () => setLoaded(true);
+    img.onload = () => setLoadedSrc(src);
     img.src = src;
-    if (img.complete) {
-      setLoaded(true);
-    }
+    return () => {
+      img.onload = null;
+    };
   }, [src]);
 
   return (
@@ -28,7 +28,7 @@ export function HeroBannerBackground({ src, alt }: HeroBannerBackgroundProps) {
         role="img"
         aria-label={alt}
         className={`absolute inset-0 bg-cover bg-[50%_35%] bg-no-repeat transition-opacity duration-500 lg:hidden ${
-          loaded ? "opacity-100" : "opacity-0"
+          loadedSrc === src ? "opacity-100" : "opacity-0"
         }`}
         style={{ backgroundImage: `url(${src})` }}
       />

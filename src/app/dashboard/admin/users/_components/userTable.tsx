@@ -50,6 +50,8 @@ export default function UserTable({
   orgs: Doc<"organization">[];
   callerRole: string;
 }) {
+  "use no memo"; // TanStack Table v8 exposes mutable state that must not be compiler-memoized.
+
   const t = useTranslations("dashboard.admin.users");
   const tc = useTranslations("dashboard.admin.common");
   const statusLabel = useAdminStatusLabel();
@@ -152,6 +154,8 @@ export default function UserTable({
     { id: "role", value: "all" },
   ]);
 
+  // This component opts out of React Compiler above; keep TanStack state reactive.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: users,
     columns,
