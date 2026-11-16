@@ -29,6 +29,7 @@ import { Input } from "~/components/ui/input";
 import type { Course } from "../../_actions/schemas";
 import { addActivationCodes, type NewActivationCodeForm } from "../../_actions/activation_code";
 import type { Id } from "@/convex/_generated/dataModel";
+import posthog from "posthog-js";
 
 type OrganizationWithId = {
   _id: Id<"organization">;
@@ -68,6 +69,7 @@ export default function AddActivationCodeDialog({
     if (typeof result === "string") {
       setError(result);
     } else {
+      posthog.capture("activation_codes_created", { quantity: values.quantity });
       setError(undefined);
       setOpenState(false);
       form.reset();

@@ -16,6 +16,7 @@ import {
 } from "~/components/ui/card";
 import type { Id } from "@/convex/_generated/dataModel";
 import { KeyRound } from "lucide-react";
+import posthog from "posthog-js";
 
 export default function ActivateStudentByCode({
   userId,
@@ -44,6 +45,7 @@ export default function ActivateStudentByCode({
       });
 
       if (result.success) {
+        posthog.capture("activation_code_redeemed");
         setSuccess(true);
         setActivationCode("");
         // Refresh the page to show the new student

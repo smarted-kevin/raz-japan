@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "~/lib/auth-client";
 import { publicCtaYellowButtonClassName } from "~/lib/public-cta-styles";
 import { cn } from "~/lib/utils";
+import posthog from "posthog-js";
 
 export default function SignUp() {
   const router = useRouter();
@@ -45,6 +46,7 @@ export default function SignUp() {
           setLoading(true);
         },
         onSuccess: () => {
+          posthog.capture("user_signed_up");
           toast.success("Account created successfully.");
           router.push("/dashboard/");
         },

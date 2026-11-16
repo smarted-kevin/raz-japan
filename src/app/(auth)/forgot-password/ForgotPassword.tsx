@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import posthog from "posthog-js";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -23,6 +24,7 @@ export default function ForgotPassword() {
     });
 
     // Keep the response identical whether or not the email exists.
+    posthog.capture("password_reset_requested");
     setSubmitted(true);
     setLoading(false);
   }

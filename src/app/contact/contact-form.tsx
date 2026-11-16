@@ -30,6 +30,7 @@ import {
   type ContactTopic,
 } from "~/lib/contact-schema";
 import { cn } from "~/lib/utils";
+import posthog from "posthog-js";
 
 const topicTranslationKey: Record<ContactTopic, string> = {
   purchasing: "topic_purchasing",
@@ -85,6 +86,7 @@ export function ContactForm({ className }: { className?: string }) {
       return;
     }
 
+    posthog.capture("contact_inquiry_submitted", { topic: values.topic });
     setSuccess(true);
     form.reset({
       topic: "purchasing",

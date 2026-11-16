@@ -23,6 +23,7 @@ import type { NewCourseForm } from "../../_actions/schemas";
 import { useAction } from "convex/react";
 import { api } from "../../../../../../convex/_generated/api";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 
 export default function AddCourseDialog({
   openState,
@@ -52,6 +53,7 @@ export default function AddCourseDialog({
     if (!result.success) {
       setError(result.error);
     } else {
+      posthog.capture("course_created", { price: values.price });
       setError(undefined);
       setOpenState(false);
       router.refresh();
