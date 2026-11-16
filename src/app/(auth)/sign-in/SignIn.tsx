@@ -16,6 +16,7 @@ import { publicCtaBlueGradientButtonClassName } from "~/lib/public-cta-styles";
 import { cn } from "~/lib/utils";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import posthog from "posthog-js";
 
 export default function SignIn() {
   const router = useRouter();
@@ -37,6 +38,7 @@ export default function SignIn() {
           setError(null);
         },
         onSuccess: () => {
+          posthog.capture("user_signed_in");
           router.push("/dashboard/");
         },
         onError: () => {

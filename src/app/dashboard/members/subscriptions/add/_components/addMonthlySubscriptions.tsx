@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { dateDisplayFormat, formatYen } from "~/lib/formatters";
+import posthog from "posthog-js";
 
 export function AddMonthlySubscriptions() {
   const t = useTranslations("billing");
@@ -113,6 +114,10 @@ export function AddMonthlySubscriptions() {
         })),
       });
       sessionStorage.setItem("monthly-checkout-batch", result.batch_id);
+      posthog.capture("monthly_subscription_checkout_started", {
+        subscription_count: entries.length,
+        total,
+      });
       window.location.assign(result.url);
     } catch {
       setError(true);

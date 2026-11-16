@@ -21,6 +21,7 @@ import { useAction, useMutation } from "convex/react";
 import { useLocale, useTranslations } from "next-intl";
 import { compareStudentExpiry, isRenewable } from "~/lib/dateCompare";
 import Link from "next/link";
+import posthog from "posthog-js";
 
 type Pricing = {
   newStudent: number;
@@ -130,6 +131,11 @@ export function MemberOrder({
       await save(newStudents, existingStudents);
       const url = await checkout({ cart_id: cart.cart_id });
       if (!url?.startsWith("https://")) throw new Error("Checkout failed");
+      posthog.capture("annual_checkout_started", {
+        new_student_count: newStudents,
+        renewal_student_count: existingStudents.length,
+        total: total ?? undefined,
+      });
       window.location.href = url;
     } catch {
       setError(t("checkout_error"));

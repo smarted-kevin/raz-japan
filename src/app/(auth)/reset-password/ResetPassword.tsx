@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import posthog from "posthog-js";
 
 export default function ResetPassword({
   token,
@@ -46,6 +47,7 @@ export default function ResetPassword({
       setError("This reset link is invalid or has expired.");
       return;
     }
+    posthog.capture("password_reset_completed");
     setComplete(true);
   }
 

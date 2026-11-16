@@ -33,6 +33,7 @@ import type {
 } from "../../_actions/schemas";
 import { addClassroom } from "../../_actions/classroom";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 
 export default function AddClassroomDialog({
   courses,
@@ -65,6 +66,9 @@ export default function AddClassroomDialog({
     if (typeof result === "string") {
       setError(result);
     } else {
+      posthog.capture("classroom_created", {
+        student_count: values.student_count,
+      });
       setError(undefined);
       setOpenState(false);
       router.refresh();
