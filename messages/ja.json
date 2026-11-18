@@ -1,4 +1,15 @@
 {
+  "Analytics": {
+    "settings": "アクセス解析の設定",
+    "title": "RAZ Japanのサービス改善にご協力ください",
+    "description": "同意いただいた場合、PostHogを使ってサイトの閲覧、アカウント登録、決済手続きの開始と支払いの完了を計測します。選択内容は「アクセス解析の設定」からいつでも変更できます。",
+    "allow": "アクセス解析を許可する",
+    "decline": "許可しない",
+    "close": "閉じる",
+    "unavailable": "ブラウザーに設定を保存できませんでした。アクセス解析は無効です。",
+    "currently_allowed": "アクセス解析は有効です。",
+    "currently_declined": "アクセス解析は無効です。"
+  },
   "Homepage": {
     "title": "Hello world!",
     "button": "Go to the about page",

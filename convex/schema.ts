@@ -1,7 +1,15 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import {
+  analyticsCheckoutId,
+  paymentAnalyticsContext,
+} from "./lib/paymentAnalytics";
 
 export default defineSchema({
+  payment_analytics_context: defineTable({
+    checkout_id: analyticsCheckoutId,
+    attribution: paymentAnalyticsContext,
+  }).index("by_checkout", ["checkout_id"]),
   userTable: defineTable({
     auth_id: v.optional(v.string()),
     first_name: v.string(),

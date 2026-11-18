@@ -7,6 +7,11 @@ import { api, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import type { ActionCtx } from "./_generated/server";
 import {
+  paymentAnalyticsContext,
+  paymentConfirmedArgs,
+  sendPaymentConfirmedEvent,
+} from "./lib/paymentAnalytics";
+import {
   stripeClient,
   ensureCustomer,
   studentUsernameMetadata,
@@ -121,7 +126,10 @@ function validateAnnualPrice(price: Stripe.Price) {
 }
 
 export const checkout = action({
-  args: { cart_id: v.id("cart") },
+  args: {
+    cart_id: v.id("cart"),
+    analytics: v.optional(paymentAnalyticsContext),
+  },
   handler: async (ctx, args): Promise<string> => {
     const payer = await ctx.runQuery(internal.billingStore.payer, {});
     const cart = await ctx.runQuery(internal.queries.cart.getCartById, {
@@ -156,6 +164,7 @@ export const checkout = action({
         cart_id: args.cart_id,
         new_price_id: defaultPrice.id,
         prices: prices.map((p) => ({ price_id: p.id, amount: p.unit_amount! })),
+        analytics: args.analytics,
       },
     );
     if (
@@ -211,6 +220,25 @@ export const checkout = action({
     if (session.status !== "open" || !session.url)
       throw new Error("Checkout is no longer open");
     return session.url;
+  },
+});
+
+const paymentAnalyticsRetryDelays = [60_000, 300_000, 1_800_000];
+
+export const sendPaymentConfirmed = internalAction({
+  args: paymentConfirmedArgs,
+  handler: async (ctx, args): Promise<void> => {
+    const result = await sendPaymentConfirmedEvent(args);
+    if (result === "done") return;
+    const delay = paymentAnalyticsRetryDelays[args.attempt];
+    if (result === "retry" && delay !== undefined) {
+      await ctx.scheduler.runAfter(delay, internal.stripe.sendPaymentConfirmed, {
+        ...args,
+        attempt: args.attempt + 1,
+      });
+      return;
+    }
+    console.warn("PostHog payment event delivery failed.");
   },
 });
 

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { authClient } from "~/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
+import { resetAnalyticsIdentity } from "~/lib/analytics";
 
 interface SignOutButtonProps {
   collapsed?: boolean;
@@ -24,6 +25,7 @@ export function SignOutButton({ collapsed = false }: SignOutButtonProps) {
           await authClient.signOut({
             fetchOptions: {
               onSuccess: () => {
+                resetAnalyticsIdentity();
                 router.push("/sign-in");
               }
             }
@@ -45,6 +47,7 @@ export function SignOutButton({ collapsed = false }: SignOutButtonProps) {
         await authClient.signOut({
           fetchOptions: {
             onSuccess: () => {
+              resetAnalyticsIdentity();
               router.push("/sign-in");
             }
           }

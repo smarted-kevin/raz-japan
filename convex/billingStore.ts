@@ -21,6 +21,12 @@ import {
 import { generateOrderNumber } from "./mutations/full_order";
 import type { Doc, Id } from "./_generated/dataModel";
 import type { MutationCtx } from "./_generated/server";
+import {
+  clearPaymentAttribution,
+  paymentAnalyticsContext,
+  savePaymentAttribution,
+  schedulePaymentConfirmed,
+} from "./lib/paymentAnalytics";
 import type { QueryCtx } from "./_generated/server";
 
 async function hasSubscriptionAccess(
@@ -41,11 +47,12 @@ export const payer = internalQuery({ args: {}, handler: getAuthenticatedUser });
 
 export const reserveBatch = internalMutation({
   args: {
+    analytics: v.optional(paymentAnalyticsContext),
     selections: v.array(
       v.object({ student_id: v.id("student"), course_id: v.id("course") }),
     ),
   },
-  handler: async (ctx, { selections }) => {
+  handler: async (ctx, { selections, analytics }) => {
     const user = await getAuthenticatedUser(ctx);
     if (process.env.MONTHLY_SUBSCRIPTIONS_ENABLED !== "true")
       throw new Error("Monthly checkout is disabled");
@@ -119,7 +126,10 @@ export const reserveBatch = internalMutation({
       });
       expiry = Math.min(expiry, student.expiry_date);
     }
-    if (existing) return existing;
+    if (existing) {
+      await savePaymentAttribution(ctx, existing._id, analytics);
+      return existing;
+    }
     const total = snapshot.reduce((sum, s) => sum + s.price, 0);
     validatePrice(total);
     const id = await ctx.db.insert("monthly_checkout_batch", {
@@ -144,6 +154,7 @@ export const reserveBatch = internalMutation({
         created_at: Date.now(),
         expires_at: expiry,
       });
+    await savePaymentAttribution(ctx, id, analytics);
     return (await ctx.db.get(id))!;
   },
 });
@@ -244,6 +255,14 @@ export const recordBatchPayment = internalMutation({
       paid_through: args.paid_through,
       next_reconcile_at: Date.now(),
     });
+    await schedulePaymentConfirmed(
+      ctx,
+      b._id,
+      orderId,
+      "monthly",
+      args.amount,
+      args.paid_at,
+    );
     await ctx.scheduler.runAfter(0, internal.stripe.syncOrderMetadata, {
       order_id: orderId,
     });
@@ -267,6 +286,7 @@ export const updateBatchRecovery = internalMutation({
       .withIndex("by_batch", (q) => q.eq("batch_id", b._id))
       .collect();
     if (args.expired && !b.paid_at) {
+      await clearPaymentAttribution(ctx, b._id);
       for (const a of attempts)
         await ctx.db.patch(a._id, { status: "expired" });
       await ctx.db.patch(b._id, {

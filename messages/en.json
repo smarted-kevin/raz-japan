@@ -1,4 +1,15 @@
 {
+  "Analytics": {
+    "settings": "Analytics settings",
+    "title": "Help improve RAZ Japan",
+    "description": "With your permission, we use PostHog to measure visits, signups, checkout starts, and whether those checkouts lead to a payment. You can change your choice in Analytics settings.",
+    "allow": "Allow analytics",
+    "decline": "Decline",
+    "close": "Close",
+    "unavailable": "Your browser could not save your choice. Analytics is off.",
+    "currently_allowed": "Analytics is on.",
+    "currently_declined": "Analytics is off."
+  },
   "Homepage": {
     "title": "Hello world!",
     "button": "Go to the about page",

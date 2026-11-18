@@ -8,6 +8,7 @@ import { getServerSession } from "~/lib/get-session";
 import type { User } from "convex/auth";
 import { redirect } from "next/navigation";
 import { Toaster } from "sonner";
+import { AnalyticsSettings } from "~/components/analytics/analytics-settings";
 
 const PUBLIC_PATHS = [
   "/scta",
@@ -58,6 +59,7 @@ export default async function RootLayout({
           <NextIntlClientProvider>
             <ConvexClientProvider>
               {children}
+              <AnalyticsSettings />
             </ConvexClientProvider>
             <Toaster richColors position="top-center" />
           </NextIntlClientProvider>

@@ -19,6 +19,10 @@ import type { Id } from "@/convex/_generated/dataModel";
 import { api } from "@/convex/_generated/api";
 import { useAction, useMutation } from "convex/react";
 import { useLocale, useTranslations } from "next-intl";
+import {
+  captureCheckoutStarted,
+  checkoutAnalyticsContext,
+} from "~/lib/analytics";
 import { compareStudentExpiry, isRenewable } from "~/lib/dateCompare";
 import Link from "next/link";
 
@@ -128,8 +132,12 @@ export function MemberOrder({
     setError("");
     try {
       await save(newStudents, existingStudents);
-      const url = await checkout({ cart_id: cart.cart_id });
+      const url = await checkout({
+        cart_id: cart.cart_id,
+        analytics: checkoutAnalyticsContext(locale),
+      });
       if (!url?.startsWith("https://")) throw new Error("Checkout failed");
+      await captureCheckoutStarted(url, "annual", locale);
       window.location.href = url;
     } catch {
       setError(t("checkout_error"));

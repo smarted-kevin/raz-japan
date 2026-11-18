@@ -23,6 +23,10 @@ test files to migrate; the existing Node regression tests remain in place.
 Any independently maintained CI command that explicitly invokes Jest should
 use `pnpm test` instead.
 
+## Analytics
+
+See [PostHog analytics](docs/posthog-analytics.md) for configuration, dashboard setup, and the rollout checks.
+
 ## Automatic Convex deployment on Vercel
 
 `vercel.json` sets the build command to `pnpm build:vercel`, overriding the
