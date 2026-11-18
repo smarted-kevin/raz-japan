@@ -3,7 +3,7 @@ import { resolve, dirname } from "node:path";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 
-export function loadBilling({ stripe, env = {}, mocks = {} } = {}) {
+export function loadBilling({ stripe, env = {}, mocks = {}, fetch } = {}) {
   const cache = new Map();
   const register = (definition) =>
     typeof definition === "function" ? { handler: definition } : definition;
@@ -34,6 +34,10 @@ export function loadBilling({ stripe, env = {}, mocks = {} } = {}) {
       Map,
       Promise,
       console,
+      fetch,
+      crypto: globalThis.crypto,
+      TextEncoder,
+      AbortSignal,
       process: {
         env: {
           MONTHLY_SUBSCRIPTIONS_ENABLED: "true",
@@ -135,6 +139,9 @@ export class MemoryDB {
   async insert(table, fields) {
     const id = `${table}:${++this.next}`;
     return this.add(table, id, fields);
+  }
+  async delete(id) {
+    this.rows.delete(id);
   }
   query(table) {
     const predicates = [];

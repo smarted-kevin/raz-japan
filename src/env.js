@@ -37,6 +37,14 @@ export const env = createEnv({
     NEXT_PUBLIC_CONVEX_URL: z.string(),
     NEXT_PUBLIC_STRIPE_SANDBOX_PUBLIC_KEY: z.string(),
     NEXT_PUBLIC_UPLOADTHING_APP_ID: z.string(),
+    // Convex validates its separate POSTHOG_PAYMENT_* settings before sending payment events.
+    NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN: z
+      .string()
+      .regex(/^phc_[A-Za-z0-9]+$/)
+      .optional(),
+    NEXT_PUBLIC_POSTHOG_HOST: z
+      .enum(["https://eu.i.posthog.com", "https://us.i.posthog.com"])
+      .optional(),
   },
 
   /**
@@ -61,6 +69,9 @@ export const env = createEnv({
     SITE_URL: process.env.SITE_URL,
     UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
     NEXT_PUBLIC_UPLOADTHING_APP_ID: process.env.NEXT_PUBLIC_UPLOADTHING_APP_ID,
+    NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN:
+      process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN,
+    NEXT_PUBLIC_POSTHOG_HOST: process.env.NEXT_PUBLIC_POSTHOG_HOST,
     // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
   },
   /**

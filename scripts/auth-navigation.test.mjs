@@ -209,6 +209,7 @@ for (const nestedProvider of [false, true]) {
           },
         },
         sonner: { Toaster: () => null },
+        "~/components/analytics/analytics-settings": { AnalyticsSettings: () => null },
       });
       const memberLayout = loadLayout(
         "../src/app/dashboard/members/layout.tsx",

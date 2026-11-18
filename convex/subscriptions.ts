@@ -8,6 +8,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 import { internal } from "./_generated/api";
 import { renewalStopAt, nextMonthlyBoundary } from "./lib/billing";
 import { stripeClient, ensureCustomer } from "./lib/stripeBilling";
+import { paymentAnalyticsContext } from "./lib/paymentAnalytics";
 
 async function batchSession(
   ctx: ActionCtx,
@@ -93,6 +94,7 @@ async function batchSession(
 
 export const createMonthlyBatchCheckout = action({
   args: {
+    analytics: v.optional(paymentAnalyticsContext),
     selections: v.array(
       v.object({ student_id: v.id("student"), course_id: v.id("course") }),
     ),

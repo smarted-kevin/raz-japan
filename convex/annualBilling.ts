@@ -11,6 +11,12 @@ import {
   studentCourse,
 } from "./lib/billing";
 import { generateOrderNumber } from "./mutations/full_order";
+import {
+  clearPaymentAttribution,
+  paymentAnalyticsContext,
+  savePaymentAttribution,
+  schedulePaymentConfirmed,
+} from "./lib/paymentAnalytics";
 
 type Purchase = NonNullable<Doc<"full_order">["purchase_snapshot"]>[number];
 
@@ -102,6 +108,7 @@ export const prepareCheckout = internalMutation({
     cart_id: v.id("cart"),
     new_price_id: v.string(),
     prices: v.array(v.object({ price_id: v.string(), amount: v.number() })),
+    analytics: v.optional(paymentAnalyticsContext),
   },
   handler: async (ctx, args) => {
     const user = await getAuthenticatedUser(ctx);
@@ -115,7 +122,10 @@ export const prepareCheckout = internalMutation({
     const pending = orders.find(
       (o) => o.status === "created" || o.status === "pending",
     );
-    if (pending) return checkoutDetails(ctx, pending);
+    if (pending) {
+      await savePaymentAttribution(ctx, pending._id, args.analytics);
+      return checkoutDetails(ctx, pending);
+    }
     const snapshot = await snapshotCart(
       ctx,
       cart,
@@ -134,6 +144,7 @@ export const prepareCheckout = internalMutation({
     });
     for (const item of snapshot)
       await ctx.db.patch(item.student_id, { annual_order_id: id });
+    await savePaymentAttribution(ctx, id, args.analytics);
     return checkoutDetails(ctx, (await ctx.db.get(id))!);
   },
 });
@@ -245,6 +256,16 @@ export const fulfillOrder = internalMutation({
       status: "fulfilled",
       updated_date: now,
     });
+    const annualOrderTypes = new Set(snapshot.map((item) => item.order_type));
+    await schedulePaymentConfirmed(
+      ctx,
+      order._id,
+      order._id,
+      "annual",
+      args.amount,
+      now,
+      annualOrderTypes.size > 1 ? "mixed" : snapshot[0]?.order_type,
+    );
     await ctx.scheduler.runAfter(0, internal.email.sendOrderNotificationEmail, {
       order_id: order._id,
     });
@@ -265,6 +286,7 @@ export const expireOrder = internalMutation({
         await ctx.db.patch(student._id, { annual_order_id: undefined });
     }
     await ctx.db.patch(order._id, { status: "canceled" });
+    await clearPaymentAttribution(ctx, order._id);
   },
 });
 

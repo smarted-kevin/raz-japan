@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { useAction, useQuery } from "convex/react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import {
+  captureCheckoutStarted,
+  checkoutAnalyticsContext,
+} from "~/lib/analytics";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { Button } from "~/components/ui/button";
@@ -20,6 +24,7 @@ import { dateDisplayFormat, formatYen } from "~/lib/formatters";
 
 export function AddMonthlySubscriptions() {
   const t = useTranslations("billing");
+  const locale = useLocale();
   const data = useQuery(api.billingStore.memberBilling);
   const canceled = useSearchParams().get("canceled");
   const saved = useQuery(
@@ -107,12 +112,14 @@ export function AddMonthlySubscriptions() {
     setError(false);
     try {
       const result = await checkout({
+        analytics: checkoutAnalyticsContext(locale),
         selections: entries.map(([student_id, course_id]) => ({
           student_id: student_id as Id<"student">,
           course_id: course_id as Id<"course">,
         })),
       });
       sessionStorage.setItem("monthly-checkout-batch", result.batch_id);
+      await captureCheckoutStarted(result.url, "monthly", locale);
       window.location.assign(result.url);
     } catch {
       setError(true);

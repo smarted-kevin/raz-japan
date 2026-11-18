@@ -16,9 +16,12 @@ import { useRouter } from "next/navigation";
 import { authClient } from "~/lib/auth-client";
 import { publicCtaYellowButtonClassName } from "~/lib/public-cta-styles";
 import { cn } from "~/lib/utils";
+import { useLocale } from "next-intl";
+import { captureAnalytics } from "~/lib/analytics";
 
 export default function SignUp() {
   const router = useRouter();
+  const locale = useLocale();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -45,6 +48,7 @@ export default function SignUp() {
           setLoading(true);
         },
         onSuccess: () => {
+          captureAnalytics({ name: "signup_completed" }, locale);
           toast.success("Account created successfully.");
           router.push("/dashboard/");
         },

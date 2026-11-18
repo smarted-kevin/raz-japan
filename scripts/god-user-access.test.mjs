@@ -104,6 +104,7 @@ const stripe = load('../convex/stripe.ts', {
   './_generated/api': { api: { queries: { users: { getUserById: 'target', getUserRoleByAuthId: 'caller' } } }, internal: {} },
   stripe: { default: class { constructor() { assert.fail('Unauthorized Stripe call'); } } },
   './lib/stripeBilling': { stripeClient: () => assert.fail('Unauthorized Stripe call') },
+  './lib/paymentAnalytics': loadBilling().load('lib/paymentAnalytics'),
   './lib/billing': loadBilling().load('lib/billing'),
 });
 test('admin profile edits reject god targets before any database or Stripe write', async () => {
